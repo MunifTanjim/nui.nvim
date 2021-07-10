@@ -26,7 +26,10 @@ local Window = require("nui.window")
 
 ```lua
 local window = Window:new({
-  border = "rounded",
+  border = {
+    style = "rounded",
+    highlight = "FloatBorder",
+  },
   position = "50%",
   size = {
     width = "80%",
@@ -38,15 +41,17 @@ local window = Window:new({
 
 **border**
 
-`border` can be one of the followings:
+`border` accepts a table with these keys: `style`, `highlight` and `text`.
 
-- Presets: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"` or `"solid"`
+`border.style` can be one of the followings:
+
+- Pre-defined style: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"` or `"solid"`
 - List (table) of characters starting from the top-left corner and then clockwise. For example:
-  ```
+  ```lua
   { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
   ```
 - Map (table) with named characters. For example:
-  ```
+  ```lua
   {
     top_left    = "╭", top    = "─", top_right     = "╮",
     left        = "│",               right         = "│"
@@ -54,12 +59,20 @@ local window = Window:new({
   }
   ```
 
-You can also include a highlight for each character separately, just pass table
-instead of string for those. For example: `{ "│", "FloatBorder" }`
+`border.highlight` can be a string denoting the highlight group name for the border characters.
 
-**border_highlight**
+`border.text` can be an table with its values denoting texts and keys denoting position for
+those texts. For example:
 
-`border_highlight` can be a string denoting the highlight group for the border characters.
+```lua
+{
+  top_left = "Window Title",
+  bottom_right = "Footnote",
+}
+```
+
+If you don't need all these options, you can also pass the value of `border.style` to `border`
+directly.
 
 **relative**
 
@@ -93,6 +106,11 @@ For percentage string, size is calculated according to the option `relative`
 
 `opacity` is a number between `0` (no transparency) and
 `1` (completely transparency).
+
+**zindex**
+
+`zindex` is a number used to order the position of windows on z-axis.
+Window with higher `zindex` goes on top of windows with lower `zindex`.
 
 ## License
 

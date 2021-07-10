@@ -19,8 +19,16 @@ function utils.defaults(v, default_value)
   return type(v) == "nil" and default_value or v
 end
 
----@param type_name "'number'" | "'string'" | "'boolean'" | "'table'" | "'function'" | "'thread'" | "'userdata'"
+---@param type_name "'nil'" | "'number'" | "'string'" | "'boolean'" | "'table'" | "'function'" | "'thread'" | "'userdata'" | "'list'" | '"map"'
 function utils.is_type(type_name, v)
+  if type_name == "list" then
+    return vim.tbl_islist(v)
+  end
+
+  if type_name == "map" then
+    return type(v) == "table" and not vim.tbl_islist(v)
+  end
+
   return type(v) == type_name
 end
 

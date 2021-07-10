@@ -89,6 +89,7 @@ local function calculate_window_position(position, size, container)
     local n = utils.parse_number_input(position)
     assert(n.value ~= nil, "invalid position")
     if n.is_percentage then
+      assert(container.relative ~= "cursor", "% position can not be used relative to cursor")
       row = math.floor((container.size.height - size.height) * n.value)
       col = math.floor((container.size.width - size.width) * n.value)
     else
@@ -149,27 +150,29 @@ function Window:new(opts)
   setmetatable(window, self)
   self.__index = self
 
-  local config = {
-    border = Border.create(opts.border, opts.border_highlight),
+  window.config = {
     style = "minimal",
     relative = "editor",
   }
 
   if is_type("table", opts.relative) then
-    config.relative = "win"
-    config.win = opts.relative.window_id or 0
+    window.config.relative = "win"
+    window.config.win = opts.relative.window_id or 0
   elseif is_type("string", opts.relative) then
-    config.relative = opts.relative
+    window.config.relative = opts.relative
   end
 
-  local container_info = get_container_info(config)
+  local container_info = get_container_info(window.config)
   window.size = calculate_window_size(opts.size, container_info)
   window.position = calculate_window_position(opts.position, window.size, container_info)
+  window.zindex = utils.defaults(opts.zindex, 50)
+  window.border = Border:new(window, opts.border)
 
-  config.width = window.size.width
-  config.height = window.size.height
-  config.row = window.position.row - 1
-  config.col = window.position.col - 1
+  window.config.width = window.size.width
+  window.config.height = window.size.height
+  window.config.row = window.position.row - 1
+  window.config.col = window.position.col - 1
+  window.config.border = window.border:get()
 
   local enter = utils.defaults(opts.enter, true)
   local winblend = calculate_winblend(utils.defaults(opts.opacity, 1))
@@ -177,12 +180,12 @@ function Window:new(opts)
   window.bufnr = opts.bufnr or vim.api.nvim_create_buf(false, true)
   assert(window.bufnr, "failed to create buffer")
 
-  window.id = vim.api.nvim_open_win(window.bufnr, enter, config)
-  assert(window.id, "failed to create window")
+  window.winid = vim.api.nvim_open_win(window.bufnr, enter, window.config)
+  assert(window.winid, "failed to create window")
 
-  vim.api.nvim_win_set_option(window.id, 'winblend', winblend)
+  vim.api.nvim_win_set_option(window.winid, 'winblend', winblend)
 
-  register_cleanup(window.bufnr, { window.id })
+  register_cleanup(window.bufnr, { window.winid, window.border.winid })
 
   return window
 end
