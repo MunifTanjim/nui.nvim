@@ -112,6 +112,22 @@ For percentage string, size is calculated according to the option `relative`
 `zindex` is a number used to order the position of windows on z-axis.
 Window with higher `zindex` goes on top of windows with lower `zindex`.
 
+#### window:on
+
+Listen on buffer events. Possible events are:
+`"lines"`, `"bytes"`, `"changedtick"`, `"detached"` and `"reload"`.
+
+For example:
+
+```lua
+window:on("lines", function(event_name, bufnr, changedtick, start_line, end_line)
+  local line = vim.api.nvim_buf_get_lines(bufnr, start_line, end_line, true)[1]
+  print(line)
+end)
+```
+
+For more information, check `:help nvim_buf_attach()`
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.

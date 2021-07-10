@@ -160,4 +160,37 @@ function Window:new(opts)
   return window
 end
 
+---@param event_name "'lines'" | "'bytes'" | "'changedtick'" | "'detach'" | "'reload'"
+function Window:on(event_name, handler)
+  if not self._event_handler then
+    self._event_handler = {}
+
+    local function event_handler(name, ...)
+      if self._event_handler[name] then
+        self._event_handler[name](name, ...)
+      end
+    end
+
+    vim.api.nvim_buf_attach(self.bufnr, false, {
+      on_lines = event_handler,
+      on_bytes = event_handler,
+      on_changedtick = event_handler,
+      on_detach = event_handler,
+      on_reload = event_handler,
+    })
+  end
+
+  if self._event_handler[event_name] then
+    return error(
+      string.format("handler already registered for event: %s", event_name)
+    )
+  end
+
+  if not is_type("function", handler) then
+    return error("handler must be function")
+  end
+
+  self._event_handler[event_name] = handler
+end
+
 return Window
