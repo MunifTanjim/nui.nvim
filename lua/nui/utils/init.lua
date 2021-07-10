@@ -36,7 +36,7 @@ end
 function utils.parse_number_input(v)
   local parsed = {}
 
-  parsed.is_percentage = type(v) == "string" and string.sub(v, -1) == "%" 
+  parsed.is_percentage = type(v) == "string" and string.sub(v, -1) == "%"
 
   if parsed.is_percentage then
     parsed.value = tonumber(string.sub(v, 1, #v - 1)) / 100

@@ -1,4 +1,5 @@
 local Border = require("nui.window.border")
+local cleanup = require("nui.window.cleanup")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
@@ -111,38 +112,7 @@ local function calculate_winblend(opacity)
   return 100 - (opacity * 100)
 end
 
-local Window = {
-  __related_winids_by_bufnr = {}
-}
-
-local function register_cleanup(bufnr, winids)
-  Window.__related_winids_by_bufnr[bufnr] = winids
-
-  vim.api.nvim_exec(
-    string.format(
-      "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once ++nested lua require('nui.window').do_cleanup(%s)",
-      bufnr,
-      bufnr
-    ),
-    false
-  )
-end
-
-function Window.do_cleanup(bufnr)
-  local winids = Window.__related_winids_by_bufnr[bufnr]
-
-  Window.__related_winids_by_bufnr[bufnr] = nil
-
-  if not utils.is_type("table", winids) then
-    return
-  end
-
-  for _, winid in ipairs(winids) do
-    if vim.api.nvim_win_is_valid(winid) then
-      vim.api.nvim_win_close(winid, true)
-    end
-  end
-end
+local Window = {}
 
 function Window:new(opts)
   local window = {}
@@ -185,7 +155,7 @@ function Window:new(opts)
 
   vim.api.nvim_win_set_option(window.winid, 'winblend', winblend)
 
-  register_cleanup(window.bufnr, { window.winid, window.border.winid })
+  cleanup.register(window.bufnr, { window.winid, window.border.winid })
 
   return window
 end
