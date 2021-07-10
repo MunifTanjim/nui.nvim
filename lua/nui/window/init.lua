@@ -13,12 +13,12 @@ local function get_container_info(config)
     }
   end
 
-  local window_id = config.win
+  local winid = config.win
 
   if relative == "cursor" or relative == "win" then
     return {
       relative = relative,
-      size = utils.get_window_size(window_id),
+      size = utils.get_window_size(winid),
       type = "window",
     }
   end
@@ -112,11 +112,11 @@ local function calculate_winblend(opacity)
 end
 
 local Window = {
-  __related_window_ids_by_bufnr = {}
+  __related_winids_by_bufnr = {}
 }
 
-local function register_cleanup(bufnr, window_ids)
-  Window.__related_window_ids_by_bufnr[bufnr] = window_ids
+local function register_cleanup(bufnr, winids)
+  Window.__related_winids_by_bufnr[bufnr] = winids
 
   vim.api.nvim_exec(
     string.format(
@@ -129,17 +129,17 @@ local function register_cleanup(bufnr, window_ids)
 end
 
 function Window.do_cleanup(bufnr)
-  local window_ids = Window.__related_window_ids_by_bufnr[bufnr]
+  local winids = Window.__related_winids_by_bufnr[bufnr]
 
-  Window.__related_window_ids_by_bufnr[bufnr] = nil
+  Window.__related_winids_by_bufnr[bufnr] = nil
 
-  if not utils.is_type("table", window_ids) then
+  if not utils.is_type("table", winids) then
     return
   end
 
-  for _, win_id in ipairs(window_ids) do
-    if vim.api.nvim_win_is_valid(win_id) then
-      vim.api.nvim_win_close(win_id, true)
+  for _, winid in ipairs(winids) do
+    if vim.api.nvim_win_is_valid(winid) then
+      vim.api.nvim_win_close(winid, true)
     end
   end
 end
@@ -157,7 +157,7 @@ function Window:new(opts)
 
   if is_type("table", opts.relative) then
     window.config.relative = "win"
-    window.config.win = opts.relative.window_id or 0
+    window.config.win = opts.relative.winid or 0
   elseif is_type("string", opts.relative) then
     window.config.relative = opts.relative
   end

@@ -7,11 +7,11 @@ function utils.get_editor_size()
   }
 end
 
-function utils.get_window_size(window_id)
-  window_id = window_id or 0
+function utils.get_window_size(winid)
+  winid = winid or 0
   return {
-    width = vim.api.nvim_win_get_width(window_id),
-    height = vim.api.nvim_win_get_height(window_id),
+    width = vim.api.nvim_win_get_width(winid),
+    height = vim.api.nvim_win_get_height(winid),
   }
 end
 

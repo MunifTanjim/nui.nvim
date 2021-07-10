@@ -78,12 +78,12 @@ directly.
 
 This option affects how `position` and `size` is calculated.
 
-| Value                         | Description                              |
-| ----------------------------- | ---------------------------------------- |
-| `"cursor"`                    | relative to cursor on current window     |
-| `"editor"` (_default_)        | relative to current editor screen        |
-| `"win"` or `{}`               | relative to current window               |
-| `{ window_id = <window-id> }` | relative to window with id `<window-id>` |
+| Value                  | Description                          |
+| ---------------------- | ------------------------------------ |
+| `"cursor"`             | relative to cursor on current window |
+| `"editor"` (_default_) | relative to current editor screen    |
+| `"win"` or `{}`        | relative to current window           |
+| `{ winid = <winid> }`  | relative to window with id `<winid>` |
 
 **position**
 
