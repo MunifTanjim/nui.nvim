@@ -116,15 +116,20 @@ end
 local Window = {}
 
 function Window:new(opts)
-  local window = {}
+  local window = {
+    bufnr = opts.bufnr,
+    config = {
+      style = "minimal",
+      relative = "editor",
+    },
+    option = {
+      enter = utils.defaults(opts.enter, true),
+      winblend = calculate_winblend(utils.defaults(opts.opacity, 1))
+    }
+  }
 
   setmetatable(window, self)
   self.__index = self
-
-  window.config = {
-    style = "minimal",
-    relative = "editor",
-  }
 
   if is_type("table", opts.relative) then
     window.config.relative = "win"
@@ -145,24 +150,31 @@ function Window:new(opts)
   window.config.col = window.position.col
   window.config.border = window.border:get()
 
-  local enter = utils.defaults(opts.enter, true)
-  local winblend = calculate_winblend(utils.defaults(opts.opacity, 1))
-
-  window.bufnr = opts.bufnr or vim.api.nvim_create_buf(false, true)
-  assert(window.bufnr, "failed to create buffer")
-
-  window.winid = vim.api.nvim_open_win(window.bufnr, enter, window.config)
-  assert(window.winid, "failed to create window")
-
-  vim.api.nvim_win_set_option(window.winid, 'winblend', winblend)
-
-  cleanup.register(window.bufnr, { window.winid, window.border.winid })
-
   return window
+end
+
+function Window:render()
+  self.border:render()
+
+  if not self.bufnr then
+    self.bufnr = vim.api.nvim_create_buf(false, true)
+    assert(self.bufnr, "failed to create buffer")
+  end
+
+  self.winid = vim.api.nvim_open_win(self.bufnr, self.option.enter, self.config)
+  assert(self.winid, "failed to create window")
+
+  vim.api.nvim_win_set_option(self.winid, 'winblend', self.option.winblend)
+
+  cleanup.register(self.bufnr, { self.winid, self.border.winid })
 end
 
 ---@param event_name "'lines'" | "'bytes'" | "'changedtick'" | "'detach'" | "'reload'"
 function Window:on(event_name, handler)
+  if not self.bufnr then
+    error("window is not rendered yet. call window:render()")
+  end
+
   if not self._event_handler then
     self._event_handler = {}
 
@@ -203,6 +215,10 @@ end
 ---@param force boolean
 ---@return boolean ok
 function Window:map(mode, key, handler, opts, force)
+  if not self.bufnr then
+    error("window is not rendered yet. call window:render()")
+  end
+
   return keymaps.set(self.bufnr, mode, key, handler, opts, force)
 end
 

@@ -75,90 +75,8 @@ local function parse_border_text(text)
   return o
 end
 
-local styles = {
-  double  = to_border_map({ "╔", "═", "╗", "║", "╝", "═", "╚", "║" }),
-  none    = "none",
-  rounded = to_border_map({ "╭", "─", "╮", "│", "╯", "─", "╰", "│" }),
-  shadow  = "shadow",
-  single  = to_border_map({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }),
-  solid   = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
-}
-
-local Border = {}
-
-function Border:new(window, definition)
-  if is_type("string", definition) then
-    definition = {
-      style = definition
-    }
-  end
-
-  local border = {
-    window = window,
-    type = "simple",
-    style = defaults(definition.style, "rounded"),
-    highlight = defaults(definition.highlight, "FloatBorder")
-  }
-
-  setmetatable(border, self)
-  self.__index = self
-
-  local style = border.style
-
-  if is_type("list", style) then
-    border.map = to_border_map(style)
-  elseif is_type("string", style) then
-    if not styles[style] then
-      error("invalid border style name")
-    end
-
-    border.map = styles[style]
-  end
-
-  if is_type("string", border.map) then
-    return border
-  end
-
-  border.text = parse_border_text(definition.text)
-
-  if (border.text.count.top + border.text.count.bottom) > 0 then
-    border.type = "complex"
-  end
-
-  if border.type == "complex" then
-    border.size = vim.deepcopy(border.window.size)
-    border.position = vim.deepcopy(border.window.position)
-
-    if border.text.count.top > 0 or border.map.top ~= "" then
-      border.size.height = border.size.height + 1
-      border.window.position.row = border.window.position.row + 1
-    end
-
-    if border.text.count.bottom > 0 or border.map.bottom ~= "" then
-      border.size.height = border.size.height + 1
-    end
-
-    if border.map.left ~= "" then
-      border.size.width = border.size.width + 1
-      border.window.position.col = border.window.position.col + 1
-    end
-
-    if border.map.right ~= "" then
-      border.size.width = border.size.width + 1
-    end
-  end
-
-  return border
-end
-
-function Border:draw()
-  if self.type == "simple" then
-    return
-  end
-
-  local size = self.size
-  local position = self.position
-  local text = self.text
+local function calculate_buf_lines(border)
+  local char, position, size, text = border.char, border.position, border.size, border.text
 
   local edge_line = {
     top = "",
@@ -195,37 +113,130 @@ function Border:draw()
 
       local gap_length = (
         width - vim.fn.strchars(
-          parts[edge][edge .. "_left"] .. parts[edge][edge] .. parts[edge][edge .. "_right"], tru
+          parts[edge][edge .. "_left"] .. parts[edge][edge] .. parts[edge][edge .. "_right"], true
         )
       ) / 2
 
       edge_line[edge] = string.format(
         "%s%s%s%s%s",
         parts[edge][edge .. "_left"],
-        string.rep(self.map.top, math.floor(gap_length)),
+        string.rep(char.top, math.floor(gap_length)),
         parts[edge][edge],
-        string.rep(self.map.top, math.ceil(gap_length)),
+        string.rep(char.top, math.ceil(gap_length)),
         parts[edge][edge .. "_right"]
       )
     else
-      edge_line[edge] = string.rep(self.map[edge], size.width - 2)
+      edge_line[edge] = string.rep(char[edge], size.width - 2)
     end
   end
 
-  local middle_line = string.format("%s%s%s", self.map.left, string.rep(" ", size.width - 2), self.map.right)
+  local middle_line = string.format(
+    "%s%s%s",
+    char.left,
+    string.rep(" ", size.width - 2),
+    char.right
+  )
 
   local lines = {}
 
-  table.insert(lines, string.format("%s%s%s", self.map.top_left, edge_line.top, self.map.top_right))
+  table.insert(lines, string.format("%s%s%s", char.top_left, edge_line.top, char.top_right))
   for _ = 1, size.height - 2 do
     table.insert(lines, middle_line)
   end
-  table.insert(lines, string.format("%s%s%s", self.map.bottom_left, edge_line.bottom, self.map.bottom_right))
+  table.insert(lines, string.format("%s%s%s", char.bottom_left, edge_line.bottom, char.bottom_right))
+
+  return lines
+end
+
+local styles = {
+  double  = to_border_map({ "╔", "═", "╗", "║", "╝", "═", "╚", "║" }),
+  none    = "none",
+  rounded = to_border_map({ "╭", "─", "╮", "│", "╯", "─", "╰", "│" }),
+  shadow  = "shadow",
+  single  = to_border_map({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }),
+  solid   = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
+}
+
+local Border = {}
+
+function Border:new(window, opts)
+  if is_type("string", opts) then
+    opts = {
+      style = opts
+    }
+  end
+
+  local border = {
+    window = window,
+    type = "simple",
+    style = defaults(opts.style, "rounded"),
+    highlight = defaults(opts.highlight, "FloatBorder")
+  }
+
+  setmetatable(border, self)
+  self.__index = self
+
+  local style = border.style
+
+  if is_type("list", style) then
+    border.char = to_border_map(style)
+  elseif is_type("string", style) then
+    if not styles[style] then
+      error("invalid border style name")
+    end
+
+    border.char = styles[style]
+  end
+
+  if is_type("string", border.char) then
+    return border
+  end
+
+  border.text = parse_border_text(opts.text)
+
+  if (border.text.count.top + border.text.count.bottom) > 0 then
+    border.type = "complex"
+  end
+
+  if border.type == "complex" then
+    border.size = vim.deepcopy(border.window.size)
+    border.position = vim.deepcopy(border.window.position)
+
+    if border.text.count.top > 0 or border.char.top ~= "" then
+      border.size.height = border.size.height + 1
+      border.window.position.row = border.window.position.row + 1
+    end
+
+    if border.text.count.bottom > 0 or border.char.bottom ~= "" then
+      border.size.height = border.size.height + 1
+    end
+
+    if border.char.left ~= "" then
+      border.size.width = border.size.width + 1
+      border.window.position.col = border.window.position.col + 1
+    end
+
+    if border.char.right ~= "" then
+      border.size.width = border.size.width + 1
+    end
+
+    border.buf_lines = calculate_buf_lines(border)
+  end
+
+  return border
+end
+
+function Border:render()
+  if self.type == "simple" then
+    return
+  end
+
+  local size, position = self.size, self.position
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create border buffer")
 
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height - 2, false, lines)
+  vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height - 2, false, self.buf_lines)
 
   self.winid = vim.api.nvim_open_win(self.bufnr, false, {
     style = "minimal",
@@ -245,18 +256,16 @@ end
 
 function Border:get()
   if self.type == "simple" then
-    if is_type("string", self.map) then
-      return self.map
+    if is_type("string", self.char) then
+      return self.char
     end
 
-    for position, item in pairs(self.map) do
-      self.map[position] = { item, self.highlight }
+    for position, item in pairs(self.char) do
+      self.char[position] = { item, self.highlight }
     end
 
-    return to_border_list(self.map)
+    return to_border_list(self.char)
   end
-
-  self:draw()
 
   return nil
 end

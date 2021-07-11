@@ -24,6 +24,8 @@ local Window = require("nui.window")
 
 #### Window:new
 
+Creates a new window object (but does not render it immediately).
+
 ```lua
 local window = Window:new({
   border = {
@@ -111,6 +113,14 @@ For percentage string, size is calculated according to the option `relative`
 
 `zindex` is a number used to order the position of windows on z-axis.
 Window with higher `zindex` goes on top of windows with lower `zindex`.
+
+#### window:render()
+
+Renders the window.
+
+```lua
+window:render()
+```
 
 #### window:on
 
