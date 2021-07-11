@@ -169,6 +169,12 @@ function Window:render()
   cleanup.register(self.bufnr, { self.winid, self.border.winid })
 end
 
+function Window:destroy()
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  end
+end
+
 ---@param event_name "'lines'" | "'bytes'" | "'changedtick'" | "'detach'" | "'reload'"
 function Window:on(event_name, handler)
   if not self.bufnr then

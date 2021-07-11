@@ -122,6 +122,14 @@ Renders the window.
 window:render()
 ```
 
+#### window:destroy()
+
+Destroys the window.
+
+```lua
+window:destroy()
+```
+
 #### window:on
 
 Listen on buffer events. Possible events are:
