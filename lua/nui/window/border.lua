@@ -234,8 +234,8 @@ function Border:draw()
     focusable = false,
     width = size.width,
     height = size.height,
-    row = position.row - 1,
-    col = position.col - 1,
+    row = position.row,
+    col = position.col,
     zindex = self.window.zindex - 1,
   })
   assert(self.winid, "failed to create border window")

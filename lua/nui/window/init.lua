@@ -141,8 +141,8 @@ function Window:new(opts)
 
   window.config.width = window.size.width
   window.config.height = window.size.height
-  window.config.row = window.position.row - 1
-  window.config.col = window.position.col - 1
+  window.config.row = window.position.row
+  window.config.col = window.position.col
   window.config.border = window.border:get()
 
   local enter = utils.defaults(opts.enter, true)
