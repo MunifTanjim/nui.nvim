@@ -128,6 +128,19 @@ end)
 
 For more information, check `:help nvim_buf_attach()`
 
+#### window:map(mode, key, handler, opts, force)
+
+Sets keymap for this window. If keymap was already set and `force` is not `true`
+returns `false`, otherwise returns `true`.
+
+For example:
+
+```lua
+local ok = win:map("n", "<esc>", function(bufnr)
+  print("ESC pressed in Normal mode!")
+end, { noremap = true })
+```
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.

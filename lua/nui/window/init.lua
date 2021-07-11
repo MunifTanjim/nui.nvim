@@ -1,5 +1,6 @@
 local Border = require("nui.window.border")
 local cleanup = require("nui.window.cleanup")
+local keymaps = require("nui.window.keymaps")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
@@ -191,6 +192,18 @@ function Window:on(event_name, handler)
   end
 
   self._event_handler[event_name] = handler
+end
+
+-- set keymap for this window. if keymap was already set and
+-- `force` is not `true` returns `false`, otherwise returns `true`
+---@param mode "'i'" | "'n'"
+---@param key string
+---@param handler any
+---@param opts table<"'expr'" | "'noremap'" | "'nowait'" | "'script'" | "'silent'" | "'unique'", boolean>
+---@param force boolean
+---@return boolean ok
+function Window:map(mode, key, handler, opts, force)
+  return keymaps.set(self.bufnr, mode, key, handler, opts, force)
 end
 
 return Window

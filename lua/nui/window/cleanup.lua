@@ -1,4 +1,5 @@
 local is_type = require("nui.utils").is_type
+local keymaps = require("nui.window.keymaps")
 
 local cleanup = {
   __winids_by_bufnr = {},
@@ -6,6 +7,8 @@ local cleanup = {
 
 function cleanup.register(bufnr, winids)
   cleanup.__winids_by_bufnr[bufnr] = winids
+
+  keymaps.register_cleanup(bufnr)
 
   vim.api.nvim_exec(
     string.format(
