@@ -247,7 +247,7 @@ function Border:mount()
     height = size.height,
     row = position.row,
     col = position.col,
-    zindex = self.window.zindex - 1,
+    zindex = self.window.config.zindex - 1,
   })
   assert(self.winid, "failed to create border window")
 

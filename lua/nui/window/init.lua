@@ -121,6 +121,7 @@ function Window:new(opts)
       _enter = utils.defaults(opts.enter, false),
       relative = "editor",
       style = "minimal",
+      zindex = utils.defaults(opts.zindex, 50),
     },
     options = {
       winblend = calculate_winblend(utils.defaults(opts.opacity, 1)),
@@ -141,7 +142,6 @@ function Window:new(opts)
   local container_info = get_container_info(window.config)
   window.size = calculate_window_size(opts.size, container_info)
   window.position = calculate_window_position(opts.position, window.size, container_info)
-  window.zindex = utils.defaults(opts.zindex, 50)
   window.border = Border:new(window, opts.border)
 
   window.config.width = window.size.width
