@@ -80,12 +80,12 @@ directly.
 
 This option affects how `position` and `size` is calculated.
 
-| Value                  | Description                          |
-| ---------------------- | ------------------------------------ |
-| `"cursor"`             | relative to cursor on current window |
-| `"editor"` (_default_) | relative to current editor screen    |
-| `"win"` or `{}`        | relative to current window           |
-| `{ winid = <winid> }`  | relative to window with id `<winid>` |
+| Value               | Description                          |
+| ------------------- | ------------------------------------ |
+| `"buf"`             | relative to buffer on current window |
+| `"cursor"`          | relative to cursor on current window |
+| `"editor"`          | relative to current editor screen    |
+| `"win"` (_default_) | relative to current window           |
 
 **position**
 
@@ -94,7 +94,7 @@ Or you can pass a table to set them separately.
 Position is calculated from the top-left corner.
 
 For percentage string, position is calculated according to the option `relative`
-(if `relative` is set to `"cursor"`, percentage string is not allowed).
+(if `relative` is set to `"buf"` or `"cursor"`, percentage string is not allowed).
 
 **size**
 
@@ -102,7 +102,7 @@ If `size` is number or percentage string, it applies to both width and height.
 Or you can pass a table to set them separately.
 
 For percentage string, size is calculated according to the option `relative`
-(if `relative` is set to `"cursor"`, window size is considered).
+(if `relative` is set to `"buf"` or `"cursor"`, window size is considered).
 
 **enter**
 

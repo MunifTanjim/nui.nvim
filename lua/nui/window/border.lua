@@ -245,6 +245,7 @@ function Border:mount()
     focusable = false,
     width = size.width,
     height = size.height,
+    bufpos = self.window.config.bufpos,
     row = position.row,
     col = position.col,
     zindex = self.window.config.zindex - 1,

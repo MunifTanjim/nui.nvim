@@ -15,12 +15,10 @@ local function get_container_info(config)
     }
   end
 
-  local winid = config.win
-
   if relative == "cursor" or relative == "win" then
     return {
-      relative = relative,
-      size = utils.get_window_size(winid),
+      relative = config.bufpos and "buf" or relative,
+      size = utils.get_window_size(),
       type = "window",
     }
   end
@@ -68,11 +66,14 @@ local function calculate_window_position(position, size, container)
   local row
   local col
 
+  local is_percentage_allowed = not vim.tbl_contains({ "buf", "cursor" }, container.relative)
+  local percentage_error = string.format("position %% can not be used relative to %s", container.relative)
+
   if is_type("table", position) then
     local r = utils.parse_number_input(position.row)
     assert(r.value ~= nil, "invalid position.row")
     if r.is_percentage then
-      assert(container.relative ~= "cursor", "% position can not be used relative to cursor")
+      assert(is_percentage_allowed, percentage_error)
       row = math.floor((container.size.height - size.height) * r.value)
     else
       row = r.value
@@ -81,7 +82,7 @@ local function calculate_window_position(position, size, container)
     local c = utils.parse_number_input(position.col)
     assert(c.value ~= nil, "invalid position.col")
     if c.is_percentage then
-      assert(container.relative ~= "cursor", "% position can not be used relative to cursor")
+      assert(is_percentage_allowed, percentage_error)
       col = math.floor((container.size.width - size.width) * c.value)
     else
       col = c.value
@@ -90,7 +91,7 @@ local function calculate_window_position(position, size, container)
     local n = utils.parse_number_input(position)
     assert(n.value ~= nil, "invalid position")
     if n.is_percentage then
-      assert(container.relative ~= "cursor", "% position can not be used relative to cursor")
+      assert(is_percentage_allowed, percentage_error)
       row = math.floor((container.size.height - size.height) * n.value)
       col = math.floor((container.size.width - size.width) * n.value)
     else
@@ -119,7 +120,7 @@ function Window:new(opts)
     bufnr = opts.bufnr,
     config = {
       _enter = utils.defaults(opts.enter, false),
-      relative = "editor",
+      relative = "win",
       style = "minimal",
       zindex = utils.defaults(opts.zindex, 50),
     },
@@ -132,11 +133,13 @@ function Window:new(opts)
   setmetatable(window, self)
   self.__index = self
 
-  if is_type("table", opts.relative) then
-    window.config.relative = "win"
-    window.config.win = opts.relative.winid or 0
-  elseif is_type("string", opts.relative) then
-    window.config.relative = opts.relative
+  if is_type("string", opts.relative) then
+    if opts.relative == "buf" then
+      window.config.relative = "win"
+      window.config.bufpos = { 0, 0 }
+    else
+      window.config.relative = opts.relative
+    end
   end
 
   local container_info = get_container_info(window.config)
