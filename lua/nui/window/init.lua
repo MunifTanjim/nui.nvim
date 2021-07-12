@@ -26,7 +26,6 @@ local function get_container_info(config)
   end
 end
 
-
 local function calculate_window_size(size, container)
   local width
   local height
@@ -176,7 +175,7 @@ function Window:mount()
   cleanup.register(self.bufnr, { self.winid, self.border.winid })
 end
 
-function Window:destroy()
+function Window:unmount()
   if vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end

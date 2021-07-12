@@ -132,12 +132,12 @@ Mounts the window.
 window:mount()
 ```
 
-#### window:destroy()
+#### window:unmount()
 
-Destroys the window.
+Unmounts the window.
 
 ```lua
-window:destroy()
+window:unmount()
 ```
 
 #### window:on
