@@ -122,10 +122,11 @@ function Window:new(opts)
       style = "minimal",
       relative = "editor",
     },
-    option = {
-      enter = utils.defaults(opts.enter, true),
-      winblend = calculate_winblend(utils.defaults(opts.opacity, 1))
-    }
+    options = {
+      _enter = utils.defaults(opts.enter, true),
+      winblend = calculate_winblend(utils.defaults(opts.opacity, 1)),
+      winhighlight = opts.highlight,
+    },
   }
 
   setmetatable(window, self)
@@ -161,10 +162,16 @@ function Window:render()
     assert(self.bufnr, "failed to create buffer")
   end
 
-  self.winid = vim.api.nvim_open_win(self.bufnr, self.option.enter, self.config)
+  local enter = self.options._enter
+  self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.config)
   assert(self.winid, "failed to create window")
 
-  vim.api.nvim_win_set_option(self.winid, 'winblend', self.option.winblend)
+  self.options._enter = nil
+  for name, value in pairs(self.options) do
+    if not is_type("nil", value) then
+      vim.api.nvim_win_set_option(self.winid, name, value)
+    end
+  end
 
   cleanup.register(self.bufnr, { self.winid, self.border.winid })
 end

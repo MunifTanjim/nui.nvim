@@ -104,6 +104,12 @@ Or you can pass a table to set them separately.
 For percentage string, size is calculated according to the option `relative`
 (if `relative` is set to `"cursor"`, window size is considered).
 
+**highlight**
+
+Set highlight groups for the window. For example: `Normal:Normal`.
+
+For more information, check `:help winhighlight`
+
 **opacity**
 
 `opacity` is a number between `0` (no transparency) and
