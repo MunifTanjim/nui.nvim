@@ -226,7 +226,7 @@ function Border:new(window, opts)
   return border
 end
 
-function Border:render()
+function Border:mount()
   if self.type == "simple" then
     return
   end

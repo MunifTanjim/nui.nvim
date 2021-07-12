@@ -24,7 +24,7 @@ local Window = require("nui.window")
 
 #### Window:new
 
-Creates a new window object (but does not render it immediately).
+Creates a new window object (but does not mount it immediately).
 
 ```lua
 local window = Window:new({
@@ -106,7 +106,7 @@ For percentage string, size is calculated according to the option `relative`
 
 **enter**
 
-If `enter` is `true`, the window is entered immediately after render.
+If `enter` is `true`, the window is entered immediately after mount.
 
 **highlight**
 
@@ -124,12 +124,12 @@ For more information, check `:help winhighlight`
 `zindex` is a number used to order the position of windows on z-axis.
 Window with higher `zindex` goes on top of windows with lower `zindex`.
 
-#### window:render()
+#### window:mount()
 
-Renders the window.
+Mounts the window.
 
 ```lua
-window:render()
+window:mount()
 ```
 
 #### window:destroy()

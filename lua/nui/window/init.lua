@@ -154,8 +154,8 @@ function Window:new(opts)
   return window
 end
 
-function Window:render()
-  self.border:render()
+function Window:mount()
+  self.border:mount()
 
   if not self.bufnr then
     self.bufnr = vim.api.nvim_create_buf(false, true)
@@ -185,7 +185,7 @@ end
 ---@param event_name "'lines'" | "'bytes'" | "'changedtick'" | "'detach'" | "'reload'"
 function Window:on(event_name, handler)
   if not self.bufnr then
-    error("window is not rendered yet. call window:render()")
+    error("window is not mounted yet. call window:mount()")
   end
 
   if not self._event_handler then
@@ -229,7 +229,7 @@ end
 ---@return boolean ok
 function Window:map(mode, key, handler, opts, force)
   if not self.bufnr then
-    error("window is not rendered yet. call window:render()")
+    error("window is not mounted yet. call window:mount()")
   end
 
   return keymaps.set(self.bufnr, mode, key, handler, opts, force)
