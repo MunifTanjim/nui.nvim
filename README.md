@@ -104,6 +104,10 @@ Or you can pass a table to set them separately.
 For percentage string, size is calculated according to the option `relative`
 (if `relative` is set to `"cursor"`, window size is considered).
 
+**enter**
+
+If `enter` is `true`, the window is entered immediately after render.
+
 **highlight**
 
 Set highlight groups for the window. For example: `Normal:Normal`.

@@ -119,11 +119,11 @@ function Window:new(opts)
   local window = {
     bufnr = opts.bufnr,
     config = {
-      style = "minimal",
+      _enter = utils.defaults(opts.enter, false),
       relative = "editor",
+      style = "minimal",
     },
     options = {
-      _enter = utils.defaults(opts.enter, true),
       winblend = calculate_winblend(utils.defaults(opts.opacity, 1)),
       winhighlight = opts.highlight,
     },
@@ -162,11 +162,11 @@ function Window:render()
     assert(self.bufnr, "failed to create buffer")
   end
 
-  local enter = self.options._enter
+  local enter = self.config._enter
+  self.config._enter = nil
   self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.config)
   assert(self.winid, "failed to create window")
 
-  self.options._enter = nil
   for name, value in pairs(self.options) do
     if not is_type("nil", value) then
       vim.api.nvim_win_set_option(self.winid, name, value)
