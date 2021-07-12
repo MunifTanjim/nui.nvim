@@ -169,7 +169,7 @@ function Border:new(window, opts)
   local border = {
     window = window,
     type = "simple",
-    style = defaults(opts.style, "rounded"),
+    style = defaults(opts.style, "none"),
     highlight = defaults(opts.highlight, "FloatBorder")
   }
 
