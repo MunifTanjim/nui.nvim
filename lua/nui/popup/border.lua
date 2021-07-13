@@ -159,7 +159,7 @@ local styles = {
 
 local Border = {}
 
-function Border:new(window, opts)
+function Border:new(popup, opts)
   if is_type("string", opts) then
     opts = {
       style = opts
@@ -167,7 +167,7 @@ function Border:new(window, opts)
   end
 
   local border = {
-    window = window,
+    popup = popup,
     type = "simple",
     style = defaults(opts.style, "none"),
     highlight = defaults(opts.highlight, "FloatBorder")
@@ -199,12 +199,12 @@ function Border:new(window, opts)
   end
 
   if border.type == "complex" then
-    border.size = vim.deepcopy(border.window.size)
-    border.position = vim.deepcopy(border.window.position)
+    border.size = vim.deepcopy(border.popup.size)
+    border.position = vim.deepcopy(border.popup.position)
 
     if border.text.count.top > 0 or border.char.top ~= "" then
       border.size.height = border.size.height + 1
-      border.window.position.row = border.window.position.row + 1
+      border.popup.position.row = border.popup.position.row + 1
     end
 
     if border.text.count.bottom > 0 or border.char.bottom ~= "" then
@@ -213,7 +213,7 @@ function Border:new(window, opts)
 
     if border.char.left ~= "" then
       border.size.width = border.size.width + 1
-      border.window.position.col = border.window.position.col + 1
+      border.popup.position.col = border.popup.position.col + 1
     end
 
     if border.char.right ~= "" then
@@ -240,15 +240,15 @@ function Border:mount()
 
   self.winid = vim.api.nvim_open_win(self.bufnr, false, {
     style = "minimal",
-    relative = self.window.config.relative,
+    relative = self.popup.config.relative,
     border = "none",
     focusable = false,
     width = size.width,
     height = size.height,
-    bufpos = self.window.config.bufpos,
+    bufpos = self.popup.config.bufpos,
     row = position.row,
     col = position.col,
-    zindex = self.window.config.zindex - 1,
+    zindex = self.popup.config.zindex - 1,
   })
   assert(self.winid, "failed to create border window")
 

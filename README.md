@@ -16,18 +16,20 @@ Plug 'MunifTanjim/nui.nvim'
 
 ## Usage
 
-### Window
+### Popup
+
+Popup is an abstraction layer on top of window.
 
 ```lua
-local Window = require("nui.window")
+local Popup = require("nui.popup")
 ```
 
-#### Window:new
+#### Popup:new(opts)
 
-Creates a new window object (but does not mount it immediately).
+Creates a new popup object (but does not mount it immediately).
 
 ```lua
-local window = Window:new({
+local popup = Popup:new({
   border = {
     style = "rounded",
     highlight = "FloatBorder",
@@ -68,7 +70,7 @@ those texts. For example:
 
 ```lua
 {
-  top_left = "Window Title",
+  top_left = "Popup Title",
   bottom_right = "Footnote",
 }
 ```
@@ -106,11 +108,11 @@ For percentage string, size is calculated according to the option `relative`
 
 **enter**
 
-If `enter` is `true`, the window is entered immediately after mount.
+If `enter` is `true`, the popup is entered immediately after mount.
 
 **highlight**
 
-Set highlight groups for the window. For example: `Normal:Normal`.
+Set highlight groups for the popup. For example: `Normal:Normal`.
 
 For more information, check `:help winhighlight`
 
@@ -121,26 +123,26 @@ For more information, check `:help winhighlight`
 
 **zindex**
 
-`zindex` is a number used to order the position of windows on z-axis.
-Window with higher `zindex` goes on top of windows with lower `zindex`.
+`zindex` is a number used to order the position of popups on z-axis.
+Popup with higher `zindex` goes on top of popups with lower `zindex`.
 
-#### window:mount()
+#### popup:mount()
 
-Mounts the window.
-
-```lua
-window:mount()
-```
-
-#### window:unmount()
-
-Unmounts the window.
+Mounts the popup.
 
 ```lua
-window:unmount()
+popup:mount()
 ```
 
-#### window:on
+#### popup:unmount()
+
+Unmounts the popup.
+
+```lua
+popup:unmount()
+```
+
+#### popup:on(event_name, handler)
 
 Listen on buffer events. Possible events are:
 `"lines"`, `"bytes"`, `"changedtick"`, `"detached"` and `"reload"`.
@@ -148,7 +150,7 @@ Listen on buffer events. Possible events are:
 For example:
 
 ```lua
-window:on("lines", function(event_name, bufnr, changedtick, start_line, end_line)
+popup:on("lines", function(event_name, bufnr, changedtick, start_line, end_line)
   local line = vim.api.nvim_buf_get_lines(bufnr, start_line, end_line, true)[1]
   print(line)
 end)
@@ -156,15 +158,15 @@ end)
 
 For more information, check `:help nvim_buf_attach()`
 
-#### window:map(mode, key, handler, opts, force)
+#### popup:map(mode, key, handler, opts, force)
 
-Sets keymap for this window. If keymap was already set and `force` is not `true`
+Sets keymap for this popup. If keymap was already set and `force` is not `true`
 returns `false`, otherwise returns `true`.
 
 For example:
 
 ```lua
-local ok = win:map("n", "<esc>", function(bufnr)
+local ok = popup:map("n", "<esc>", function(bufnr)
   print("ESC pressed in Normal mode!")
 end, { noremap = true })
 ```

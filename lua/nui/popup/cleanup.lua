@@ -1,5 +1,5 @@
 local is_type = require("nui.utils").is_type
-local keymaps = require("nui.window.keymaps")
+local keymaps = require("nui.popup.keymaps")
 
 local cleanup = {
   __winids_by_bufnr = {},
@@ -12,7 +12,7 @@ function cleanup.register(bufnr, winids)
 
   vim.api.nvim_exec(
     string.format(
-      "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once ++nested lua require('nui.window.cleanup').run(%s)",
+      "autocmd WinLeave,BufLeave,BufDelete <buffer=%s> ++once ++nested lua require('nui.popup.cleanup').run(%s)",
       bufnr,
       bufnr
     ),

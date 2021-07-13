@@ -1,6 +1,6 @@
-local Border = require("nui.window.border")
-local cleanup = require("nui.window.cleanup")
-local keymaps = require("nui.window.keymaps")
+local Border = require("nui.popup.border")
+local cleanup = require("nui.popup.cleanup")
+local keymaps = require("nui.popup.keymaps")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
@@ -113,10 +113,10 @@ local function calculate_winblend(opacity)
   return 100 - (opacity * 100)
 end
 
-local Window = {}
+local Popup = {}
 
-function Window:new(opts)
-  local window = {
+function Popup:new(opts)
+  local popup = {
     bufnr = opts.bufnr,
     config = {
       _enter = utils.defaults(opts.enter, false),
@@ -130,33 +130,33 @@ function Window:new(opts)
     },
   }
 
-  setmetatable(window, self)
+  setmetatable(popup, self)
   self.__index = self
 
   if is_type("string", opts.relative) then
     if opts.relative == "buf" then
-      window.config.relative = "win"
-      window.config.bufpos = { 0, 0 }
+      popup.config.relative = "win"
+      popup.config.bufpos = { 0, 0 }
     else
-      window.config.relative = opts.relative
+      popup.config.relative = opts.relative
     end
   end
 
-  local container_info = get_container_info(window.config)
-  window.size = calculate_window_size(opts.size, container_info)
-  window.position = calculate_window_position(opts.position, window.size, container_info)
-  window.border = Border:new(window, opts.border)
+  local container_info = get_container_info(popup.config)
+  popup.size = calculate_window_size(opts.size, container_info)
+  popup.position = calculate_window_position(opts.position, popup.size, container_info)
+  popup.border = Border:new(popup, opts.border)
 
-  window.config.width = window.size.width
-  window.config.height = window.size.height
-  window.config.row = window.position.row
-  window.config.col = window.position.col
-  window.config.border = window.border:get()
+  popup.config.width = popup.size.width
+  popup.config.height = popup.size.height
+  popup.config.row = popup.position.row
+  popup.config.col = popup.position.col
+  popup.config.border = popup.border:get()
 
-  return window
+  return popup
 end
 
-function Window:mount()
+function Popup:mount()
   self.border:mount()
 
   if not self.bufnr then
@@ -167,7 +167,7 @@ function Window:mount()
   local enter = self.config._enter
   self.config._enter = nil
   self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.config)
-  assert(self.winid, "failed to create window")
+  assert(self.winid, "failed to create popup window")
 
   for name, value in pairs(self.options) do
     if not is_type("nil", value) then
@@ -178,16 +178,16 @@ function Window:mount()
   cleanup.register(self.bufnr, { self.winid, self.border.winid })
 end
 
-function Window:unmount()
+function Popup:unmount()
   if vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
 end
 
 ---@param event_name "'lines'" | "'bytes'" | "'changedtick'" | "'detach'" | "'reload'"
-function Window:on(event_name, handler)
+function Popup:on(event_name, handler)
   if not self.bufnr then
-    error("window is not mounted yet. call window:mount()")
+    error("popup window is not mounted yet. call popup:mount()")
   end
 
   if not self._event_handler then
@@ -221,7 +221,7 @@ function Window:on(event_name, handler)
   self._event_handler[event_name] = handler
 end
 
--- set keymap for this window. if keymap was already set and
+-- set keymap for this popup window. if keymap was already set and
 -- `force` is not `true` returns `false`, otherwise returns `true`
 ---@param mode "'i'" | "'n'"
 ---@param key string
@@ -229,12 +229,12 @@ end
 ---@param opts table<"'expr'" | "'noremap'" | "'nowait'" | "'script'" | "'silent'" | "'unique'", boolean>
 ---@param force boolean
 ---@return boolean ok
-function Window:map(mode, key, handler, opts, force)
+function Popup:map(mode, key, handler, opts, force)
   if not self.bufnr then
-    error("window is not mounted yet. call window:mount()")
+    error("popup window is not mounted yet. call popup:mount()")
   end
 
   return keymaps.set(self.bufnr, mode, key, handler, opts, force)
 end
 
-return Window
+return Popup

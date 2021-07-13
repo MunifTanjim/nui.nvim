@@ -45,7 +45,7 @@ function keymaps.set(bufnr, mode, key, handler, opts, force)
   storage[bufnr].handlers[handler_id] = handler
 
   local handler_cmd = string.format(
-    "<cmd>lua require('nui.window.keymaps').execute(%s, %s)<CR>",
+    "<cmd>lua require('nui.popup.keymaps').execute(%s, %s)<CR>",
     bufnr,
     handler_id
   )
@@ -64,7 +64,7 @@ end
 function keymaps.register_cleanup(bufnr)
   vim.api.nvim_exec(
     string.format(
-      "autocmd BufDelete <buffer=%s> ++once lua require('nui.window.keymaps').run_cleanup(%s)",
+      "autocmd BufDelete <buffer=%s> ++once lua require('nui.popup.keymaps').run_cleanup(%s)",
       bufnr,
       bufnr
     ),
