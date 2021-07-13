@@ -53,97 +53,47 @@ local function to_border_list(named_border)
   return border
 end
 
-local function parse_border_text(text)
-  local o = {
-    count = {
-      top = 0,
-      bottom = 0,
-    },
-  }
+---@param edge "'top'" | "'bottom'"
+---@param text nil | string
+---@param alignment nil | "'left'" | "'center'" | "'right'"
+local function calculate_buf_edge_line(border, edge, text, alignment)
+  local char, size = border.char, border.size
+  local content = defaults(text, "")
+  local align = defaults(alignment, "center")
 
-  for position, text in pairs(defaults(text, {})) do
-    local pos = string.sub(position, 1, 1)
-    if pos == "t" then
-      o.count.top = o.count.top + 1
-      o[position] = text
-    elseif pos == "b" then
-      o.count.bottom = o.count.bottom + 1
-      o[position] = text
-    end
+  local max_length = size.width - 2
+  if #content > max_length then
+    content = string.sub(content, 1, max_length - 1) .. "…"
+  end
+  local gap_length = max_length - #content
+
+  local left = ""
+  local right = ""
+
+  if align == "left" then
+    right = string.rep(char[edge], gap_length)
+  elseif align == "center" then
+    left = string.rep(char[edge], math.floor(gap_length / 2))
+    right = string.rep(char[edge], math.ceil(gap_length / 2))
+  elseif align == "right" then
+    left = string.rep(char[edge], gap_length)
   end
 
-  return o
+  return char[edge .. "_left"] .. left .. content .. right .. char[edge .. "_right"]
 end
 
 local function calculate_buf_lines(border)
-  local char, position, size, text = border.char, border.position, border.size, border.text
+  local char, size, text = border.char, border.size, border.text
 
-  local edge_line = {
-    top = "",
-    bottom = "",
-  }
-
-  local parts = {
-    top = {
-      top_left = "",
-      top = "",
-      top_right = "",
-    },
-    bottom = {
-      bottom_left = "",
-      bottom = "",
-      bottom_right = "",
-    },
-  }
-
-  for edge in pairs(parts) do
-    if text.count[edge] > 0 then
-      local width = size.width - 2
-      local max_length = math.floor(((size.width - 2 - text.count[edge] + 1) / text.count[edge]))
-
-      for position in pairs(parts[edge]) do
-        if text[position] then
-          if #text[position] > max_length then
-            parts[edge][position] = string.sub(text[position], 1, max_length - 1) .. "…"
-          else
-            parts[edge][position] = text[position]
-          end
-        end
-      end
-
-      local gap_length = (
-        width - vim.fn.strchars(
-          parts[edge][edge .. "_left"] .. parts[edge][edge] .. parts[edge][edge .. "_right"], true
-        )
-      ) / 2
-
-      edge_line[edge] = string.format(
-        "%s%s%s%s%s",
-        parts[edge][edge .. "_left"],
-        string.rep(char.top, math.floor(gap_length)),
-        parts[edge][edge],
-        string.rep(char.top, math.ceil(gap_length)),
-        parts[edge][edge .. "_right"]
-      )
-    else
-      edge_line[edge] = string.rep(char[edge], size.width - 2)
-    end
-  end
-
-  local middle_line = string.format(
-    "%s%s%s",
-    char.left,
-    string.rep(" ", size.width - 2),
-    char.right
-  )
+  local middle_line = char.left ..  string.rep(" ", size.width - 2) .. char.right
 
   local lines = {}
 
-  table.insert(lines, string.format("%s%s%s", char.top_left, edge_line.top, char.top_right))
+  table.insert(lines, calculate_buf_edge_line(border, "top", text.top, text.top_align))
   for _ = 1, size.height - 2 do
     table.insert(lines, middle_line)
   end
-  table.insert(lines, string.format("%s%s%s", char.bottom_left, edge_line.bottom, char.bottom_right))
+  table.insert(lines, calculate_buf_edge_line(border, "bottom", text.bottom, text.bottom_align))
 
   return lines
 end
@@ -170,7 +120,8 @@ function Border:new(popup, opts)
     popup = popup,
     type = "simple",
     style = defaults(opts.style, "none"),
-    highlight = defaults(opts.highlight, "FloatBorder")
+    text = defaults(opts.text, {}),
+    highlight = defaults(opts.highlight, "FloatBorder"),
   }
 
   setmetatable(border, self)
@@ -192,9 +143,7 @@ function Border:new(popup, opts)
     return border
   end
 
-  border.text = parse_border_text(opts.text)
-
-  if (border.text.count.top + border.text.count.bottom) > 0 then
+  if border.text.top or border.text.bottom then
     border.type = "complex"
   end
 
@@ -202,12 +151,12 @@ function Border:new(popup, opts)
     border.size = vim.deepcopy(border.popup.size)
     border.position = vim.deepcopy(border.popup.position)
 
-    if border.text.count.top > 0 or border.char.top ~= "" then
+    if border.text.top or border.char.top ~= "" then
       border.size.height = border.size.height + 1
       border.popup.position.row = border.popup.position.row + 1
     end
 
-    if border.text.count.bottom > 0 or border.char.bottom ~= "" then
+    if border.text.bottom or border.char.bottom ~= "" then
       border.size.height = border.size.height + 1
     end
 

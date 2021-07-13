@@ -65,13 +65,23 @@ local popup = Popup:new({
 
 `border.highlight` can be a string denoting the highlight group name for the border characters.
 
-`border.text` can be an table with its values denoting texts and keys denoting position for
-those texts. For example:
+`border.text` can be an table with the following keys:
+
+| Key              | Description                  |
+| ---------------- | ---------------------------- |
+| `"top"`          | top border text              |
+| `"top_align"`    | top border text alignment    |
+| `"bottom"`       | bottom border text           |
+| `"bottom_align"` | bottom border text alignment |
+
+Possible values for `"top_align"` and `"bottom_align"` are: `"left"`, `"right"` or `"center"` _(default)_.
+
+For example:
 
 ```lua
 {
-  top_left = "Popup Title",
-  bottom_right = "Footnote",
+  top = "Popup Title",
+  top_align = "center",
 }
 ```
 
