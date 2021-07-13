@@ -252,7 +252,9 @@ function Border:mount()
   })
   assert(self.winid, "failed to create border window")
 
-  vim.api.nvim_win_set_option(self.winid, 'winhl', 'Normal:' .. self.highlight)
+  if self.popup.options.winhighlight then
+    vim.api.nvim_win_set_option(self.winid, 'winhighlight', self.popup.options.winhighlight)
+  end
 end
 
 function Border:get()
