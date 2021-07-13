@@ -116,6 +116,18 @@ Or you can pass a table to set them separately.
 For percentage string, size is calculated according to the option `relative`
 (if `relative` is set to `"buf"` or `"cursor"`, window size is considered).
 
+**padding**
+
+`padding` can be a table with number of cells for top, right, bottom and left.
+It behaves like [CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) padding.
+For example:
+
+```lua
+{ 1, 2 }
+```
+
+It will set padding of `1` for top/bottom and `2` for left/right.
+
 **enter**
 
 If `enter` is `true`, the popup is entered immediately after mount.

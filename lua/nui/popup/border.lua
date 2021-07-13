@@ -143,30 +143,50 @@ function Border:new(popup, opts)
     return border
   end
 
-  if border.text.top or border.text.bottom then
+  if border.text.top or border.text.bottom or border.popup.padding then
     border.type = "complex"
   end
 
   if border.type == "complex" then
+    local padding = defaults(border.popup.padding, {})
+
     border.size = vim.deepcopy(border.popup.size)
     border.position = vim.deepcopy(border.popup.position)
 
     if border.text.top or border.char.top ~= "" then
       border.size.height = border.size.height + 1
       border.popup.position.row = border.popup.position.row + 1
+
+      if padding.top then
+        border.popup.size.height = border.popup.size.height - padding.top
+        border.popup.position.row = border.popup.position.row + padding.top
+      end
     end
 
     if border.text.bottom or border.char.bottom ~= "" then
       border.size.height = border.size.height + 1
+
+      if padding.bottom then
+        border.popup.size.height = border.popup.size.height - padding.bottom
+      end
     end
 
     if border.char.left ~= "" then
       border.size.width = border.size.width + 1
       border.popup.position.col = border.popup.position.col + 1
+
+      if padding.left then
+        border.popup.size.width = border.popup.size.width - padding.left
+        border.popup.position.col = border.popup.position.col + padding.left
+      end
     end
 
     if border.char.right ~= "" then
       border.size.width = border.size.width + 1
+
+      if padding.right then
+        border.popup.size.width = border.popup.size.width - padding.right
+      end
     end
 
     border.buf_lines = calculate_buf_lines(border)

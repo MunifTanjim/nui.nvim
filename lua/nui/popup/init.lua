@@ -113,6 +113,19 @@ local function calculate_winblend(opacity)
   return 100 - (opacity * 100)
 end
 
+local function parse_padding(padding)
+  if not padding then
+    return nil
+  end
+
+  local map = {}
+  map.top = utils.defaults(padding[1], 0)
+  map.right = utils.defaults(padding[2], map.top)
+  map.bottom = utils.defaults(padding[3], map.top)
+  map.left = utils.defaults(padding[4], map.right)
+  return map
+end
+
 local Popup = {}
 
 function Popup:new(opts)
@@ -128,6 +141,7 @@ function Popup:new(opts)
       winblend = calculate_winblend(utils.defaults(opts.opacity, 1)),
       winhighlight = opts.highlight,
     },
+    padding = parse_padding(opts.padding)
   }
 
   setmetatable(popup, self)
@@ -152,6 +166,14 @@ function Popup:new(opts)
   popup.config.row = popup.position.row
   popup.config.col = popup.position.col
   popup.config.border = popup.border:get()
+
+  if popup.config.width < 1 then
+    error("width can not be negative. is padding more than width?")
+  end
+
+  if popup.config.height < 1 then
+    error("height can not be negative. is padding more than height?")
+  end
 
   return popup
 end
