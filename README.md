@@ -181,6 +181,14 @@ local ok = popup:map("n", "<esc>", function(bufnr)
 end, { noremap = true })
 ```
 
+#### popup.border:set_text(edge, text, align)
+
+Sets border text. For example:
+
+```lua
+popup.border:set_text("bottom", "[Progress: 42%]", "right")
+```
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.

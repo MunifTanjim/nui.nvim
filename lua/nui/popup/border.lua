@@ -206,6 +206,20 @@ function Border:mount()
   end
 end
 
+---@param edge "'top'" | "'bottom'"
+---@param text nil | string
+---@param align nil | "'left'" | "'center'" | "'right'"
+function Border:set_text(edge, text, align)
+  align = defaults(align, self.text[edge .. "_align"])
+  local line = calculate_buf_edge_line(self, edge, text, align)
+
+  if edge == "top" then
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, 1, false, { line })
+  elseif edge == "bottom" then
+    vim.api.nvim_buf_set_lines(self.bufnr, -2, -1, false, { line })
+  end
+end
+
 function Border:get()
   if self.type == "simple" then
     if is_type("string", self.char) then
