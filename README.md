@@ -164,22 +164,6 @@ Unmounts the popup.
 popup:unmount()
 ```
 
-#### popup:on(event_name, handler)
-
-Listen on buffer events. Possible events are:
-`"lines"`, `"bytes"`, `"changedtick"`, `"detached"` and `"reload"`.
-
-For example:
-
-```lua
-popup:on("lines", function(event_name, bufnr, changedtick, start_line, end_line)
-  local line = vim.api.nvim_buf_get_lines(bufnr, start_line, end_line, true)[1]
-  print(line)
-end)
-```
-
-For more information, check `:help nvim_buf_attach()`
-
 #### popup:map(mode, key, handler, opts, force)
 
 Sets keymap for this popup. If keymap was already set and `force` is not `true`
