@@ -226,6 +226,20 @@ function Border:mount()
   end
 end
 
+function Border:unmount()
+  if self.type == "simple" then
+    return
+  end
+
+  if vim.api.nvim_win_is_valid(self.winid) then
+    vim.api.nvim_win_close(self.winid, true)
+  end
+
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  end
+end
+
 ---@param edge "'top'" | "'bottom'"
 ---@param text nil | string
 ---@param align nil | "'left'" | "'center'" | "'right'"

@@ -1,5 +1,4 @@
 local Border = require("nui.popup.border")
-local cleanup = require("nui.popup.cleanup")
 local keymaps = require("nui.popup.keymaps")
 local utils = require("nui.utils")
 local is_type = utils.is_type
@@ -196,11 +195,15 @@ function Popup:mount()
       vim.api.nvim_win_set_option(self.winid, name, value)
     end
   end
-
-  cleanup.register(self.bufnr, { self.winid, self.border.winid })
 end
 
 function Popup:unmount()
+  self.border:unmount()
+
+  if vim.api.nvim_win_is_valid(self.winid) then
+    vim.api.nvim_win_close(self.winid, true)
+  end
+
   if vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
