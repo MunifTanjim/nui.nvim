@@ -1,5 +1,6 @@
 local Border = require("nui.popup.border")
 local buf_storage = require("nui.utils.buf_storage")
+local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
 local is_type = utils.is_type
@@ -238,6 +239,18 @@ function Popup:map(mode, key, handler, opts, force)
   end
 
   return keymap.set(self.bufnr, mode, key, handler, opts, force)
+end
+
+---@param event string | string[]
+---@param handler string | function
+---@param options nil | table<"'once'" | "'nested'", boolean>
+function Popup:on(event, handler, options)
+  autocmd.buf.define(self.bufnr, event, handler, options)
+end
+
+---@param event nil | string | string[]
+function Popup:off(event)
+  autocmd.buf.remove(self.bufnr, nil, event)
 end
 
 return Popup

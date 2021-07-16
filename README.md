@@ -177,6 +177,26 @@ local ok = popup:map("n", "<esc>", function(bufnr)
 end, { noremap = true })
 ```
 
+#### popup:on(event, handler, options)
+
+Defines `autocmd` to run on specific events for this popup. For example:
+
+```lua
+local event = require("nui.utils.autocmd").event
+
+popup:on({ event.BufLeave }, function()
+  popup:unmount()
+end, { once = true })
+```
+
+#### popup:off(event)
+
+Removes `autocmd` defined with `popup:on(...)`. For example:
+
+```lua
+popup:off("*")
+```
+
 #### popup.border:set_text(edge, text, align)
 
 Sets border text. For example:
