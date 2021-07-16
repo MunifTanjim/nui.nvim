@@ -127,13 +127,43 @@ local function parse_padding(padding)
   return map
 end
 
+local function parse_relative(relative)
+  relative = utils.defaults(relative, "win")
+
+  if is_type("string", relative) then
+    relative = {
+      type = utils.defaults(relative, "win")
+    }
+  end
+
+  if relative.type == "win" then
+    return {
+      relative = relative.type,
+      win = relative.winid,
+    }
+  end
+
+  if relative.type == "buf" then
+    return {
+      relative = "win",
+      bufpos = {
+        relative.position.row,
+        relative.position.col,
+      },
+    }
+  end
+
+  return {
+    relative = relative.type,
+  }
+end
+
 local Popup = {}
 
 function Popup:new(opts)
   local popup = {
     config = {
       _enter = utils.defaults(opts.enter, false),
-      relative = "win",
       style = "minimal",
       zindex = utils.defaults(opts.zindex, 50),
     },
@@ -147,17 +177,11 @@ function Popup:new(opts)
     },
   }
 
+  popup.config = vim.tbl_extend("force", popup.config, parse_relative(opts.relative))
+
   setmetatable(popup, self)
   self.__index = self
 
-  if is_type("string", opts.relative) then
-    if opts.relative == "buf" then
-      popup.config.relative = "win"
-      popup.config.bufpos = { 0, 0 }
-    else
-      popup.config.relative = opts.relative
-    end
-  end
 
   local container_info = get_container_info(popup.config)
   popup.size = calculate_window_size(opts.size, container_info)

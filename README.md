@@ -92,12 +92,15 @@ directly.
 
 This option affects how `position` and `size` is calculated.
 
-| Value               | Description                          |
-| ------------------- | ------------------------------------ |
-| `"buf"`             | relative to buffer on current window |
-| `"cursor"`          | relative to cursor on current window |
-| `"editor"`          | relative to current editor screen    |
-| `"win"` (_default_) | relative to current window           |
+| Value                                     | Description                              |
+| ----------------------------------------- | ---------------------------------------- |
+| `"cursor"`                                | relative to cursor on current window     |
+| `"editor"`                                | relative to current editor screen        |
+| `"win"` (_default_)                       | relative to current window               |
+| `{ type = "win", winid = <winid> }`       | relative to window with id `<winid>`     |
+| `{ type = "buf", position = <Position> }` | relative to buffer position `<Position>` |
+
+Here `<Position>` is a table with keys `row`, `col` and values are zero-indexed numbers.
 
 **position**
 
