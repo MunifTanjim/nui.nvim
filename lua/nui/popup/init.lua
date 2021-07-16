@@ -129,7 +129,6 @@ local Popup = {}
 
 function Popup:new(opts)
   local popup = {
-    bufnr = opts.bufnr,
     config = {
       _enter = utils.defaults(opts.enter, false),
       relative = "win",
@@ -140,7 +139,10 @@ function Popup:new(opts)
       winblend = calculate_winblend(utils.defaults(opts.opacity, 1)),
       winhighlight = opts.highlight,
     },
-    padding = parse_padding(opts.padding)
+    padding = parse_padding(opts.padding),
+    state = {
+      mounted = false,
+    },
   }
 
   setmetatable(popup, self)
@@ -178,12 +180,16 @@ function Popup:new(opts)
 end
 
 function Popup:mount()
+  if self.state.mounted then
+    return
+  end
+
+  self.state.mounted = true
+
   self.border:mount()
 
-  if not self.bufnr then
-    self.bufnr = vim.api.nvim_create_buf(false, true)
-    assert(self.bufnr, "failed to create buffer")
-  end
+  self.bufnr = vim.api.nvim_create_buf(false, true)
+  assert(self.bufnr, "failed to create buffer")
 
   local enter = self.config._enter
   self.config._enter = nil
@@ -198,14 +204,20 @@ function Popup:mount()
 end
 
 function Popup:unmount()
-  self.border:unmount()
-
-  if vim.api.nvim_win_is_valid(self.winid) then
-    vim.api.nvim_win_close(self.winid, true)
+  if not self.state.mounted then
+    return
   end
+
+  self.state.mounted = false
+
+  self.border:unmount()
 
   if vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  end
+
+  if vim.api.nvim_win_is_valid(self.winid) then
+    vim.api.nvim_win_close(self.winid, true)
   end
 end
 
@@ -218,7 +230,7 @@ end
 ---@param force boolean
 ---@return boolean ok
 function Popup:map(mode, key, handler, opts, force)
-  if not self.bufnr then
+  if not self.state.mounted then
     error("popup window is not mounted yet. call popup:mount()")
   end
 
