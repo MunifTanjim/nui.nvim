@@ -1,5 +1,6 @@
 local Border = require("nui.popup.border")
-local keymaps = require("nui.popup.keymaps")
+local buf_storage = require("nui.utils.buf_storage")
+local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
@@ -212,6 +213,8 @@ function Popup:unmount()
 
   self.border:unmount()
 
+  buf_storage.cleanup(self.bufnr)
+
   if vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
@@ -234,7 +237,7 @@ function Popup:map(mode, key, handler, opts, force)
     error("popup window is not mounted yet. call popup:mount()")
   end
 
-  return keymaps.set(self.bufnr, mode, key, handler, opts, force)
+  return keymap.set(self.bufnr, mode, key, handler, opts, force)
 end
 
 return Popup
