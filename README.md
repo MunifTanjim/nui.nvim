@@ -20,16 +20,12 @@ Plug 'MunifTanjim/nui.nvim'
 
 Popup is an abstraction layer on top of window.
 
-```lua
-local Popup = require("nui.popup")
-```
-
-#### Popup:new(opts)
-
 Creates a new popup object (but does not mount it immediately).
 
 ```lua
-local popup = Popup:new({
+local Popup = require("nui.popup")
+
+local popup = Popup({
   border = {
     style = "rounded",
     highlight = "FloatBorder",

@@ -5,8 +5,8 @@ local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
-local function get_container_info(config)
-  local relative = config.relative
+local function get_container_info(win_config)
+  local relative = win_config.relative
 
   if relative == "editor" then
     return {
@@ -18,7 +18,7 @@ local function get_container_info(config)
 
   if relative == "cursor" or relative == "win" then
     return {
-      relative = config.bufpos and "buf" or relative,
+      relative = win_config.bufpos and "buf" or relative,
       size = utils.get_window_size(),
       type = "window",
     }
@@ -158,71 +158,85 @@ local function parse_relative(relative)
   }
 end
 
-local Popup = {}
+local function init(class, options)
+  local self = setmetatable({}, class)
 
-function Popup:new(opts)
-  local popup = {
-    config = {
-      _enter = utils.defaults(opts.enter, false),
-      style = "minimal",
-      zindex = utils.defaults(opts.zindex, 50),
-    },
-    options = {
-      winblend = calculate_winblend(utils.defaults(opts.opacity, 1)),
-      winhighlight = opts.highlight,
-    },
-    padding = parse_padding(opts.padding),
-    state = {
-      mounted = false,
-    },
+  self.popup_state = {
+    mounted = false
   }
 
-  popup.config = vim.tbl_extend("force", popup.config, parse_relative(opts.relative))
+  self.popup_props = {
+    padding = parse_padding(options.padding),
+  }
 
-  setmetatable(popup, self)
-  self.__index = self
+  self.win_config = vim.tbl_extend(
+    "force",
+    {
+      _enter = utils.defaults(options.enter, false),
+      style = "minimal",
+      zindex = utils.defaults(options.zindex, 50),
+    },
+    parse_relative(options.relative)
+  )
 
+  self.win_options = {
+    winblend = calculate_winblend(utils.defaults(options.opacity, 1)),
+    winhighlight = options.highlight,
+  }
 
-  local container_info = get_container_info(popup.config)
-  popup.size = calculate_window_size(opts.size, container_info)
-  popup.position = calculate_window_position(opts.position, popup.size, container_info)
-  popup.border = Border:new(popup, opts.border)
+  local props = self.popup_props
+  local win_config = self.win_config
 
-  popup.config.width = popup.size.width
-  popup.config.height = popup.size.height
-  popup.config.row = popup.position.row
-  popup.config.col = popup.position.col
-  popup.config.border = popup.border:get()
+  local container_info = get_container_info(win_config)
+  props.size = calculate_window_size(options.size, container_info)
+  props.position = calculate_window_position(options.position, props.size, container_info)
 
-  if popup.config.width < 1 then
+  self.border = Border(self, options.border)
+
+  win_config.width = props.size.width
+  win_config.height = props.size.height
+  win_config.row = props.position.row
+  win_config.col = props.position.col
+  win_config.border = self.border:get()
+
+  if win_config.width < 1 then
     error("width can not be negative. is padding more than width?")
   end
 
-  if popup.config.height < 1 then
+  if win_config.height < 1 then
     error("height can not be negative. is padding more than height?")
   end
 
-  return popup
+  return self
+end
+
+local Popup = {
+  name = "Popup",
+  super = nil,
+}
+
+function Popup:init(options)
+  return init(self, options)
 end
 
 function Popup:mount()
-  if self.state.mounted then
+  if self.popup_state.mounted then
     return
   end
 
-  self.state.mounted = true
+  self.popup_state.mounted = true
 
   self.border:mount()
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
 
-  local enter = self.config._enter
-  self.config._enter = nil
-  self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.config)
+  local enter = self.win_config._enter
+  self.win_config._enter = nil
+  self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.win_config)
   assert(self.winid, "failed to create popup window")
 
-  for name, value in pairs(self.options) do
+  for name, value in pairs(self.win_options) do
     if not is_type("nil", value) then
       vim.api.nvim_win_set_option(self.winid, name, value)
     end
@@ -230,11 +244,11 @@ function Popup:mount()
 end
 
 function Popup:unmount()
-  if not self.state.mounted then
+  if not self.popup_state.mounted then
     return
   end
 
-  self.state.mounted = false
+  self.popup_state.mounted = false
 
   self.border:unmount()
 
@@ -258,7 +272,7 @@ end
 ---@param force boolean
 ---@return boolean ok
 function Popup:map(mode, key, handler, opts, force)
-  if not self.state.mounted then
+  if not self.popup_state.mounted then
     error("popup window is not mounted yet. call popup:mount()")
   end
 
@@ -277,4 +291,11 @@ function Popup:off(event)
   autocmd.buf.remove(self.bufnr, nil, event)
 end
 
-return Popup
+local PopupClass =  setmetatable({
+  __index = Popup,
+}, {
+  __call = init,
+  __index = Popup,
+})
+
+return PopupClass
