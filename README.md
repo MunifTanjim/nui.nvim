@@ -204,6 +204,45 @@ Sets border text. For example:
 popup.border:set_text("bottom", "[Progress: 42%]", "right")
 ```
 
+### Input
+
+`Input` is an abstraction layer on top of `Popup`.
+
+Creates a new input object (but does not mount it immediately).
+
+```lua
+local Input = require("nui.input")
+
+local input = Input(popup_options, {
+  prefix = "> ",
+  default_value = "42",
+  on_close = function()
+    print("Input closed!")
+  end,
+  on_submit = function(value)
+    print("Value submitted: ", value)
+  end,
+  on_change = function(value)
+    print("Value changed: ", value)
+  end,
+})
+```
+
+All the methods `Popup` methods is also available for `Input`. It uses
+prompt buffer (check `:h prompt-buffer`) for its popup window.
+
+If you provide the `on_change` function, it'll be run everytime value changes.
+
+Pressing `<CR>` runs the `on_submit` callback function and closes the window.
+Pressing `<C-c>` runs the `on_close` callback function and closes the window.
+
+Of course, you can override the default keymaps and add more. For example:
+
+```lua
+-- close the input window by pressing `<Esc>` on normal mode
+input:map("n", "<Esc>", input.input_props.on_close, { noremap = true })
+```
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
