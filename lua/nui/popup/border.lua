@@ -122,7 +122,6 @@ local function init(class, popup, options)
     type = "simple",
     style = defaults(options.style, "none"),
     text = defaults(options.text, {}),
-    highlight = defaults(options.highlight, "FloatBorder"),
   }
 
   local props = self.border_props
@@ -192,6 +191,11 @@ local function init(class, popup, options)
     props.buf_lines = calculate_buf_lines(props)
   end
 
+  props.highlight = defaults(options.highlight, "FloatBorder")
+  if props.type == "complex" and not string.match(props.highlight, ":") then
+    props.highlight = "Normal:" .. props.highlight
+  end
+    
   return self
 end
 
@@ -232,9 +236,7 @@ function Border:mount()
   })
   assert(self.winid, "failed to create border window")
 
-  if self.popup.win_options.winhighlight then
-    vim.api.nvim_win_set_option(self.winid, 'winhighlight', self.popup.win_options.winhighlight)
-  end
+  vim.api.nvim_win_set_option(self.winid, 'winhighlight', self.border_props.highlight)
 end
 
 function Border:unmount()
