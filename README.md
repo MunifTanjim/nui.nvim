@@ -139,8 +139,8 @@ For more information, check `:help winhighlight`
 
 **opacity**
 
-`opacity` is a number between `0` (no transparency) and
-`1` (completely transparency).
+`opacity` is a number between `0` (complete transparency) and
+`1` (no transparency).
 
 **zindex**
 
