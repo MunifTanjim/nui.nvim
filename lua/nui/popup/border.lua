@@ -1,6 +1,12 @@
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
+---@param str string
+---@return number
+local function strwidth(str)
+  return vim.api.nvim_strwidth(str)
+end
+
 local index_name = {
   "top_left",
   "top",
@@ -56,36 +62,60 @@ end
 ---@param edge "'top'" | "'bottom'"
 ---@param text nil | string
 ---@param alignment nil | "'left'" | "'center'" | "'right'"
+---@return string
 local function calculate_buf_edge_line(props, edge, text, alignment)
   local char, size = props.char, props.size
+
+  local left_char = char[edge .. "_left"]
+  local mid_char = char[edge]
+  local right_char = char[edge .. "_right"]
+
+  if left_char == "" then
+    left_char = mid_char == "" and char["left"] or mid_char
+  end
+
+  if right_char == "" then
+    right_char = mid_char == "" and char["right"] or mid_char
+  end
+
+  local max_length = size.width - strwidth(left_char .. right_char)
+
   local content = defaults(text, "")
   local align = defaults(alignment, "center")
 
-  local max_length = size.width - 2
-  if #content > max_length then
+  if mid_char == "" then
+    content = string.rep(" ", max_length)
+  elseif strwidth(content) > max_length then
     content = string.sub(content, 1, max_length - 1) .. "…"
   end
-  local gap_length = max_length - #content
 
-  local left = ""
-  local right = ""
+  local gap_length = max_length - strwidth(content)
+
+  local gap_left = ""
+  local gap_right = ""
 
   if align == "left" then
-    right = string.rep(char[edge], gap_length)
+    gap_right = string.rep(mid_char, gap_length)
   elseif align == "center" then
-    left = string.rep(char[edge], math.floor(gap_length / 2))
-    right = string.rep(char[edge], math.ceil(gap_length / 2))
+    gap_left = string.rep(mid_char, math.floor(gap_length / 2))
+    gap_right = string.rep(mid_char, math.ceil(gap_length / 2))
   elseif align == "right" then
-    left = string.rep(char[edge], gap_length)
+    gap_left = string.rep(mid_char, gap_length)
   end
 
-  return char[edge .. "_left"] .. left .. content .. right .. char[edge .. "_right"]
+  return left_char .. gap_left .. content .. gap_right .. right_char
 end
 
+---@return nil | string[]
 local function calculate_buf_lines(props)
   local char, size, text = props.char, props.size, props.text
 
-  local middle_line = char.left ..  string.rep(" ", size.width - 2) .. char.right
+  if is_type("string", char) or not text then
+    return nil
+  end
+
+  local gap_length = size.width - strwidth(char.left .. char.right)
+  local middle_line = char.left ..  string.rep(" ", gap_length) .. char.right
 
   local lines = {}
 
@@ -121,7 +151,7 @@ local function init(class, popup, options)
   self.border_props  = {
     type = "simple",
     style = defaults(options.style, "none"),
-    text = defaults(options.text, {}),
+    text = options.text,
   }
 
   local props = self.border_props
@@ -138,53 +168,82 @@ local function init(class, popup, options)
     props.char = styles[style]
   end
 
-  if is_type("string", props.char) then
-    return self
+  local is_borderless = is_type("string", props.char)
+
+  if is_borderless then
+    if props.text then
+      error("text not supported for style:" .. props.char)
+    end
   end
 
-  if props.text.top or props.text.bottom or popup.popup_props.padding then
+  if props.text or popup.popup_props.padding then
     props.type = "complex"
+  end
+
+  if props.type == "simple" then
+    return self
   end
 
   if props.type == "complex" then
     local padding = defaults(popup.popup_props.padding, {})
+    local text = defaults(props.text, {})
 
     props.size = vim.deepcopy(popup.popup_props.size)
     props.position = vim.deepcopy(popup.popup_props.position)
 
-    if props.text.top or props.char.top ~= "" then
-      props.size.height = props.size.height + 1
-      popup.popup_props.position.row = popup.popup_props.position.row + 1
+    if not is_borderless then
+      if props.char.top ~= "" then
+        props.size.height = props.size.height + 1
+        popup.popup_props.position.row = popup.popup_props.position.row + 1
+      end
 
-      if padding.top then
-        popup.popup_props.size.height = popup.popup_props.size.height - padding.top
+      if props.char.bottom ~= "" then
+        props.size.height = props.size.height + 1
+      end
+
+      if props.char.left ~= "" then
+        props.size.width = props.size.width + 1
+        popup.popup_props.position.col = popup.popup_props.position.col + 1
+      end
+
+      if props.char.right ~= "" then
+        props.size.width = props.size.width + 1
+      end
+    end
+
+    if padding.top then
+      popup.popup_props.size.height = popup.popup_props.size.height - padding.top
+      popup.popup_props.position.row = popup.popup_props.position.row + padding.top
+
+      if is_borderless then
+        props.size.height = props.size.height + padding.top
         popup.popup_props.position.row = popup.popup_props.position.row + padding.top
       end
     end
 
-    if props.text.bottom or props.char.bottom ~= "" then
-      props.size.height = props.size.height + 1
+    if padding.bottom then
+      popup.popup_props.size.height = popup.popup_props.size.height - padding.bottom
 
-      if padding.bottom then
-        popup.popup_props.size.height = popup.popup_props.size.height - padding.bottom
+      if is_borderless then
+        props.size.height = props.size.height + padding.bottom
       end
     end
 
-    if props.char.left ~= "" then
-      props.size.width = props.size.width + 1
-      popup.popup_props.position.col = popup.popup_props.position.col + 1
+    if padding.left then
+      popup.popup_props.size.width = popup.popup_props.size.width - padding.left
+      popup.popup_props.position.col = popup.popup_props.position.col + padding.left
 
-      if padding.left then
-        popup.popup_props.size.width = popup.popup_props.size.width - padding.left
+      if is_borderless then
+        props.size.width = props.size.width + padding.left
         popup.popup_props.position.col = popup.popup_props.position.col + padding.left
       end
     end
 
-    if props.char.right ~= "" then
-      props.size.width = props.size.width + 1
+    if padding.right then
+      popup.popup_props.size.width = popup.popup_props.size.width - padding.right
 
-      if padding.right then
-        popup.popup_props.size.width = popup.popup_props.size.width - padding.right
+      if is_borderless then
+        props.size.width = props.size.width + padding.right
       end
     end
 
@@ -195,7 +254,7 @@ local function init(class, popup, options)
   if props.type == "complex" and not string.match(props.highlight, ":") then
     props.highlight = "Normal:" .. props.highlight
   end
-    
+
   return self
 end
 
@@ -220,7 +279,9 @@ function Border:mount()
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create border buffer")
 
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height - 2, false, props.buf_lines)
+  if props.buf_lines then
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height - 2, false, props.buf_lines)
+  end
 
   self.winid = vim.api.nvim_open_win(self.bufnr, false, {
     style = "minimal",
