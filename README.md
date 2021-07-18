@@ -214,7 +214,7 @@ Creates a new input object (but does not mount it immediately).
 local Input = require("nui.input")
 
 local input = Input(popup_options, {
-  prefix = "> ",
+  prompt = "> ",
   default_value = "42",
   on_close = function()
     print("Input closed!")
