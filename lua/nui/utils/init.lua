@@ -35,16 +35,20 @@ end
 ---@param v string | number
 function utils.parse_number_input(v)
   local parsed = {}
-
   parsed.is_percentage = type(v) == "string" and string.sub(v, -1) == "%"
+  parsed.is_pin = type(v) == "string" and not string.find(v, '%d')
+
 
   if parsed.is_percentage then
     parsed.value = tonumber(string.sub(v, 1, #v - 1)) / 100
+  elseif parsed.is_pin then
+    parsed.value = v
   else
     parsed.value = tonumber(v)
   end
 
   return parsed
 end
+
 
 return utils

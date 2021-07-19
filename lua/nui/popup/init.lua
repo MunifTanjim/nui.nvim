@@ -63,12 +63,28 @@ local function calculate_window_size(size, container)
   }
 end
 
+local function apply_pin(dir, container, size)
+if dir == 'bot' or dir == 'bottom' then dir = 'btm' end
+
+  local pin    =  {
+    top        =  0,
+    right      =  container.size.width - size.width,
+    btm        =  container.size.height - size.height - 3,
+    left       =  0,
+    }
+
+  return pin[dir]
+end
+
+
 local function calculate_window_position(position, size, container)
   local row
   local col
 
   local is_percentage_allowed = not vim.tbl_contains({ "buf", "cursor" }, container.relative)
+  local is_pin_allowed = not vim.tbl_contains({"cursor"}, container.relative)
   local percentage_error = string.format("position %% can not be used relative to %s", container.relative)
+  local pin_error = string.format("pin can not be used relative to %s", container.relative)
 
   if is_type("table", position) then
     local r = utils.parse_number_input(position.row)
@@ -76,15 +92,20 @@ local function calculate_window_position(position, size, container)
     if r.is_percentage then
       assert(is_percentage_allowed, percentage_error)
       row = math.floor((container.size.height - size.height) * r.value)
+    elseif r.is_pin then
+      assert(r.value == 'top' or r.value == 'btm' or r.value == 'bottom' or r.value == 'bot', "row can only be pinned to top or btm")
+      row = math.floor(apply_pin(r.value, container, size))
     else
       row = r.value
     end
-
     local c = utils.parse_number_input(position.col)
     assert(c.value ~= nil, "invalid position.col")
     if c.is_percentage then
       assert(is_percentage_allowed, percentage_error)
       col = math.floor((container.size.width - size.width) * c.value)
+    elseif c.is_pin then
+      assert(c.value == 'left' or c.value == 'right', "col can only be pinned to left or right")
+      col = math.floor(apply_pin(c.value, container, size))
     else
       col = c.value
     end
@@ -100,12 +121,12 @@ local function calculate_window_position(position, size, container)
       col = n.value
     end
   end
-
   return {
     row = row,
     col = col,
   }
 end
+
 
 local function calculate_winblend(opacity)
   assert(is_type("number", opacity), "invalid opacity")
