@@ -135,6 +135,11 @@ For percentage string, size is calculated according to the option `relative`
 
 If `enter` is `true`, the popup is entered immediately after mount.
 
+**focusable**
+
+If `focusable` is `false`, the popup can not be entered by user actions
+(wincmds, mouse events).
+
 **zindex**
 
 `zindex` is a number used to order the position of popups on z-axis.

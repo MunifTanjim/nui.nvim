@@ -160,6 +160,7 @@ local function init(class, options)
     "force",
     {
       _enter = utils.defaults(options.enter, false),
+      focusable = options.focusable,
       style = "minimal",
       zindex = utils.defaults(options.zindex, 50),
     },
