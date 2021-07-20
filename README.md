@@ -211,6 +211,14 @@ Removes `autocmd` defined with `popup:on(...)`. For example:
 popup:off("*")
 ```
 
+#### popup:set_size(size)
+
+Sets the size of the popup. For example:
+
+```lua
+popup:set_size({ width = 80, height = 40 })
+```
+
 #### popup.border:set_text(edge, text, align)
 
 Sets border text. For example:

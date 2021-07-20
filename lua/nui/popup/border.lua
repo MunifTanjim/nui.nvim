@@ -355,6 +355,26 @@ function Border:unmount()
   end
 end
 
+function Border:resize()
+  local props = self.border_props
+
+  props.size = calculate_size(self)
+
+  props.buf_lines = calculate_buf_lines(props)
+
+  self.win_config.width = props.size.width
+  self.win_config.height = props.size.height
+
+  vim.api.nvim_win_set_config(self.winid, {
+    width = props.size.width,
+    height = props.size.height,
+  })
+
+  if self.border_props.buf_lines then
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, props.size.height, false, props.buf_lines)
+  end
+end
+
 ---@param edge "'top'" | "'bottom'"
 ---@param text nil | string
 ---@param align nil | "'left'" | "'center'" | "'right'"

@@ -288,6 +288,23 @@ function Popup:off(event)
   autocmd.buf.remove(self.bufnr, nil, event)
 end
 
+function Popup:set_size(size)
+  local props = self.popup_props
+
+  local container_info = get_container_info(self.win_config)
+  props.size = calculate_window_size(size, container_info)
+
+  self.border:resize()
+
+  self.win_config.width = props.size.width
+  self.win_config.height = props.size.height
+
+  vim.api.nvim_win_set_config(self.winid, {
+    width = props.size.width,
+    height = props.size.height,
+  })
+end
+
 local PopupClass =  setmetatable({
   __index = Popup,
 }, {
