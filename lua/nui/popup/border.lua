@@ -154,6 +154,84 @@ local styles = {
   solid   = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
 }
 
+local function calculate_size(border)
+  local size = vim.deepcopy(border.popup.popup_props.size)
+
+  local char = border.border_props.char
+
+  if is_type("map", char) then
+    if char.top ~= "" then
+      size.height = size.height + 1
+    end
+
+    if char.bottom ~= "" then
+      size.height = size.height + 1
+    end
+
+    if char.left ~= "" then
+      size.width = size.width + 1
+    end
+
+    if char.right ~= "" then
+      size.width = size.width + 1
+    end
+  end
+
+  local padding = border.border_props.padding
+
+  if padding then
+    if padding.top then
+      size.height = size.height + padding.top
+    end
+
+    if padding.bottom then
+      size.height = size.height + padding.bottom
+    end
+
+    if padding.left then
+      size.width = size.width + padding.left
+    end
+
+    if padding.right then
+      size.width = size.width + padding.right
+    end
+  end
+
+  return size
+end
+
+local function calculate_position(border)
+  local popup = border.popup
+
+  local position = vim.deepcopy(popup.popup_props.position)
+
+  local char = border.border_props.char
+
+  if is_type("map", char) then
+    if char.top ~= "" then
+      popup.popup_props.position.row = popup.popup_props.position.row + 1
+    end
+
+    if char.left ~= "" then
+      popup.popup_props.position.col = popup.popup_props.position.col + 1
+    end
+  end
+
+  local padding = border.border_props.padding
+
+  if padding then
+    if padding.top then
+      popup.popup_props.position.row = popup.popup_props.position.row + padding.top
+    end
+
+    if padding.left then
+      popup.popup_props.position.col = popup.popup_props.position.col + padding.left
+    end
+  end
+
+  return position
+end
+
 local function init(class, popup, options)
   local self = setmetatable({}, class)
 
@@ -203,51 +281,23 @@ local function init(class, popup, options)
   end
 
   if props.type == "complex" then
-    local padding = defaults(props.padding, {})
-    local text = defaults(props.text, {})
-
-    props.size = vim.deepcopy(popup.popup_props.size)
-    props.position = vim.deepcopy(popup.popup_props.position)
-
-    if not is_borderless then
-      if props.char.top ~= "" then
-        props.size.height = props.size.height + 1
-        popup.popup_props.position.row = popup.popup_props.position.row + 1
-      end
-
-      if props.char.bottom ~= "" then
-        props.size.height = props.size.height + 1
-      end
-
-      if props.char.left ~= "" then
-        props.size.width = props.size.width + 1
-        popup.popup_props.position.col = popup.popup_props.position.col + 1
-      end
-
-      if props.char.right ~= "" then
-        props.size.width = props.size.width + 1
-      end
-    end
-
-    if padding.top then
-      props.size.height = props.size.height + padding.top
-      popup.popup_props.position.row = popup.popup_props.position.row + padding.top
-    end
-
-    if padding.bottom then
-      props.size.height = props.size.height + padding.bottom
-    end
-
-    if padding.left then
-      props.size.width = props.size.width + padding.left
-      popup.popup_props.position.col = popup.popup_props.position.col + padding.left
-    end
-
-    if padding.right then
-      props.size.width = props.size.width + padding.right
-    end
+    props.size = calculate_size(self)
+    props.position = calculate_position(self)
 
     props.buf_lines = calculate_buf_lines(props)
+
+    self.win_config = {
+      style = "minimal",
+      relative = popup.win_config.relative,
+      border = "none",
+      focusable = false,
+      width = props.size.width,
+      height = props.size.height,
+      bufpos = popup.win_config.bufpos,
+      row = props.position.row,
+      col = props.position.col,
+      zindex = self.popup.win_config.zindex - 1,
+    }
   end
 
   props.highlight = defaults(options.highlight, "FloatBorder")
@@ -283,18 +333,7 @@ function Border:mount()
     vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height, false, props.buf_lines)
   end
 
-  self.winid = vim.api.nvim_open_win(self.bufnr, false, {
-    style = "minimal",
-    relative = self.popup.win_config.relative,
-    border = "none",
-    focusable = false,
-    width = size.width,
-    height = size.height,
-    bufpos = self.popup.win_config.bufpos,
-    row = position.row,
-    col = position.col,
-    zindex = self.popup.win_config.zindex - 1,
-  })
+  self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
   assert(self.winid, "failed to create border window")
 
   vim.api.nvim_win_set_option(self.winid, 'winhighlight', self.border_props.highlight)
