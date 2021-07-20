@@ -107,8 +107,9 @@ local function calculate_window_position(position, size, container)
   }
 end
 
+-- @deprecated
+---@param opacity number
 local function calculate_winblend(opacity)
-  assert(is_type("number", opacity), "invalid opacity")
   assert(0 <= opacity, "opacity must be equal or greater than 0")
   assert(opacity <= 1, "opacity must be equal or lesser than 0")
   return 100 - (opacity * 100)
@@ -179,10 +180,19 @@ local function init(class, options)
     parse_relative(options.relative)
   )
 
-  self.win_options = {
-    winblend = calculate_winblend(utils.defaults(options.opacity, 1)),
-    winhighlight = options.highlight,
-  }
+  self.buf_options = utils.defaults(options.buf_options, {})
+
+  self.win_options = utils.defaults(options.win_options, {})
+
+  if not self.win_options.winblend and is_type("number", options.opacity) then
+    -- @deprecated
+    self.win_options.winblend = calculate_winblend(options.opacity)
+  end
+
+  if not self.win_options.winhighlight and not is_type("nil", options.highlight) then
+    -- @deprecated
+    self.win_options.winhighlight = options.highlight
+  end
 
   local props = self.popup_props
   local win_config = self.win_config
@@ -231,15 +241,17 @@ function Popup:mount()
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
 
+  for name, value in pairs(self.buf_options) do
+    vim.api.nvim_buf_set_option(self.bufnr, name, value)
+  end
+
   local enter = self.win_config._enter
   self.win_config._enter = nil
   self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.win_config)
   assert(self.winid, "failed to create popup window")
 
   for name, value in pairs(self.win_options) do
-    if not is_type("nil", value) then
-      vim.api.nvim_win_set_option(self.winid, name, value)
-    end
+    vim.api.nvim_win_set_option(self.winid, name, value)
   end
 end
 

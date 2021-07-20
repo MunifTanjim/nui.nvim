@@ -131,21 +131,32 @@ It will set padding of `1` for top/bottom and `2` for left/right.
 
 If `enter` is `true`, the popup is entered immediately after mount.
 
-**highlight**
-
-Set highlight groups for the popup. For example: `Normal:Normal`.
-
-For more information, check `:help winhighlight`
-
-**opacity**
-
-`opacity` is a number between `0` (complete transparency) and
-`1` (no transparency).
-
 **zindex**
 
 `zindex` is a number used to order the position of popups on z-axis.
 Popup with higher `zindex` goes on top of popups with lower `zindex`.
+
+**buf_options**
+
+Table containing buffer options to set for this popup. For example:
+
+```lua
+{
+  modifiable = false,
+  readonly = true,
+}
+```
+
+**win_options**
+
+Table containing window options to set for this popup. For example:
+
+```lua
+{
+  winblend = 10,
+  winhighlight = "Normal:Normal",
+}
+```
 
 #### popup:mount()
 
