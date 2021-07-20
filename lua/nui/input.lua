@@ -6,6 +6,9 @@ local Popup = require("nui.popup")
 local function init(class, popup_options, options)
   popup_options.enter = true
 
+  popup_options.buf_options = defaults(popup_options.buf_options, {})
+  popup_options.buf_options.buftype = 'prompt'
+
   if not is_type("table", popup_options.size) then
     popup_options.size = {
       width = popup_options.size
@@ -86,7 +89,6 @@ function Input:mount()
     end, { once = true })
   end
 
-  vim.api.nvim_buf_set_option(self.bufnr, 'buftype', 'prompt')
   vim.fn.prompt_setprompt(self.bufnr, props.prompt)
   vim.fn.prompt_setcallback(self.bufnr, props.on_submit)
   vim.fn.prompt_setinterrupt(self.bufnr, props.on_close)
