@@ -280,7 +280,7 @@ function Border:mount()
   assert(self.bufnr, "failed to create border buffer")
 
   if props.buf_lines then
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height - 2, false, props.buf_lines)
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height, false, props.buf_lines)
   end
 
   self.winid = vim.api.nvim_open_win(self.bufnr, false, {
@@ -322,13 +322,21 @@ end
 function Border:set_text(edge, text, align)
   local props = self.border_props
 
-  align = defaults(align, props.text[edge .. "_align"])
-  local line = calculate_buf_edge_line(props, edge, text, align)
+  if not props.buf_lines or not props.text then
+    return
+  end
+
+  props.text[edge] = text
+  props.text[edge .. "_align"] = defaults(align, props.text[edge .. "_align"])
+
+  local line = calculate_buf_edge_line(props, edge, props.text[edge], props.text[edge .. "_align"])
 
   if edge == "top" then
+    props.buf_lines[1] = line
     vim.api.nvim_buf_set_lines(self.bufnr, 0, 1, false, { line })
   elseif edge == "bottom" then
-    vim.api.nvim_buf_set_lines(self.bufnr, -2, -1, false, { line })
+    props.buf_lines[#props.buf_lines] = line
+    vim.api.nvim_buf_set_lines(self.bufnr, props.size.height - 1, props.size.height , true, { line })
   end
 end
 
