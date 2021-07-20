@@ -5,7 +5,8 @@ local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
-local function get_container_info(win_config)
+local function get_container_info(popup)
+  local win_config = popup.win_config
   local relative = win_config.relative
 
   if relative == "editor" then
@@ -19,7 +20,7 @@ local function get_container_info(win_config)
   if relative == "cursor" or relative == "win" then
     return {
       relative = win_config.bufpos and "buf" or relative,
-      size = utils.get_window_size(),
+      size = utils.get_window_size(popup.popup_state.parent_winid),
       type = "window",
     }
   end
@@ -165,6 +166,11 @@ local function init(class, options)
     parse_relative(options.relative)
   )
 
+  self.popup_state.parent_winid = utils.defaults(
+    self.win_config.win,
+    vim.api.nvim_get_current_win()
+  )
+
   self.buf_options = utils.defaults(options.buf_options, {})
 
   self.win_options = utils.defaults(options.win_options, {})
@@ -182,7 +188,7 @@ local function init(class, options)
   local props = self.popup_props
   local win_config = self.win_config
 
-  local container_info = get_container_info(win_config)
+  local container_info = get_container_info(self)
   props.size = calculate_window_size(options.size, container_info)
   props.position = calculate_window_position(options.position, props.size, container_info)
 
@@ -291,7 +297,7 @@ end
 function Popup:set_size(size)
   local props = self.popup_props
 
-  local container_info = get_container_info(self.win_config)
+  local container_info = get_container_info(self)
   props.size = calculate_window_size(size, container_info)
 
   self.border:resize()
