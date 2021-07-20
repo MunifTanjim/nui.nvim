@@ -59,6 +59,23 @@ local function to_border_list(named_border)
   return border
 end
 
+local function parse_padding(padding)
+  if not padding then
+    return nil
+  end
+
+  if is_type("map", padding) then
+    return padding
+  end
+
+  local map = {}
+  map.top = defaults(padding[1], 0)
+  map.right = defaults(padding[2], map.top)
+  map.bottom = defaults(padding[3], map.top)
+  map.left = defaults(padding[4], map.right)
+  return map
+end
+
 ---@param edge "'top'" | "'bottom'"
 ---@param text nil | string
 ---@param alignment nil | "'left'" | "'center'" | "'right'"
@@ -151,6 +168,7 @@ local function init(class, popup, options)
   self.border_props  = {
     type = "simple",
     style = defaults(options.style, "none"),
+    padding = parse_padding(options.padding),
     text = options.text,
   }
 
@@ -176,7 +194,7 @@ local function init(class, popup, options)
     end
   end
 
-  if props.text or popup.popup_props.padding then
+  if props.text or props.padding then
     props.type = "complex"
   end
 
@@ -185,7 +203,7 @@ local function init(class, popup, options)
   end
 
   if props.type == "complex" then
-    local padding = defaults(popup.popup_props.padding, {})
+    local padding = defaults(props.padding, {})
     local text = defaults(props.text, {})
 
     props.size = vim.deepcopy(popup.popup_props.size)
@@ -212,39 +230,21 @@ local function init(class, popup, options)
     end
 
     if padding.top then
-      popup.popup_props.size.height = popup.popup_props.size.height - padding.top
+      props.size.height = props.size.height + padding.top
       popup.popup_props.position.row = popup.popup_props.position.row + padding.top
-
-      if is_borderless then
-        props.size.height = props.size.height + padding.top
-        popup.popup_props.position.row = popup.popup_props.position.row + padding.top
-      end
     end
 
     if padding.bottom then
-      popup.popup_props.size.height = popup.popup_props.size.height - padding.bottom
-
-      if is_borderless then
-        props.size.height = props.size.height + padding.bottom
-      end
+      props.size.height = props.size.height + padding.bottom
     end
 
     if padding.left then
-      popup.popup_props.size.width = popup.popup_props.size.width - padding.left
+      props.size.width = props.size.width + padding.left
       popup.popup_props.position.col = popup.popup_props.position.col + padding.left
-
-      if is_borderless then
-        props.size.width = props.size.width + padding.left
-        popup.popup_props.position.col = popup.popup_props.position.col + padding.left
-      end
     end
 
     if padding.right then
-      popup.popup_props.size.width = popup.popup_props.size.width - padding.right
-
-      if is_borderless then
-        props.size.width = props.size.width + padding.right
-      end
+      props.size.width = props.size.width + padding.right
     end
 
     props.buf_lines = calculate_buf_lines(props)

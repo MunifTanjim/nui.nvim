@@ -41,7 +41,25 @@ local popup = Popup({
 
 **border**
 
-`border` accepts a table with these keys: `style`, `highlight` and `text`.
+`border` accepts a table with these keys: `highlight`, `padding`, `style`, and `text`.
+
+`border.highlight` can be a string denoting the highlight group name for the border characters.
+
+`border.padding` can be a list (table) with number of cells for top, right, bottom and left.
+It behaves like [CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) padding.
+For example:
+
+```lua
+-- `1` for top/bottom and `2` for left/right
+{ 1, 2 }
+```
+
+You can also use a map (table) to set padding at specific side. For example:
+
+```lua
+-- `1` for top, `0` for other sides
+{ top = 1 }
+```
 
 `border.style` can be one of the followings:
 
@@ -58,8 +76,6 @@ local popup = Popup({
     bottom_left = "╰", bottom = "─", bottom_right  = "╯",
   }
   ```
-
-`border.highlight` can be a string denoting the highlight group name for the border characters.
 
 `border.text` can be an table with the following keys:
 
@@ -114,18 +130,6 @@ Or you can pass a table to set them separately.
 
 For percentage string, size is calculated according to the option `relative`
 (if `relative` is set to `"buf"` or `"cursor"`, window size is considered).
-
-**padding**
-
-`padding` can be a table with number of cells for top, right, bottom and left.
-It behaves like [CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) padding.
-For example:
-
-```lua
-{ 1, 2 }
-```
-
-It will set padding of `1` for top/bottom and `2` for left/right.
 
 **enter**
 

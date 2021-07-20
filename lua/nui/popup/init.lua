@@ -115,19 +115,6 @@ local function calculate_winblend(opacity)
   return 100 - (opacity * 100)
 end
 
-local function parse_padding(padding)
-  if not padding then
-    return nil
-  end
-
-  local map = {}
-  map.top = utils.defaults(padding[1], 0)
-  map.right = utils.defaults(padding[2], map.top)
-  map.bottom = utils.defaults(padding[3], map.top)
-  map.left = utils.defaults(padding[4], map.right)
-  return map
-end
-
 local function parse_relative(relative)
   relative = utils.defaults(relative, "win")
 
@@ -166,9 +153,7 @@ local function init(class, options)
     mounted = false
   }
 
-  self.popup_props = {
-    padding = parse_padding(options.padding),
-  }
+  self.popup_props = {}
 
   self.win_config = vim.tbl_extend(
     "force",
