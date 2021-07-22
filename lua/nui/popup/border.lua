@@ -125,9 +125,9 @@ end
 
 ---@return nil | string[]
 local function calculate_buf_lines(props)
-  local char, size, text = props.char, props.size, props.text
+  local char, size, text = props.char, props.size, defaults(props.text, {})
 
-  if is_type("string", char) or not text then
+  if is_type("string", char) then
     return nil
   end
 
