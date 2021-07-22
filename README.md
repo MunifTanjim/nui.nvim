@@ -271,6 +271,42 @@ Of course, you can override the default keymaps and add more. For example:
 input:map("n", "<Esc>", input.input_props.on_close, { noremap = true })
 ```
 
+### Menu
+
+`Menu` is abstraction layer on top of `Popup`.
+
+Creates a new menu object (but does not mount it immediately).
+
+```lua
+local Menu = require("nui.menu")
+
+local menu = Menu(popup_options, {
+  lines = {
+    Menu.item("Item 1"),
+    Menu.item("Item 2"),
+    Menu.separator("Menu Group"),
+    Menu.item("Item 3"),
+  },
+  max_width = 20,
+  separator = {
+    char = "-",
+    text_align = "right",
+  },
+  keymap = {
+    focus_next = { "j", "<Down>", "<Tab>" },
+    focus_prev = { "k", "<Up>", "<S-Tab>" },
+    close = { "<Esc>", "<C-c>" },
+    submit = { "<CR>", "<Space>" },
+  },
+  on_close = function()
+    print("CLOSED")
+  end,
+  on_submit = function(item)
+    print("SUBMITTED", vim.inspect(item))
+  end
+})
+```
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
