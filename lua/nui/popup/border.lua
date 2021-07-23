@@ -1,3 +1,4 @@
+local _utils = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
@@ -102,25 +103,11 @@ local function calculate_buf_edge_line(props, edge, text, alignment)
 
   if mid_char == "" then
     content = string.rep(" ", max_length)
-  elseif strwidth(content) > max_length then
-    content = string.sub(content, 1, max_length - 1) .. "…"
+  else
+    content = _utils.truncate_text(content, max_length)
   end
 
-  local gap_length = max_length - strwidth(content)
-
-  local gap_left = ""
-  local gap_right = ""
-
-  if align == "left" then
-    gap_right = string.rep(mid_char, gap_length)
-  elseif align == "center" then
-    gap_left = string.rep(mid_char, math.floor(gap_length / 2))
-    gap_right = string.rep(mid_char, math.ceil(gap_length / 2))
-  elseif align == "right" then
-    gap_left = string.rep(mid_char, gap_length)
-  end
-
-  return left_char .. gap_left .. content .. gap_right .. right_char
+  return left_char .. _utils.align_text(content, align, max_length, mid_char) .. right_char
 end
 
 ---@return nil | string[]

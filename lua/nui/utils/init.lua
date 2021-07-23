@@ -1,4 +1,7 @@
-local utils = {}
+local utils = {
+  -- internal utils
+  _ = {}
+}
 
 function utils.get_editor_size()
   return {
@@ -45,6 +48,40 @@ function utils.parse_number_input(v)
   end
 
   return parsed
+end
+
+---@param text string
+---@param max_length number
+---@return string
+function utils._.truncate_text(text, max_length)
+  if vim.api.nvim_strwidth(text) > max_length then
+    return string.sub(text, 1, max_length - 1) .. "…"
+  end
+
+  return text
+end
+
+---@param text string
+---@param align "'left'" | "'center'" | "'right'"
+---@param line_length number
+---@param gap_char string
+---@return string
+function utils._.align_text(text, align, line_length, gap_char)
+  local gap_length = line_length - vim.api.nvim_strwidth(text)
+
+  local gap_left = ""
+  local gap_right = ""
+
+  if align == "left" then
+    gap_right = string.rep(gap_char, gap_length)
+  elseif align == "center" then
+    gap_left = string.rep(gap_char, math.floor(gap_length / 2))
+    gap_right = string.rep(gap_char, math.ceil(gap_length / 2))
+  elseif align == "right" then
+    gap_left = string.rep(gap_char, gap_length)
+  end
+
+  return gap_left .. text .. gap_right
 end
 
 return utils
