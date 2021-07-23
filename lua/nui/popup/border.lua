@@ -370,13 +370,17 @@ function Border:resize()
   self.win_config.width = props.size.width
   self.win_config.height = props.size.height
 
-  vim.api.nvim_win_set_config(self.winid, {
-    width = props.size.width,
-    height = props.size.height,
-  })
+  if self.winid then
+    vim.api.nvim_win_set_config(self.winid, {
+      width = props.size.width,
+      height = props.size.height,
+    })
+  end
 
-  if self.border_props.buf_lines then
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, props.size.height, false, props.buf_lines)
+  if self.bufnr then
+    if self.border_props.buf_lines then
+      vim.api.nvim_buf_set_lines(self.bufnr, 0, props.size.height, false, props.buf_lines)
+    end
   end
 end
 

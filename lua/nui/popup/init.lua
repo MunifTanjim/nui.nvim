@@ -319,10 +319,12 @@ function Popup:set_size(size)
   self.win_config.width = props.size.width
   self.win_config.height = props.size.height
 
-  vim.api.nvim_win_set_config(self.winid, {
-    width = props.size.width,
-    height = props.size.height,
-  })
+  if self.winid then
+    vim.api.nvim_win_set_config(self.winid, {
+      width = props.size.width,
+      height = props.size.height,
+    })
+  end
 end
 
 local PopupClass =  setmetatable({
