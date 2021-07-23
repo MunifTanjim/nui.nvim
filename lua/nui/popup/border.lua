@@ -305,6 +305,12 @@ function Border:init(popup, options)
 end
 
 function Border:mount()
+  local popup = self.popup
+
+  if not popup.popup_state.loading or popup.popup_state.mounted then
+    return
+  end
+
   local props = self.border_props
 
   if props.type == "simple" then
@@ -327,18 +333,30 @@ function Border:mount()
 end
 
 function Border:unmount()
+  local popup = self.popup
+
+  if not popup.popup_state.loading or not popup.popup_state.mounted then
+    return
+  end
+
   local props = self.border_props
 
   if props.type == "simple" then
     return
   end
 
-  if vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  if self.bufnr then
+    if vim.api.nvim_buf_is_valid(self.bufnr) then
+      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
+    self.bufnr = nil
   end
 
-  if vim.api.nvim_win_is_valid(self.winid) then
-    vim.api.nvim_win_close(self.winid, true)
+  if self.winid then
+    if vim.api.nvim_win_is_valid(self.winid) then
+      vim.api.nvim_win_close(self.winid, true)
+    end
+    self.winid = nil
   end
 end
 

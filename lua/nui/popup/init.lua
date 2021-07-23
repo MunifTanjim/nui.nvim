@@ -151,6 +151,7 @@ local function init(class, options)
   local self = setmetatable({}, class)
 
   self.popup_state = {
+    loading = false,
     mounted = false
   }
 
@@ -222,11 +223,11 @@ function Popup:init(options)
 end
 
 function Popup:mount()
-  if self.popup_state.mounted then
+  if self.popup_state.loading or self.popup_state.mounted then
     return
   end
 
-  self.popup_state.mounted = true
+  self.popup_state.loading = true
 
   self.border:mount()
 
@@ -245,26 +246,38 @@ function Popup:mount()
   for name, value in pairs(self.win_options) do
     vim.api.nvim_win_set_option(self.winid, name, value)
   end
+
+  self.popup_state.loading = false
+  self.popup_state.mounted = true
 end
 
 function Popup:unmount()
-  if not self.popup_state.mounted then
+  if self.popup_state.loading or not self.popup_state.mounted then
     return
   end
 
-  self.popup_state.mounted = false
+  self.popup_state.loading = true
 
   self.border:unmount()
 
   buf_storage.cleanup(self.bufnr)
 
-  if vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  if self.bufnr then
+    if vim.api.nvim_buf_is_valid(self.bufnr) then
+      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
+    self.bufnr = nil
   end
 
-  if vim.api.nvim_win_is_valid(self.winid) then
-    vim.api.nvim_win_close(self.winid, true)
+  if self.winid then
+    if vim.api.nvim_win_is_valid(self.winid) then
+      vim.api.nvim_win_close(self.winid, true)
+    end
+    self.winid = nil
   end
+
+  self.popup_state.loading = false
+  self.popup_state.mounted = false
 end
 
 -- set keymap for this popup window. if keymap was already set and
