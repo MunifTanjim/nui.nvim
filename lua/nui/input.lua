@@ -26,7 +26,7 @@ local function init(class, popup_options, options)
 
   self.input_props = props
 
-  props.on_submit = function(value, x)
+  props.on_submit = function(value)
     local prompt_normal_mode = vim.fn.mode() == "n"
 
     self:unmount()
