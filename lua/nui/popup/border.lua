@@ -119,7 +119,7 @@ local function calculate_buf_lines(props)
   end
 
   local gap_length = size.width - strwidth(char.left .. char.right)
-  local middle_line = char.left ..  string.rep(" ", gap_length) .. char.right
+  local middle_line = char.left .. string.rep(" ", gap_length) .. char.right
 
   local lines = {}
 
@@ -133,12 +133,12 @@ local function calculate_buf_lines(props)
 end
 
 local styles = {
-  double  = to_border_map({ "╔", "═", "╗", "║", "╝", "═", "╚", "║" }),
-  none    = "none",
+  double = to_border_map({ "╔", "═", "╗", "║", "╝", "═", "╚", "║" }),
+  none = "none",
   rounded = to_border_map({ "╭", "─", "╮", "│", "╯", "─", "╰", "│" }),
-  shadow  = "shadow",
-  single  = to_border_map({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }),
-  solid   = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
+  shadow = "shadow",
+  single = to_border_map({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }),
+  solid = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
 }
 
 local function calculate_size(border)
@@ -226,11 +226,11 @@ local function init(class, popup, options)
 
   if is_type("string", options) then
     options = {
-      style = options
+      style = options,
     }
   end
 
-  self.border_props  = {
+  self.border_props = {
     type = "simple",
     style = defaults(options.style, "none"),
     padding = parse_padding(options.padding),
@@ -329,7 +329,7 @@ function Border:mount()
   self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
   assert(self.winid, "failed to create border window")
 
-  vim.api.nvim_win_set_option(self.winid, 'winhighlight', self.border_props.highlight)
+  vim.api.nvim_win_set_option(self.winid, "winhighlight", self.border_props.highlight)
 end
 
 function Border:unmount()
@@ -404,7 +404,7 @@ function Border:set_text(edge, text, align)
     vim.api.nvim_buf_set_lines(self.bufnr, 0, 1, false, { line })
   elseif edge == "bottom" then
     props.buf_lines[#props.buf_lines] = line
-    vim.api.nvim_buf_set_lines(self.bufnr, props.size.height - 1, props.size.height , true, { line })
+    vim.api.nvim_buf_set_lines(self.bufnr, props.size.height - 1, props.size.height, true, { line })
   end
 end
 

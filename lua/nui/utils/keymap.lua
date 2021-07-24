@@ -2,15 +2,11 @@ local buf_storage = require("nui.utils.buf_storage")
 local is_type = require("nui.utils").is_type
 
 local keymap = {
-  storage = buf_storage.create("nui.utils.keymap", { _next_handler_id = 1, keys = {}, handlers = {} })
+  storage = buf_storage.create("nui.utils.keymap", { _next_handler_id = 1, keys = {}, handlers = {} }),
 }
 
 local function store_keymap(bufnr, mode, key, handler, overwrite)
-  local key_id = string.format(
-    "%s---%s",
-    mode,
-    vim.api.nvim_replace_termcodes(key, true, true, true)
-  )
+  local key_id = string.format("%s---%s", mode, vim.api.nvim_replace_termcodes(key, true, true, true))
 
   if keymap.storage[bufnr].keys[key_id] and not overwrite then
     return nil
@@ -44,19 +40,9 @@ function keymap.set(bufnr, mode, key, handler, opts, force)
     return false
   end
 
-  local handler_cmd = string.format(
-    "<cmd>lua require('nui.utils.keymap').execute(%s, %s)<CR>",
-    bufnr,
-    handler_id
-  )
+  local handler_cmd = string.format("<cmd>lua require('nui.utils.keymap').execute(%s, %s)<CR>", bufnr, handler_id)
 
-  vim.api.nvim_buf_set_keymap(
-    bufnr,
-    mode,
-    key,
-    handler_cmd,
-    opts
-  )
+  vim.api.nvim_buf_set_keymap(bufnr, mode, key, handler_cmd, opts)
 
   return true
 end

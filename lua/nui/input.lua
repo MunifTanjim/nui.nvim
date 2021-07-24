@@ -7,11 +7,11 @@ local function init(class, popup_options, options)
   popup_options.enter = true
 
   popup_options.buf_options = defaults(popup_options.buf_options, {})
-  popup_options.buf_options.buftype = 'prompt'
+  popup_options.buf_options.buftype = "prompt"
 
   if not is_type("table", popup_options.size) then
     popup_options.size = {
-      width = popup_options.size
+      width = popup_options.size,
     }
   end
 
@@ -34,7 +34,7 @@ local function init(class, popup_options, options)
     if prompt_normal_mode then
       -- NOTE: on prompt-buffer normal mode <CR> causes neovim to enter insert mode.
       --  ref: https://github.com/neovim/neovim/blob/d8f5f4d09078/src/nvim/normal.c#L5327-L5333
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, true, true), 'n', true)
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, true, true), "n", true)
     end
 
     if options.on_submit then
@@ -65,7 +65,7 @@ local Input = setmetatable({
   name = "Input",
   super = Popup,
 }, {
-  __index = Popup.__index
+  __index = Popup.__index,
 })
 
 function Input:init(popup_options, options)
@@ -85,8 +85,10 @@ function Input:mount()
 
   if #props.default_value then
     self:on(event.InsertEnter, function()
-      vim.api.nvim_feedkeys(props.default_value, 'n', false)
-    end, { once = true })
+      vim.api.nvim_feedkeys(props.default_value, "n", false)
+    end, {
+      once = true,
+    })
   end
 
   vim.fn.prompt_setprompt(self.bufnr, props.prompt)

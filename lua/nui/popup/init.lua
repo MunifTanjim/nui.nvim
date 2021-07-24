@@ -13,7 +13,7 @@ local function get_container_info(popup)
     return {
       relative = relative,
       size = utils.get_editor_size(),
-      type = "editor"
+      type = "editor",
     }
   end
 
@@ -121,7 +121,7 @@ local function parse_relative(relative)
 
   if is_type("string", relative) then
     relative = {
-      type = utils.defaults(relative, "win")
+      type = utils.defaults(relative, "win"),
     }
   end
 
@@ -152,26 +152,21 @@ local function init(class, options)
 
   self.popup_state = {
     loading = false,
-    mounted = false
+    mounted = false,
   }
 
   self.popup_props = {}
 
-  self.win_config = vim.tbl_extend(
-    "force",
-    {
-      _enter = utils.defaults(options.enter, false),
-      focusable = options.focusable,
-      style = "minimal",
-      zindex = utils.defaults(options.zindex, 50),
-    },
-    parse_relative(options.relative)
-  )
+  self.win_config = vim.tbl_extend("force", {
+    _enter = utils.defaults(options.enter, false),
+    focusable = options.focusable,
+    style = "minimal",
+    zindex = utils.defaults(options.zindex, 50),
+  }, parse_relative(
+    options.relative
+  ))
 
-  self.popup_state.parent_winid = utils.defaults(
-    self.win_config.win,
-    vim.api.nvim_get_current_win()
-  )
+  self.popup_state.parent_winid = utils.defaults(self.win_config.win, vim.api.nvim_get_current_win())
 
   self.buf_options = utils.defaults(options.buf_options, {})
 
@@ -327,7 +322,7 @@ function Popup:set_size(size)
   end
 end
 
-local PopupClass =  setmetatable({
+local PopupClass = setmetatable({
   __index = Popup,
 }, {
   __call = init,

@@ -1,12 +1,12 @@
 local utils = {
   -- internal utils
-  _ = {}
+  _ = {},
 }
 
 function utils.get_editor_size()
   return {
     width = vim.o.columns,
-    height = vim.o.lines
+    height = vim.o.lines,
   }
 end
 
