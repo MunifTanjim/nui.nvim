@@ -7,6 +7,19 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    name: luacheck
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup luarocks
+        run: sudo apt-get install luarocks -q
+      - name: Setup luacheck
+        run: sudo luarocks install luacheck
+      - name: Lint using luacheck
+        run: luacheck lua/nui/
+
   format:
     name: stylua
     runs-on: ubuntu-20.04
