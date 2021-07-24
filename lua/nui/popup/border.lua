@@ -317,7 +317,7 @@ function Border:mount()
     return
   end
 
-  local size, position = props.size, props.position
+  local size = props.size
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create border buffer")

@@ -22,6 +22,7 @@ function utils.defaults(v, default_value)
   return type(v) == "nil" and default_value or v
 end
 
+-- luacheck: push no max comment line length
 ---@param type_name "'nil'" | "'number'" | "'string'" | "'boolean'" | "'table'" | "'function'" | "'thread'" | "'userdata'" | "'list'" | '"map"'
 function utils.is_type(type_name, v)
   if type_name == "list" then
@@ -34,6 +35,7 @@ function utils.is_type(type_name, v)
 
   return type(v) == type_name
 end
+-- luacheck: pop
 
 ---@param v string | number
 function utils.parse_number_input(v)

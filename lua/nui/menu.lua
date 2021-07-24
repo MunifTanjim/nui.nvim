@@ -45,7 +45,7 @@ local function calculate_buf_lines(menu)
   local max_length = menu.popup_props.size.width
   local separator_max_length = max_length - vim.api.nvim_strwidth(separator_char) * 2
 
-  for index, line in ipairs(menu.menu_props.lines) do
+  for _index, line in ipairs(menu.menu_props.lines) do
     if line.type == "item" then
       local text = _utils.truncate_text(line.text, max_length)
       table.insert(buf_lines, text)
