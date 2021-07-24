@@ -5,247 +5,248 @@ local is_type = require("nui.utils").is_type
 local autocmd = {
   event = {
     -- after adding a buffer to the buffer list
-    BufAdd               = 'BufAdd',
+    BufAdd = "BufAdd",
     -- deleting a buffer from the buffer list
-    BufDelete            = 'BufDelete',
+    BufDelete = "BufDelete",
     -- after entering a buffer
-    BufEnter             = 'BufEnter',
+    BufEnter = "BufEnter",
     -- after renaming a buffer
-    BufFilePost          = 'BufFilePost',
+    BufFilePost = "BufFilePost",
     -- before renaming a buffer
-    BufFilePre           = 'BufFilePre',
+    BufFilePre = "BufFilePre",
     -- just after buffer becomes hidden
-    BufHidden            = 'BufHidden',
+    BufHidden = "BufHidden",
     -- before leaving a buffer
-    BufLeave             = 'BufLeave',
+    BufLeave = "BufLeave",
     -- after the 'modified' state of a buffer changes
-    BufModifiedSet       = 'BufModifiedSet',
+    BufModifiedSet = "BufModifiedSet",
     -- after creating any buffer
-    BufNew               = 'BufNew',
+    BufNew = "BufNew",
     -- when creating a buffer for a new file
-    BufNewFile           = 'BufNewFile',
+    BufNewFile = "BufNewFile",
     -- read buffer using command
-    BufReadCmd           = 'BufReadCmd',
+    BufReadCmd = "BufReadCmd",
     -- after reading a buffer
-    BufReadPost          = 'BufReadPost',
+    BufReadPost = "BufReadPost",
     -- before reading a buffer
-    BufReadPre           = 'BufReadPre',
+    BufReadPre = "BufReadPre",
     -- just before unloading a buffer
-    BufUnload            = 'BufUnload',
+    BufUnload = "BufUnload",
     -- after showing a buffer in a window
-    BufWinEnter          = 'BufWinEnter',
+    BufWinEnter = "BufWinEnter",
     -- just after buffer removed from window
-    BufWinLeave          = 'BufWinLeave',
+    BufWinLeave = "BufWinLeave",
     -- just before really deleting a buffer
-    BufWipeout           = 'BufWipeout',
+    BufWipeout = "BufWipeout",
     -- write buffer using command
-    BufWriteCmd          = 'BufWriteCmd',
+    BufWriteCmd = "BufWriteCmd",
     -- after writing a buffer
-    BufWritePost         = 'BufWritePost',
+    BufWritePost = "BufWritePost",
     -- before writing a buffer
-    BufWritePre          = 'BufWritePre',
+    BufWritePre = "BufWritePre",
     -- info was received about channel
-    ChanInfo             = 'ChanInfo',
+    ChanInfo = "ChanInfo",
     -- channel was opened
-    ChanOpen             = 'ChanOpen',
+    ChanOpen = "ChanOpen",
     -- command undefined
-    CmdUndefined         = 'CmdUndefined',
+    CmdUndefined = "CmdUndefined",
     -- after entering the cmdline window
-    CmdWinEnter          = 'CmdWinEnter',
+    CmdWinEnter = "CmdWinEnter",
     -- before leaving the cmdline window
-    CmdWinLeave          = 'CmdWinLeave',
+    CmdWinLeave = "CmdWinLeave",
     -- command line was modified
-    CmdlineChanged       = 'CmdlineChanged',
+    CmdlineChanged = "CmdlineChanged",
     -- after entering cmdline mode
-    CmdlineEnter         = 'CmdlineEnter',
+    CmdlineEnter = "CmdlineEnter",
     -- before leaving cmdline mode
-    CmdlineLeave         = 'CmdlineLeave',
+    CmdlineLeave = "CmdlineLeave",
     -- after loading a colorscheme
-    ColorScheme          = 'ColorScheme',
+    ColorScheme = "ColorScheme",
     -- before loading a colorscheme
-    ColorSchemePre       = 'ColorSchemePre',
+    ColorSchemePre = "ColorSchemePre",
     -- after popup menu changed
-    CompleteChanged      = 'CompleteChanged',
+    CompleteChanged = "CompleteChanged",
     -- after finishing insert complete
-    CompleteDone         = 'CompleteDone',
+    CompleteDone = "CompleteDone",
     -- idem, before clearing info
-    CompleteDonePre      = 'CompleteDonePre',
+    CompleteDonePre = "CompleteDonePre",
     -- cursor in same position for a while
-    CursorHold           = 'CursorHold',
+    CursorHold = "CursorHold",
     -- idem, in Insert mode
-    CursorHoldI          = 'CursorHoldI',
+    CursorHoldI = "CursorHoldI",
     -- cursor was moved
-    CursorMoved          = 'CursorMoved',
+    CursorMoved = "CursorMoved",
     -- cursor was moved in Insert mode
-    CursorMovedI         = 'CursorMovedI',
+    CursorMovedI = "CursorMovedI",
     -- diffs have been updated
-    DiffUpdated          = 'DiffUpdated',
+    DiffUpdated = "DiffUpdated",
     -- directory changed
-    DirChanged           = 'DirChanged',
+    DirChanged = "DirChanged",
     -- after changing the 'encoding' option
-    EncodingChanged      = 'EncodingChanged',
+    EncodingChanged = "EncodingChanged",
     -- before exiting
-    ExitPre              = 'ExitPre',
+    ExitPre = "ExitPre",
     -- append to a file using command
-    FileAppendCmd        = 'FileAppendCmd',
+    FileAppendCmd = "FileAppendCmd",
     -- after appending to a file
-    FileAppendPost       = 'FileAppendPost',
+    FileAppendPost = "FileAppendPost",
     -- before appending to a file
-    FileAppendPre        = 'FileAppendPre',
+    FileAppendPre = "FileAppendPre",
     -- before first change to read-only file
-    FileChangedRO        = 'FileChangedRO',
+    FileChangedRO = "FileChangedRO",
     -- after shell command that changed file
-    FileChangedShell     = 'FileChangedShell',
+    FileChangedShell = "FileChangedShell",
     -- after (not) reloading changed file
-    FileChangedShellPost = 'FileChangedShellPost',
+    FileChangedShellPost = "FileChangedShellPost",
     -- read from a file using command
-    FileReadCmd          = 'FileReadCmd',
+    FileReadCmd = "FileReadCmd",
     -- after reading a file
-    FileReadPost         = 'FileReadPost',
+    FileReadPost = "FileReadPost",
     -- before reading a file
-    FileReadPre          = 'FileReadPre',
+    FileReadPre = "FileReadPre",
     -- new file type detected (user defined)
-    FileType             = 'FileType',
+    FileType = "FileType",
     -- write to a file using command
-    FileWriteCmd         = 'FileWriteCmd',
+    FileWriteCmd = "FileWriteCmd",
     -- after writing a file
-    FileWritePost        = 'FileWritePost',
+    FileWritePost = "FileWritePost",
     -- before writing a file
-    FileWritePre         = 'FileWritePre',
+    FileWritePre = "FileWritePre",
     -- after reading from a filter
-    FilterReadPost       = 'FilterReadPost',
+    FilterReadPost = "FilterReadPost",
     -- before reading from a filter
-    FilterReadPre        = 'FilterReadPre',
+    FilterReadPre = "FilterReadPre",
     -- after writing to a filter
-    FilterWritePost      = 'FilterWritePost',
-    'FilterWritePre',            'FilterWritePre',         -- before writing to a filter
+    FilterWritePost = "FilterWritePost",
+    "FilterWritePre",
+    "FilterWritePre", -- before writing to a filter
     -- got the focus
-    FocusGained          = 'FocusGained',
+    FocusGained = "FocusGained",
     -- lost the focus to another app
-    FocusLost            = 'FocusLost',
+    FocusLost = "FocusLost",
     -- if calling a function which doesn't exist
-    FuncUndefined        = 'FuncUndefined',
+    FuncUndefined = "FuncUndefined",
     -- after starting the GUI
-    GUIEnter             = 'GUIEnter',
+    GUIEnter = "GUIEnter",
     -- after starting the GUI failed
-    GUIFailed            = 'GUIFailed',
+    GUIFailed = "GUIFailed",
     -- when changing Insert/Replace mode
-    InsertChange         = 'InsertChange',
+    InsertChange = "InsertChange",
     -- before inserting a char
-    InsertCharPre        = 'InsertCharPre',
+    InsertCharPre = "InsertCharPre",
     -- when entering Insert mode
-    InsertEnter          = 'InsertEnter',
+    InsertEnter = "InsertEnter",
     -- just after leaving Insert mode
-    InsertLeave          = 'InsertLeave',
+    InsertLeave = "InsertLeave",
     -- just before leaving Insert mode
-    InsertLeavePre       = 'InsertLeavePre',
+    InsertLeavePre = "InsertLeavePre",
     -- just before popup menu is displayed
-    MenuPopup            = 'MenuPopup',
+    MenuPopup = "MenuPopup",
     -- after setting any option
-    OptionSet            = 'OptionSet',
+    OptionSet = "OptionSet",
     -- after :make, :grep etc.
-    QuickFixCmdPost      = 'QuickFixCmdPost',
+    QuickFixCmdPost = "QuickFixCmdPost",
     -- before :make, :grep etc.
-    QuickFixCmdPre       = 'QuickFixCmdPre',
+    QuickFixCmdPre = "QuickFixCmdPre",
     -- before :quit
-    QuitPre              = 'QuitPre',
+    QuitPre = "QuitPre",
     -- upon string reception from a remote vim
-    RemoteReply          = 'RemoteReply',
+    RemoteReply = "RemoteReply",
     -- after loading a session file
-    SessionLoadPost      = 'SessionLoadPost',
+    SessionLoadPost = "SessionLoadPost",
     -- after ":!cmd"
-    ShellCmdPost         = 'ShellCmdPost',
+    ShellCmdPost = "ShellCmdPost",
     -- after ":1,2!cmd", ":w !cmd", ":r !cmd".
-    ShellFilterPost      = 'ShellFilterPost',
+    ShellFilterPost = "ShellFilterPost",
     -- after nvim process received a signal
-    Signal               = 'Signal',
+    Signal = "Signal",
     -- sourcing a Vim script using command
-    SourceCmd            = 'SourceCmd',
+    SourceCmd = "SourceCmd",
     -- after sourcing a Vim script
-    SourcePost           = 'SourcePost',
+    SourcePost = "SourcePost",
     -- before sourcing a Vim script
-    SourcePre            = 'SourcePre',
+    SourcePre = "SourcePre",
     -- spell file missing
-    SpellFileMissing     = 'SpellFileMissing',
+    SpellFileMissing = "SpellFileMissing",
     -- after reading from stdin
-    StdinReadPost        = 'StdinReadPost',
+    StdinReadPost = "StdinReadPost",
     -- before reading from stdin
-    StdinReadPre         = 'StdinReadPre',
+    StdinReadPre = "StdinReadPre",
     -- found existing swap file
-    SwapExists           = 'SwapExists',
+    SwapExists = "SwapExists",
     -- syntax selected
-    Syntax               = 'Syntax',
+    Syntax = "Syntax",
     -- a tab has closed
-    TabClosed            = 'TabClosed',
+    TabClosed = "TabClosed",
     -- after entering a tab page
-    TabEnter             = 'TabEnter',
+    TabEnter = "TabEnter",
     -- before leaving a tab page
-    TabLeave             = 'TabLeave',
+    TabLeave = "TabLeave",
     -- when creating a new tab
-    TabNew               = 'TabNew',
+    TabNew = "TabNew",
     -- after entering a new tab
-    TabNewEntered        = 'TabNewEntered',
+    TabNewEntered = "TabNewEntered",
     -- after changing 'term'
-    TermChanged          = 'TermChanged',
+    TermChanged = "TermChanged",
     -- after the process exits
-    TermClose            = 'TermClose',
+    TermClose = "TermClose",
     -- after entering Terminal mode
-    TermEnter            = 'TermEnter',
+    TermEnter = "TermEnter",
     -- after leaving Terminal mode
-    TermLeave            = 'TermLeave',
+    TermLeave = "TermLeave",
     -- after opening a terminal buffer
-    TermOpen             = 'TermOpen',
+    TermOpen = "TermOpen",
     -- after setting "v:termresponse"
-    TermResponse         = 'TermResponse',
+    TermResponse = "TermResponse",
     -- text was modified
-    TextChanged          = 'TextChanged',
+    TextChanged = "TextChanged",
     -- text was modified in Insert mode(no popup)
-    TextChangedI         = 'TextChangedI',
+    TextChangedI = "TextChangedI",
     -- text was modified in Insert mode(popup)
-    TextChangedP         = 'TextChangedP',
+    TextChangedP = "TextChangedP",
     -- after a yank or delete was done (y, d, c)
-    TextYankPost         = 'TextYankPost',
+    TextYankPost = "TextYankPost",
     -- after UI attaches
-    UIEnter              = 'UIEnter',
+    UIEnter = "UIEnter",
     -- after UI detaches
-    UILeave              = 'UILeave',
+    UILeave = "UILeave",
     -- user defined autocommand
-    User                 = 'User',
+    User = "User",
     -- after starting Vim
-    VimEnter             = 'VimEnter',
+    VimEnter = "VimEnter",
     -- before exiting Vim
-    VimLeave             = 'VimLeave',
+    VimLeave = "VimLeave",
     -- before exiting Vim and writing ShaDa file
-    VimLeavePre          = 'VimLeavePre',
+    VimLeavePre = "VimLeavePre",
     -- after Vim window was resized
-    VimResized           = 'VimResized',
+    VimResized = "VimResized",
     -- after Nvim is resumed
-    VimResume            = 'VimResume',
+    VimResume = "VimResume",
     -- before Nvim is suspended
-    VimSuspend           = 'VimSuspend',
+    VimSuspend = "VimSuspend",
     -- after closing a window
-    WinClosed            = 'WinClosed',
+    WinClosed = "WinClosed",
     -- after entering a window
-    WinEnter             = 'WinEnter',
+    WinEnter = "WinEnter",
     -- before leaving a window
-    WinLeave             = 'WinLeave',
+    WinLeave = "WinLeave",
     -- when entering a new window
-    WinNew               = 'WinNew',
+    WinNew = "WinNew",
     -- after scrolling a window
-    WinScrolled          = 'WinScrolled',
+    WinScrolled = "WinScrolled",
 
     -- alias for `BufAdd`
-    BufCreate            = 'BufAdd',
+    BufCreate = "BufAdd",
     -- alias for `BufReadPost`
-    BufRead              = 'BufReadPost',
+    BufRead = "BufReadPost",
     -- alias for `BufWritePre`
-    BufWrite             = 'BufWritePre',
+    BufWrite = "BufWritePre",
     -- alias for `EncodingChanged`
-    FileEncoding         = 'EncodingChanged',
+    FileEncoding = "EncodingChanged",
   },
   buf = {
     storage = buf_storage.create("nui.utils.autocmd.buf", { _next_handler_id = 1 }),
-  }
+  },
 }
 
 ---@param group_name string
@@ -292,13 +293,7 @@ function autocmd.statement(event, pattern, cmd, options)
     table.insert(args, "++nested")
   end
 
-  local statement = string.format(
-    "autocmd %s %s %s %s",
-    event,
-    pattern,
-    table.concat(args),
-    cmd
-  )
+  local statement = string.format("autocmd %s %s %s %s", event, pattern, table.concat(args), cmd)
 
   return statement
 end
@@ -308,10 +303,7 @@ end
 ---@param cmd string
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function autocmd.define(event, pattern, cmd, options)
-  vim.api.nvim_exec(
-    autocmd.statement(event, pattern, cmd, options),
-    false
-  )
+  vim.api.nvim_exec(autocmd.statement(event, pattern, cmd, options), false)
 end
 
 ---@param group_name string
@@ -331,10 +323,7 @@ function autocmd.define_grouped(group_name, auto_clear, definitions)
     )
   end
 
-  vim.api.nvim_exec(
-    autocmd.statements_grouped(group_name, auto_clear, statements),
-    false
-  )
+  vim.api.nvim_exec(autocmd.statements_grouped(group_name, auto_clear, statements), false)
 end
 
 ---@param group_name nil | string
@@ -358,7 +347,6 @@ function autocmd.remove(group_name, event, pattern)
     end
   end
 
-
   vim.api.nvim_exec(statement, false)
 end
 
@@ -378,11 +366,7 @@ function autocmd.buf.statement(bufnr, event, handler, options)
 
     autocmd.buf.storage[bufnr][handler_id] = handler
 
-    cmd = string.format(
-      ":lua require('nui.utils.autocmd').buf.execute(%s, %s)",
-      bufnr,
-      handler_id
-    )
+    cmd = string.format(":lua require('nui.utils.autocmd').buf.execute(%s, %s)", bufnr, handler_id)
   end
 
   return autocmd.statement(event, pattern, cmd, options)
@@ -393,10 +377,7 @@ end
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function autocmd.buf.define(bufnr, event, handler, options)
-  vim.api.nvim_exec(
-    autocmd.buf.statement(bufnr, event, handler, options),
-    false
-  )
+  vim.api.nvim_exec(autocmd.buf.statement(bufnr, event, handler, options), false)
 end
 
 ---@param bufnr number

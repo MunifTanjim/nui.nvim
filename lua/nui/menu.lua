@@ -26,7 +26,6 @@ local function parse_lines(lines)
     elseif line.type == "separator" then
       table.insert(data.lines, line)
     end
-
   end
 
   return data
@@ -57,10 +56,7 @@ local function calculate_buf_lines(menu)
         separator_max_length,
         separator_char
       )
-      table.insert(
-        buf_lines,
-        separator_char .. text .. separator_char
-      )
+      table.insert(buf_lines, separator_char .. text .. separator_char)
     end
   end
 
@@ -123,14 +119,12 @@ local function focus_item(menu, direction, current_index)
 end
 
 local function init(class, popup_options, options)
-  local props = vim.tbl_extend(
-    "force",
-    {
-      separator = defaults(options.separator, {}),
-      keymap = parse_keymap(options.keymap),
-    },
-    parse_lines(options.lines)
-  )
+  local props = vim.tbl_extend("force", {
+    separator = defaults(options.separator, {}),
+    keymap = parse_keymap(options.keymap),
+  }, parse_lines(
+    options.lines
+  ))
 
   local state = {
     curr_index = nil,
@@ -143,8 +137,14 @@ local function init(class, popup_options, options)
     end
   end
 
-  local width = math.max(math.min(props.max_line_length, defaults(options.max_width, 999)), defaults(options.min_width, 16))
-  local height = math.max(math.min(props.total_lines, defaults(options.max_height, 999)), defaults(options.min_height, 1))
+  local width = math.max(
+    math.min(props.max_line_length, defaults(options.max_width, 999)),
+    defaults(options.min_width, 16)
+  )
+  local height = math.max(
+    math.min(props.total_lines, defaults(options.max_height, 999)),
+    defaults(options.min_height, 1)
+  )
 
   popup_options = vim.tbl_deep_extend("force", {
     enter = true,
@@ -200,7 +200,7 @@ local Menu = setmetatable({
   name = "Menu",
   super = Popup,
 }, {
-  __index = Popup.__index
+  __index = Popup.__index,
 })
 
 ---@param text nil | string

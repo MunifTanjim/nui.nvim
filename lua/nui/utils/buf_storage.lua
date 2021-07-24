@@ -1,7 +1,7 @@
 local defaults = require("nui.utils").defaults
 
 local buf_storage = {
-  _registry = {}
+  _registry = {},
 }
 
 ---@param storage_name string
@@ -15,7 +15,7 @@ function buf_storage.create(storage_name, default_value)
       -- TODO: can `buf_storage.cleanup` be automatically (and reliably) triggered on `BufWipeout`?
 
       return tbl[bufnr]
-    end
+    end,
   })
 
   buf_storage._registry[storage_name] = storage
