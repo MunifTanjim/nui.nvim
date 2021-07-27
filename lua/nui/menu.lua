@@ -14,7 +14,7 @@ local function parse_lines(lines)
   for index, line in ipairs(lines) do
     data.total_lines = data.total_lines + 1
 
-    line.index = index
+    line._index = index
 
     if line.type == "item" then
       table.insert(data.lines, line)
@@ -132,7 +132,7 @@ local function init(class, popup_options, options)
 
   for _, line in ipairs(props.lines) do
     if line.type == "item" then
-      state.curr_index = line.index
+      state.curr_index = line._index
       break
     end
   end
@@ -211,12 +211,18 @@ function Menu.separator(text)
   }
 end
 
----@param text string
-function Menu.item(text)
-  return {
-    type = "item",
-    text = text,
-  }
+---@param item string | table
+---@param props table | nil
+function Menu.item(item, props)
+  local object = is_type("string", item) and defaults(props, {}) or item
+
+  if is_type("string", item) then
+    object.text = item
+  end
+
+  object.type = "item"
+
+  return object
 end
 
 function Menu:init(popup_options, options)

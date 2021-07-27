@@ -307,6 +307,20 @@ local menu = Menu(popup_options, {
 })
 ```
 
+#### Menu.item(item, props)
+
+`Menu.item` is used to create an item object for the `Menu`. You also get this
+object when `on_submit` is called.
+
+| Usage                                  | Result                                     |
+| -------------------------------------- | ------------------------------------------ |
+| `Menu.item("Name")`                    | `{ text = "Name", type = "item" }`         |
+| `Menu.item("Name", { id = 1 })`        | `{ id = 1, text = "Name", type = "item" }` |
+| `Menu.item({ id = 1, text = "Name" })` | `{ id = 1, text = "Name", type = "item" }` |
+
+The Result is what you get as the argument of `on_submit` callback function.
+You can include whatever you want in the item object.
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
