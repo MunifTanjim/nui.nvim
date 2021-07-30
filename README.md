@@ -321,6 +321,57 @@ object when `on_submit` is called.
 The Result is what you get as the argument of `on_submit` callback function.
 You can include whatever you want in the item object.
 
+### Split
+
+Split is can be used to split your current window or editor.
+
+```lua
+local Split = require("nui.split")
+
+local split = Split({
+  relative = "editor",
+  position = "bottom",
+  size = "20%",
+})
+```
+
+It has the usual `:mount`, `:unmount`, `:map`, `:on` and `:off` methods.
+
+**relative**
+
+| Value               | Description                 |
+| ------------------- | --------------------------- |
+| `"editor"`          | split current editor screen |
+| `"win"` (_default_) | split current window        |
+
+This option also affects how `size` is calculated.
+
+**position**
+
+`position` can be one of: `"top"`, `"right"`, `"bottom"` or `"left"`.
+
+**size**
+
+`size` can be number or percentage string.
+
+For percentage string, size is calculated according to the option `relative`.
+
+**buf_options**
+
+Table containing buffer options to set for this split.
+
+**win_options**
+
+Table containing window options to set for this split.
+
+#### split:hide()
+
+Hides the split window.
+
+#### split:show()
+
+Shows the hidden split window.
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
