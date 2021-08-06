@@ -149,61 +149,16 @@ end
 
 local function init(class, options)
   local self = setmetatable({}, class)
+  local options = options or {}
 
   self.popup_state = {
     loading = false,
     mounted = false,
   }
 
-  self.popup_props = {}
-
-  self.win_config = vim.tbl_extend("force", {
-    _enter = utils.defaults(options.enter, false),
-    focusable = options.focusable,
-    style = "minimal",
-    zindex = utils.defaults(options.zindex, 50),
-  }, parse_relative(
-    options.relative
-  ))
-
-  self.popup_state.parent_winid = utils.defaults(self.win_config.win, vim.api.nvim_get_current_win())
-
-  self.buf_options = utils.defaults(options.buf_options, {})
-
-  self.win_options = utils.defaults(options.win_options, {})
-
-  if not self.win_options.winblend and is_type("number", options.opacity) then
-    -- @deprecated
-    self.win_options.winblend = calculate_winblend(options.opacity)
-  end
-
-  if not self.win_options.winhighlight and not is_type("nil", options.highlight) then
-    -- @deprecated
-    self.win_options.winhighlight = options.highlight
-  end
-
-  local props = self.popup_props
-  local win_config = self.win_config
-
-  local container_info = get_container_info(self)
-  props.size = calculate_window_size(options.size, container_info)
-  props.position = calculate_window_position(options.position, props.size, container_info)
-
   self.border = Border(self, options.border)
 
-  win_config.width = props.size.width
-  win_config.height = props.size.height
-  win_config.row = props.position.row
-  win_config.col = props.position.col
-  win_config.border = self.border:get()
-
-  if win_config.width < 1 then
-    error("width can not be negative. is padding more than width?")
-  end
-
-  if win_config.height < 1 then
-    error("height can not be negative. is padding more than height?")
-  end
+  self:calculate(options)
 
   return self
 end
@@ -274,6 +229,62 @@ function Popup:unmount()
   self.popup_state.loading = false
   self.popup_state.mounted = false
 end
+
+function Popup:calculate(options)
+ self.popup_props = {}
+
+  self.win_config = vim.tbl_extend("force", {
+    _enter = utils.defaults(options.enter, false),
+    focusable = options.focusable,
+    style = "minimal",
+    zindex = utils.defaults(options.zindex, 50),
+  }, parse_relative(
+    options.relative
+  ))
+
+  self.popup_state.parent_winid = utils.defaults(self.win_config.win, vim.api.nvim_get_current_win())
+
+  self.buf_options = utils.defaults(options.buf_options, {})
+
+  self.win_options = utils.defaults(options.win_options, {})
+
+  if not self.win_options.winblend and is_type("number", options.opacity) then
+    -- @deprecated
+    self.win_options.winblend = calculate_winblend(options.opacity)
+  end
+
+  if not self.win_options.winhighlight and not is_type("nil", options.highlight) then
+    -- @deprecated
+    self.win_options.winhighlight = options.highlight
+  end
+
+  local props = self.popup_props
+  local win_config = self.win_config
+
+  local container_info = get_container_info(self)
+  props.size = calculate_window_size(options.size, container_info)
+  props.position = calculate_window_position(options.position, props.size, container_info)
+
+  win_config.width = props.size.width
+  win_config.height = props.size.height
+  win_config.row = props.position.row
+  win_config.col = props.position.col
+  win_config.border = self.border:get()
+
+  if win_config.width < 1 then
+    error("width can not be negative. is padding more than width?")
+  end
+
+  if win_config.height < 1 then
+    error("height can not be negative. is padding more than height?")
+  end
+end
+
+function Popup:resize(options)
+  self:calculate(options)
+  vim.api.nvim_win_set_config(self.winid, self.win_config)
+end
+
 
 -- set keymap for this popup window. if keymap was already set and
 -- `force` is not `true` returns `false`, otherwise returns `true`
