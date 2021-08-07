@@ -52,6 +52,24 @@ function utils.parse_number_input(v)
   return parsed
 end
 
+---@private
+---@param dimension number | string
+---@param container_dimension number
+---@return nil | number
+function utils._.normalize_dimension(dimension, container_dimension)
+  local number = utils.parse_number_input(dimension)
+
+  if not number.value then
+    return nil
+  end
+
+  if number.is_percentage then
+    return math.floor(container_dimension * number.value)
+  end
+
+  return number.value
+end
+
 ---@param text string
 ---@param max_length number
 ---@return string
