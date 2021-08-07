@@ -27,36 +27,18 @@ local function get_container_info(popup)
 end
 
 local function calculate_window_size(size, container)
-  local width
-  local height
-
-  if is_type("table", size) then
-    local w = utils.parse_number_input(size.width)
-    assert(w.value ~= nil, "invalid size.width")
-    if w.is_percentage then
-      width = math.floor(container.size.width * w.value)
-    else
-      width = w.value
-    end
-
-    local h = utils.parse_number_input(size.height)
-    assert(h.value ~= nil, "invalid size.height")
-    if h.is_percentage then
-      height = math.floor(container.size.height * h.value)
-    else
-      height = h.value
-    end
-  else
-    local n = utils.parse_number_input(size)
-    assert(n.value ~= nil, "invalid size")
-    if n.is_percentage then
-      width = math.floor(container.size.width * n.value)
-      height = math.floor(container.size.height * n.value)
-    else
-      width = n.value
-      height = n.value
-    end
+  if not is_type("table", size) then
+    size = {
+      width = size,
+      height = size,
+    }
   end
+
+  local width = utils._.normalize_dimension(size.width, container.size.width)
+  assert(width, "invalid size.width")
+
+  local height = utils._.normalize_dimension(size.height, container.size.height)
+  assert(height, "invalid size.height")
 
   return {
     width = width,
