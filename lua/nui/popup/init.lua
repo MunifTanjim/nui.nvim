@@ -218,6 +218,7 @@ function Popup:mount()
   local enter = self.win_config._enter
   self.win_config._enter = nil
   self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.win_config)
+  self.win_config._enter = enter
   assert(self.winid, "failed to create popup window")
 
   for name, value in pairs(self.win_options) do
