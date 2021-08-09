@@ -35,7 +35,6 @@ local popup = Popup({
     width = "80%",
     height = "60%",
   },
-  opacity = 1,
 })
 ```
 
