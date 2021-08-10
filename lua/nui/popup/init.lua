@@ -308,22 +308,23 @@ end
 
 function Popup:set_position(position, relative)
   local props = self.popup_props
-  local container_info = get_container_info(self)
-  props.position = calculate_window_position(position, props.size, container_info)
 
   if relative then
-    self.win_config = vim.tbl_extend("force", self.win_config, parse_relative(relative))
+    local relative_config = parse_relative(relative, self.win_config.win)
 
-      if relative.bufpos then
+    if not relative_config.win then
       self.win_config.win = nil
     end
 
-    if relative.win then
+    if not relative_config.bufpos then
       self.win_config.bufpos = nil
     end
-  else
-    self.win_config.relative = self.win_config.relative
+
+    self.win_config = vim.tbl_extend("force", self.win_config, relative_config)
   end
+
+  local container_info = get_container_info(self)
+  props.position = calculate_window_position(position, props.size, container_info)
 
   if self.border.win_config then
     self.border:reposition()
@@ -333,13 +334,10 @@ function Popup:set_position(position, relative)
   self.win_config.col = props.position.col
 
   if self.winid then
-    vim.api.nvim_win_set_config(
-      self.winid,
-      vim.tbl_extend("force", self.win_config, {
-        row = props.position.row,
-        col = props.position.col,
-      })
-    )
+    local enter = self.win_config._enter
+    self.win_config._enter = nil
+    vim.api.nvim_win_set_config(self.winid, self.win_config)
+    self.win_config._enter = enter
   end
 end
 

@@ -393,15 +393,8 @@ function Border:reposition()
   end
 
   self.win_config.relative = self.popup.win_config.relative
-
-  if self.popup.win_config.bufpos then
-    self.win_config.bufpos = self.popup.win_config.bufpos
-    self.win_config.win = nil
-  end
-  if self.popup.win_config.win then
-    self.win_config.win = self.popup.win_config.win
-    self.win_config.bufpos = nil
-  end
+  self.win_config.win = self.popup.win_config.win
+  self.win_config.bufpos = self.popup.win_config.bufpos
 
   self.win_config.row = props.position.row
   self.win_config.col = props.position.col
