@@ -20,7 +20,7 @@ local function get_container_info(popup)
   if relative == "cursor" or relative == "win" then
     return {
       relative = win_config.bufpos and "buf" or relative,
-      size = utils.get_window_size(popup.popup_state.parent_winid),
+      size = utils.get_window_size(win_config.win),
       type = "window",
     }
   end
@@ -98,7 +98,7 @@ local function calculate_winblend(opacity)
   return 100 - (opacity * 100)
 end
 
-local function parse_relative(relative)
+local function parse_relative(relative, fallback_winid)
   relative = utils.defaults(relative, "win")
 
   if is_type("string", relative) then
@@ -110,13 +110,14 @@ local function parse_relative(relative)
   if relative.type == "win" then
     return {
       relative = relative.type,
-      win = relative.winid,
+      win = utils.defaults(relative.winid, fallback_winid),
     }
   end
 
   if relative.type == "buf" then
     return {
       relative = "win",
+      win = utils.defaults(relative.winid, fallback_winid),
       bufpos = {
         relative.position.row,
         relative.position.col,
@@ -145,10 +146,9 @@ local function init(class, options)
     style = "minimal",
     zindex = utils.defaults(options.zindex, 50),
   }, parse_relative(
-    options.relative
+    options.relative,
+    vim.api.nvim_get_current_win()
   ))
-
-  self.popup_state.parent_winid = utils.defaults(self.win_config.win, vim.api.nvim_get_current_win())
 
   self.buf_options = utils.defaults(options.buf_options, {})
 

@@ -276,6 +276,7 @@ local function init(class, popup, options)
     self.win_config = {
       style = "minimal",
       relative = popup.win_config.relative,
+      win = popup.win_config.win,
       border = "none",
       focusable = false,
       width = props.size.width,
