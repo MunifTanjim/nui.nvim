@@ -139,7 +139,6 @@ local function init(class, options)
   }
 
   self.popup_props = {}
-
   self.win_config = vim.tbl_extend("force", {
     _enter = utils.defaults(options.enter, false),
     focusable = options.focusable,
@@ -292,7 +291,9 @@ function Popup:set_size(size)
   local container_info = get_container_info(self)
   props.size = calculate_window_size(size, container_info)
 
-  self.border:resize()
+  if self.border.win_config then
+    self.border:resize()
+  end
 
   self.win_config.width = props.size.width
   self.win_config.height = props.size.height
@@ -302,6 +303,41 @@ function Popup:set_size(size)
       width = props.size.width,
       height = props.size.height,
     })
+  end
+end
+
+function Popup:set_position(position, relative)
+  local props = self.popup_props
+
+  if relative then
+    local relative_config = parse_relative(relative, self.win_config.win)
+
+    if not relative_config.win then
+      self.win_config.win = nil
+    end
+
+    if not relative_config.bufpos then
+      self.win_config.bufpos = nil
+    end
+
+    self.win_config = vim.tbl_extend("force", self.win_config, relative_config)
+  end
+
+  local container_info = get_container_info(self)
+  props.position = calculate_window_position(position, props.size, container_info)
+
+  if self.border.win_config then
+    self.border:reposition()
+  end
+
+  self.win_config.row = props.position.row
+  self.win_config.col = props.position.col
+
+  if self.winid then
+    local enter = self.win_config._enter
+    self.win_config._enter = nil
+    vim.api.nvim_win_set_config(self.winid, self.win_config)
+    self.win_config._enter = enter
   end
 end
 

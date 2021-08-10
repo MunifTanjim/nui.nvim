@@ -385,6 +385,31 @@ function Border:resize()
   end
 end
 
+function Border:reposition()
+  local props = self.border_props
+
+  if props.type == "complex" then
+    props.position = calculate_position(self)
+  end
+
+  self.win_config.relative = self.popup.win_config.relative
+  self.win_config.win = self.popup.win_config.win
+  self.win_config.bufpos = self.popup.win_config.bufpos
+
+  self.win_config.row = props.position.row
+  self.win_config.col = props.position.col
+
+  if self.winid then
+    vim.api.nvim_win_set_config(
+      self.winid,
+      vim.tbl_extend("force", self.win_config, {
+        row = props.position.row,
+        col = props.position.col,
+      })
+    )
+  end
+end
+
 ---@param edge "'top'" | "'bottom'"
 ---@param text nil | string
 ---@param align nil | "'left'" | "'center'" | "'right'"
