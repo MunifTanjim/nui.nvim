@@ -248,7 +248,7 @@ local function init(class, popup, options)
       error("invalid border style name")
     end
 
-    props.char = styles[style]
+    props.char = vim.deepcopy(styles[style])
   end
 
   local is_borderless = is_type("string", props.char)
