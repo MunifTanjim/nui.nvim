@@ -31,23 +31,31 @@ local function init(class, popup_options, options)
 
     self:unmount()
 
-    if prompt_normal_mode then
-      -- NOTE: on prompt-buffer normal mode <CR> causes neovim to enter insert mode.
-      --  ref: https://github.com/neovim/neovim/blob/d8f5f4d09078/src/nvim/normal.c#L5327-L5333
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, true, true), "n", true)
-    end
+    vim.schedule(function()
+      if prompt_normal_mode then
+        -- NOTE: on prompt-buffer normal mode <CR> causes neovim to enter insert mode.
+        --  ref: https://github.com/neovim/neovim/blob/d8f5f4d09078/src/nvim/normal.c#L5327-L5333
+        vim.api.nvim_command("stopinsert")
+      end
 
-    if options.on_submit then
-      options.on_submit(value)
-    end
+      if options.on_submit then
+        options.on_submit(value)
+      end
+    end)
   end
 
   props.on_close = function()
     self:unmount()
 
-    if options.on_close then
-      options.on_close()
-    end
+    vim.schedule(function()
+      if vim.fn.mode() == "i" then
+        vim.api.nvim_command("stopinsert")
+      end
+
+      if options.on_close then
+        options.on_close()
+      end
+    end)
   end
 
   if options.on_change then
