@@ -3,10 +3,12 @@ local utils = {
   _ = {},
 }
 
-function utils.get_editor_size()
+function utils.get_editor_size(offsets)
+  offsets = offsets or {}
+
   return {
-    width = vim.o.columns,
-    height = vim.o.lines,
+    width = vim.o.columns + (offsets.width or 0),
+    height = vim.o.lines + (offsets.height or 0),
   }
 end
 
@@ -50,6 +52,13 @@ function utils.parse_number_input(v)
   end
 
   return parsed
+end
+
+---@private
+---@param winid number
+---@return boolean
+function utils._.is_border_builtin(winid)
+  return vim.api.nvim_win_get_config(winid).border ~= nil
 end
 
 ---@private

@@ -189,30 +189,29 @@ end
 
 local function calculate_position(border)
   local popup = border.popup
-
   local position = vim.deepcopy(popup.popup_props.position)
-
   local char = border.border_props.char
 
   if is_type("map", char) then
     if char.top ~= "" then
-      popup.popup_props.position.row = popup.popup_props.position.row + 1
+      position.row = popup.popup_props.position.row - 1
     end
 
     if char.left ~= "" then
-      popup.popup_props.position.col = popup.popup_props.position.col + 1
+      position.col = popup.popup_props.position.col - 1
     end
   end
 
   local padding = border.border_props.padding
 
+  -- TODO: Test that this actually works
   if padding then
     if padding.top then
-      popup.popup_props.position.row = popup.popup_props.position.row + padding.top
+      position.row = popup.popup_props.position.row + padding.top
     end
 
     if padding.left then
-      popup.popup_props.position.col = popup.popup_props.position.col + padding.left
+      position.col = popup.popup_props.position.col + padding.left
     end
   end
 

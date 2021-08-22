@@ -291,7 +291,7 @@ function Popup:set_size(size)
   local container_info = get_container_info(self)
   props.size = calculate_window_size(size, container_info)
 
-  if self.border.win_config then
+  if self:has_border() then
     self.border:resize()
   end
 
@@ -326,7 +326,7 @@ function Popup:set_position(position, relative)
   local container_info = get_container_info(self)
   props.position = calculate_window_position(position, props.size, container_info)
 
-  if self.border.win_config then
+  if self:has_border() then
     self.border:reposition()
   end
 
@@ -339,6 +339,10 @@ function Popup:set_position(position, relative)
     vim.api.nvim_win_set_config(self.winid, self.win_config)
     self.win_config._enter = enter
   end
+end
+
+function Popup:has_border()
+  return self.border.win_config ~= nil
 end
 
 local PopupClass = setmetatable({
