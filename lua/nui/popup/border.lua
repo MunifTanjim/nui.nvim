@@ -442,11 +442,13 @@ function Border:get()
       return props.char
     end
 
+    local char = {}
+
     for position, item in pairs(props.char) do
-      props.char[position] = { item, props.highlight }
+      char[position] = { item, props.highlight }
     end
 
-    return to_border_list(props.char)
+    return to_border_list(char)
   end
 
   return nil
