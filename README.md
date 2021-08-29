@@ -109,6 +109,72 @@ end)
 
 **Component API is available [HERE](lua/input/README.md)**
 
+### Menu
+
+![Menu GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/menu.gif)
+
+```lua
+local Menu = require("nui.menu")
+local event = require("nui.utils.autocmd").event
+
+local menu = Menu({
+  position = "20%",
+  size = {
+    width = 20,
+    height = 2,
+  },
+  relative = "editor",
+  border = {
+    highlight = "MyHighlightGroup",
+    style = "single",
+    text = {
+      top = "Choose Something",
+      top_align = "center",
+    },
+  },
+  win_options = {
+    winblend = 10,
+    winhighlight = "Normal:Normal",
+  },
+}, {
+  lines = {
+    Menu.item("Item 1"),
+    Menu.item("Item 2"),
+    Menu.separator("Menu Group"),
+    Menu.item("Item 3"),
+  },
+  max_width = 20,
+  separator = {
+    char = "-",
+    text_align = "right",
+  },
+  keymap = {
+    focus_next = { "j", "<Down>", "<Tab>" },
+    focus_prev = { "k", "<Up>", "<S-Tab>" },
+    close = { "<Esc>", "<C-c>" },
+    submit = { "<CR>", "<Space>" },
+  },
+  on_close = function()
+    print("CLOSED")
+  end,
+  on_submit = function(item)
+    print("SUBMITTED", vim.inspect(item))
+  end,
+})
+
+-- Mount/open the popup
+menu:mount()
+
+-- Unmount popup after its buffer gets closed
+menu:on(event.BufHidden, function()
+  vim.schedule(function()
+    menu:unmount()
+  end)
+end)
+```
+
+**Component API is available [HERE](lua/menu/README.md)**
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
