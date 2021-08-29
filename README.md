@@ -175,6 +175,33 @@ end)
 
 **Component API is available [HERE](lua/menu/README.md)**
 
+### Split
+
+![Split GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/split.gif)
+
+```lua
+local Split = require("nui.split")
+local event = require("nui.utils.autocmd").event
+
+local split = Split({
+  relative = "editor",
+  position = "bottom",
+  size = "20%",
+})
+
+-- Mount/open the popup
+split:mount()
+
+-- Unmount popup after its buffer gets closed
+split:on(event.BufHidden, function()
+  vim.schedule(function()
+    split:unmount()
+  end)
+end)
+```
+
+**Component API is available [HERE](lua/split/README.md)**
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
