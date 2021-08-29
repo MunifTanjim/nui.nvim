@@ -25,21 +25,21 @@ local Popup = require("nui.popup")
 local event = require("nui.utils.autocmd").event
 
 local popup = Popup({
-    enter = true,
-    focusable = true,
-    border = {
-      style = "rounded",
-      highlight = "FloatBorder",
-    },
-    position = "50%",
-    size = {
-      width = "80%",
-      height = "60%",
-    },
-    buf_options = {
-      modifiable = true,
-      readonly = false,
-    },
+  enter = true,
+  focusable = true,
+  border = {
+    style = "rounded",
+    highlight = "FloatBorder",
+  },
+  position = "50%",
+  size = {
+    width = "80%",
+    height = "60%",
+  },
+  buf_options = {
+    modifiable = true,
+    readonly = false,
+  },
 })
 
 -- Mount/open the popup
@@ -56,7 +56,58 @@ end)
 vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, { "Hello World" })
 ```
 
-**Component API is available [HERE](doc/components/popup.md)**
+**Component API is available [HERE](lua/popup/README.md)**
+
+### Input
+
+![Input GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/input.gif)
+
+```lua
+local Input = require("nui.input")
+local event = require("nui.utils.autocmd").event
+
+local input = Input({
+  position = "20%",
+  size = {
+      width = 20,
+      height = 2,
+  },
+  relative = "editor",
+  border = {
+    highlight = "MyHighlightGroup",
+    style = "single",
+    text = {
+        top = "How old are you?",
+        top_align = "center",
+    },
+  },
+  win_options = {
+    winblend = 10,
+    winhighlight = "Normal:Normal",
+  },
+}, {
+  prompt = "> ",
+  default_value = "42",
+  on_close = function()
+    print("Input closed!")
+  end,
+  on_submit = function(value)
+    print("You are " .. value .. " years old")
+  end,
+})
+
+-- Mount/open the input
+input:mount()
+
+-- Unmount input after its buffer gets closed
+input:on(event.BufHidden, function()
+    vim.schedule(function()
+        input:unmount()
+    end)
+end)
+```
+
+**Component API is available [HERE](lua/input/README.md)**
 
 ## License
 
