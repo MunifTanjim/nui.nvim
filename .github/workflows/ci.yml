@@ -18,7 +18,7 @@ jobs:
       - name: Setup luacheck
         run: sudo luarocks install luacheck
       - name: Lint using luacheck
-        run: luacheck lua/nui/
+        run: luacheck lua/**/*.lua
 
   format:
     name: stylua
