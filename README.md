@@ -16,7 +16,7 @@ Plug 'MunifTanjim/nui.nvim'
 
 ## Components
 
-### Popup
+### [Popup](lua/nui/popup)
 
 ![Popup GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/popup.gif)
 
@@ -42,23 +42,21 @@ local popup = Popup({
   },
 })
 
--- Mount/open the popup
+-- mount/open the component
 popup:mount()
 
--- Unmount popup after its buffer gets closed
-popup:on(event.BufHidden, function()
-  vim.schedule(function()
-      popup:unmount()
-  end)
+-- unmount component when cursor leaves buffer
+popup:on(event.BufLeave, function()
+  popup:unmount()
 end)
 
--- Set content inside popup
+-- set content
 vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, { "Hello World" })
 ```
 
-**Component API is available [HERE](lua/popup/README.md)**
+**[Check Detailed Documentation for `nui.popup`](lua/nui/popup)**
 
-### Input
+### [Input](lua/nui/input)
 
 ![Input GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/input.gif)
 
@@ -96,20 +94,18 @@ local input = Input({
   end,
 })
 
--- Mount/open the input
+-- mount/open the component
 input:mount()
 
--- Unmount input after its buffer gets closed
-input:on(event.BufHidden, function()
-    vim.schedule(function()
-        input:unmount()
-    end)
+-- unmount component when cursor leaves buffer
+input:on(event.BufLeave, function()
+  input:unmount()
 end)
 ```
 
-**Component API is available [HERE](lua/input/README.md)**
+**[Check Detailed Documentation for `nui.input`](lua/nui/input)**
 
-### Menu
+### [Menu](lua/nui/menu)
 
 ![Menu GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/menu.gif)
 
@@ -162,20 +158,16 @@ local menu = Menu({
   end,
 })
 
--- Mount/open the popup
+-- mount the component
 menu:mount()
 
--- Unmount popup after its buffer gets closed
-menu:on(event.BufHidden, function()
-  vim.schedule(function()
-    menu:unmount()
-  end)
-end)
+-- close menu when cursor leaves buffer
+menu:on(event.BufLeave, menu.menu_props.on_close, { once = true })
 ```
 
-**Component API is available [HERE](lua/menu/README.md)**
+**[Check Detailed Documentation for `nui.menu`](lua/nui/menu)**
 
-### Split
+### [Split](lua/nui/split)
 
 ![Split GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/split.gif)
 
@@ -189,18 +181,16 @@ local split = Split({
   size = "20%",
 })
 
--- Mount/open the popup
+-- mount/open the component
 split:mount()
 
--- Unmount popup after its buffer gets closed
-split:on(event.BufHidden, function()
-  vim.schedule(function()
-    split:unmount()
-  end)
+-- unmount component when cursor leaves buffer
+split:on(event.BufLeave, function()
+  split:unmount()
 end)
 ```
 
-**Component API is available [HERE](lua/split/README.md)**
+**[Check Detailed Documentation for `nui.split`](lua/nui/split)**
 
 ## License
 
