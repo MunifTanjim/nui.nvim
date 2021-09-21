@@ -1,10 +1,6 @@
 # Split
 
-Spawns a split buffer
-
-You can use `vim.api` to manipulate it like any other buffer
-
-## Options
+Split is can be used to split your current window or editor.
 
 ```lua
 local Split = require("nui.split")
@@ -16,9 +12,12 @@ local split = Split({
 })
 ```
 
-It has the usual `:mount`, `:unmount`, `:map`, `:on` and `:off` methods.
+You can manipulate the assocciated buffer and window using the
+`split.bufnr` and `split.winid` properties.
 
-**relative**
+## Options
+
+### `relative`
 
 | Value               | Description                 |
 | ------------------- | --------------------------- |
@@ -27,25 +26,27 @@ It has the usual `:mount`, `:unmount`, `:map`, `:on` and `:off` methods.
 
 This option also affects how `size` is calculated.
 
-**position**
+### `position`
 
 `position` can be one of: `"top"`, `"right"`, `"bottom"` or `"left"`.
 
-**size**
+### `size`
 
-`size` can be number or percentage string.
+`size` can be `number` or `percentage string`.
 
-For percentage string, size is calculated according to the option `relative`.
+For `percentage string`, size is calculated according to the option `relative`.
 
-**buf_options**
+### `buf_options`
 
 Table containing buffer options to set for this split.
 
-**win_options**
+### `win_options`
 
 Table containing window options to set for this split.
 
 ## Methods
+
+Methods from `nui.popup` are also available for `nui.split`.
 
 ### split:hide()
 
