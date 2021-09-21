@@ -2,55 +2,90 @@
 
 Input is an abstraction layer on top of Popup.
 
-You can use `vim.api` to manipulate it like any other buffer
-
-## Options
+It uses prompt buffer (check `:h prompt-buffer`) for its popup window.
 
 ```lua
 local Input = require("nui.input")
 local event = require("nui.utils.autocmd").event
 
-local input = Input({
-  position = "20%",
-  size = {
-      width = 20,
-      height = 2,
+local popup_options = {
+  relative = "cursor",
+  position = {
+    row = 1,
+    col = 0,
   },
-  relative = "editor",
+  size = 20,
   border = {
-    highlight = "MyHighlightGroup",
-    style = "single",
+    style = "rounded",
+    highlight = "FloatBorder",
     text = {
-        top = "How old are you?",
-        top_align = "center",
+      top = "[Input]",
+      top_align = "left",
     },
   },
   win_options = {
-    winblend = 10,
     winhighlight = "Normal:Normal",
   },
-}, {
+}
+
+local input = Input(popup_options, {
   prompt = "> ",
   default_value = "42",
   on_close = function()
     print("Input closed!")
   end,
   on_submit = function(value)
-    print("You are " .. value .. " years old")
+    print("Value submitted: ", value)
+  end,
+  on_change = function(value)
+    print("Value changed: ", value)
   end,
 })
 ```
 
-**NOTE**: first argument accepts all options from the `popup` component
+If you provide the `on_change` function, it'll be run everytime value changes.
+
+Pressing `<CR>` runs the `on_submit` callback function and closes the window.
+Pressing `<C-c>` runs the `on_close` callback function and closes the window.
+
+Of course, you can override the default keymaps and add more. For example:
+
+```lua
+-- close the input window by pressing `<Esc>` on normal mode
+input:map("n", "<Esc>", input.input_props.on_close, { noremap = true })
+```
+
+You can manipulate the assocciated buffer and window using the
+`split.bufnr` and `split.winid` properties.
+
+**NOTE**: the first argument accepts options for `nui.popup` component.
+
+## Options
 
 ### `prompt`
 
-- **Type:** `string`
+**Type:** `string`
 
-Prefix in the input
+Prefix in the input.
 
 ### `default_value`
 
-- **Type:** `string`
+**Type:** `string`
 
 Default value placed in the input on mount
+
+### `on_close`
+
+Callback function, called when input is closed.
+
+### `on_submit`
+
+Callback function, called when input value is submitted.
+
+### `on_change`
+
+Callback function, called when input value is changed.
+
+## Methods
+
+Methods from `nui.popup` are also available for `nui.input`.
