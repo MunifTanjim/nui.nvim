@@ -224,15 +224,9 @@ local function init(class, popup, options)
 
   self.popup = popup
 
-  if is_type("string", options) then
-    options = {
-      style = options,
-    }
-  end
-
   self.border_props = {
     type = "simple",
-    style = defaults(options.style, "none"),
+    style = options.style,
     padding = parse_padding(options.padding),
     text = options.text,
   }

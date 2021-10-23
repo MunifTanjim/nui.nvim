@@ -99,14 +99,6 @@ local function calculate_winblend(opacity)
 end
 
 local function parse_relative(relative, fallback_winid)
-  relative = utils.defaults(relative, "win")
-
-  if is_type("string", relative) then
-    relative = {
-      type = utils.defaults(relative, "win"),
-    }
-  end
-
   if relative.type == "win" then
     return {
       relative = relative.type,
@@ -130,8 +122,34 @@ local function parse_relative(relative, fallback_winid)
   }
 end
 
+local function normalize_options(options)
+  options.enter = utils.defaults(options.enter, false)
+  options.zindex = utils.defaults(options.zindex, 50)
+
+  options.relative = utils.defaults(options.relative, "win")
+  if is_type("string", options.relative) then
+    options.relative = {
+      type = options.relative,
+    }
+  end
+
+  options.buf_options = utils.defaults(options.buf_options, {})
+  options.win_options = utils.defaults(options.win_options, {})
+
+  options.border = utils.defaults(options.border, "none")
+  if is_type("string", options.border) then
+    options.border = {
+      style = options.border,
+    }
+  end
+
+  return options
+end
+
 local function init(class, options)
   local self = setmetatable({}, class)
+
+  options = normalize_options(options)
 
   self.popup_state = {
     loading = false,
@@ -140,18 +158,17 @@ local function init(class, options)
 
   self.popup_props = {}
   self.win_config = vim.tbl_extend("force", {
-    _enter = utils.defaults(options.enter, false),
+    _enter = options.enter,
     focusable = options.focusable,
     style = "minimal",
-    zindex = utils.defaults(options.zindex, 50),
+    zindex = options.zindex,
   }, parse_relative(
     options.relative,
     vim.api.nvim_get_current_win()
   ))
 
-  self.buf_options = utils.defaults(options.buf_options, {})
-
-  self.win_options = utils.defaults(options.win_options, {})
+  self.buf_options = options.buf_options
+  self.win_options = options.win_options
 
   if not self.win_options.winblend and is_type("number", options.opacity) then
     -- @deprecated
