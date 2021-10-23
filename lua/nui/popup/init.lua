@@ -26,7 +26,7 @@ local function get_container_info(popup)
   end
 end
 
-local function calculate_window_size(size, container)
+local function calculate_window_size(size, container_size)
   if not is_type("table", size) then
     size = {
       width = size,
@@ -34,10 +34,10 @@ local function calculate_window_size(size, container)
     }
   end
 
-  local width = utils._.normalize_dimension(size.width, container.size.width)
+  local width = utils._.normalize_dimension(size.width, container_size.width)
   assert(width, "invalid size.width")
 
-  local height = utils._.normalize_dimension(size.height, container.size.height)
+  local height = utils._.normalize_dimension(size.height, container_size.height)
   assert(height, "invalid size.height")
 
   return {
@@ -167,7 +167,7 @@ local function init(class, options)
   local win_config = self.win_config
 
   local container_info = get_container_info(self)
-  props.size = calculate_window_size(options.size, container_info)
+  props.size = calculate_window_size(options.size, container_info.size)
   props.position = calculate_window_position(options.position, props.size, container_info)
 
   self.border = Border(self, options.border)
@@ -289,7 +289,7 @@ function Popup:set_size(size)
   local props = self.popup_props
 
   local container_info = get_container_info(self)
-  props.size = calculate_window_size(size, container_info)
+  props.size = calculate_window_size(size, container_info.size)
 
   if self.border.win_config then
     self.border:resize()
