@@ -156,9 +156,10 @@ local function init(class, options)
     mounted = false,
   }
 
-  self.popup_props = {}
+  self.popup_props = {
+    win_enter = options.enter,
+  }
   self.win_config = vim.tbl_extend("force", {
-    _enter = options.enter,
     focusable = options.focusable,
     style = "minimal",
     zindex = options.zindex,
@@ -231,10 +232,7 @@ function Popup:mount()
     vim.api.nvim_buf_set_option(self.bufnr, name, value)
   end
 
-  local enter = self.win_config._enter
-  self.win_config._enter = nil
-  self.winid = vim.api.nvim_open_win(self.bufnr, enter, self.win_config)
-  self.win_config._enter = enter
+  self.winid = vim.api.nvim_open_win(self.bufnr, self.popup_props.win_enter, self.win_config)
   assert(self.winid, "failed to create popup window")
 
   for name, value in pairs(self.win_options) do
@@ -316,10 +314,7 @@ function Popup:set_size(size)
   self.win_config.height = props.size.height
 
   if self.winid then
-    vim.api.nvim_win_set_config(self.winid, {
-      width = props.size.width,
-      height = props.size.height,
-    })
+    vim.api.nvim_win_set_config(self.winid, self.win_config)
   end
 end
 
@@ -351,10 +346,7 @@ function Popup:set_position(position, relative)
   self.win_config.col = props.position.col
 
   if self.winid then
-    local enter = self.win_config._enter
-    self.win_config._enter = nil
     vim.api.nvim_win_set_config(self.winid, self.win_config)
-    self.win_config._enter = enter
   end
 end
 
