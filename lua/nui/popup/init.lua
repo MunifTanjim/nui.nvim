@@ -5,9 +5,8 @@ local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
 local is_type = utils.is_type
 
-local function get_container_info(popup)
-  local win_config = popup.win_config
-  local relative = win_config.relative
+local function get_container_info(position_meta)
+  local relative = position_meta.relative
 
   if relative == "editor" then
     return {
@@ -19,8 +18,8 @@ local function get_container_info(popup)
 
   if relative == "cursor" or relative == "win" then
     return {
-      relative = win_config.bufpos and "buf" or relative,
-      size = utils.get_window_size(win_config.win),
+      relative = position_meta.bufpos and "buf" or relative,
+      size = utils.get_window_size(position_meta.win),
       type = "window",
     }
   end
@@ -99,17 +98,12 @@ local function calculate_winblend(opacity)
 end
 
 local function parse_relative(relative, fallback_winid)
-  if relative.type == "win" then
-    return {
-      relative = relative.type,
-      win = utils.defaults(relative.winid, fallback_winid),
-    }
-  end
+  local winid = utils.defaults(relative.winid, fallback_winid)
 
   if relative.type == "buf" then
     return {
       relative = "win",
-      win = utils.defaults(relative.winid, fallback_winid),
+      win = winid,
       bufpos = {
         relative.position.row,
         relative.position.col,
@@ -119,6 +113,7 @@ local function parse_relative(relative, fallback_winid)
 
   return {
     relative = relative.type,
+    win = winid,
   }
 end
 
@@ -159,14 +154,12 @@ local function init(class, options)
   self.popup_props = {
     win_enter = options.enter,
   }
-  self.win_config = vim.tbl_extend("force", {
+
+  self.win_config = {
     focusable = options.focusable,
     style = "minimal",
     zindex = options.zindex,
-  }, parse_relative(
-    options.relative,
-    vim.api.nvim_get_current_win()
-  ))
+  }
 
   self.buf_options = options.buf_options
   self.win_options = options.win_options
@@ -182,18 +175,26 @@ local function init(class, options)
   end
 
   local props = self.popup_props
+  local state = self.popup_state
   local win_config = self.win_config
 
-  local container_info = get_container_info(self)
+  state.position_meta = parse_relative(options.relative, vim.api.nvim_get_current_win())
+  win_config.relative = state.position_meta.relative
+  win_config.win = state.position_meta.relative == "win" and state.position_meta.win or nil
+  win_config.bufpos = state.position_meta.bufpos
+
+  local container_info = get_container_info(state.position_meta)
+
   props.size = calculate_window_size(options.size, container_info.size)
-  props.position = calculate_window_position(options.position, props.size, container_info)
+  win_config.width = props.size.width
+  win_config.height = props.size.height
+
+  state.position = calculate_window_position(options.position, props.size, container_info)
+  win_config.row = state.position.row
+  win_config.col = state.position.col
 
   self.border = Border(self, options.border)
 
-  win_config.width = props.size.width
-  win_config.height = props.size.height
-  win_config.row = props.position.row
-  win_config.col = props.position.col
   win_config.border = self.border:get()
 
   if win_config.width < 1 then
@@ -303,15 +304,15 @@ end
 function Popup:set_size(size)
   local props = self.popup_props
 
-  local container_info = get_container_info(self)
+  local container_info = get_container_info(self.popup_state.position_meta)
+
   props.size = calculate_window_size(size, container_info.size)
+  self.win_config.width = props.size.width
+  self.win_config.height = props.size.height
 
   if self.border.win_config then
     self.border:resize()
   end
-
-  self.win_config.width = props.size.width
-  self.win_config.height = props.size.height
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
@@ -320,30 +321,25 @@ end
 
 function Popup:set_position(position, relative)
   local props = self.popup_props
+  local state = self.popup_state
+  local win_config = self.win_config
 
   if relative then
-    local relative_config = parse_relative(relative, self.win_config.win)
-
-    if not relative_config.win then
-      self.win_config.win = nil
-    end
-
-    if not relative_config.bufpos then
-      self.win_config.bufpos = nil
-    end
-
-    self.win_config = vim.tbl_extend("force", self.win_config, relative_config)
+    state.position_meta = parse_relative(relative, state.position_meta.win)
+    win_config.relative = state.position_meta.relative
+    win_config.win = state.position_meta.relative == "win" and state.position_meta.win or nil
+    win_config.bufpos = state.position_meta.bufpos
   end
 
-  local container_info = get_container_info(self)
-  props.position = calculate_window_position(position, props.size, container_info)
+  local container_info = get_container_info(state.position_meta)
+
+  state.position = calculate_window_position(position, props.size, container_info)
+  win_config.row = state.position.row
+  win_config.col = state.position.col
 
   if self.border.win_config then
     self.border:reposition()
   end
-
-  self.win_config.row = props.position.row
-  self.win_config.col = props.position.col
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
