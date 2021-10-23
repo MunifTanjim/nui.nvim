@@ -195,7 +195,9 @@ local function calculate_position(border)
 end
 
 local function adjust_popup_win_config(border)
-  if border.border_props.type ~= "complex" then
+  local props = border.border_props
+
+  if props.type ~= "complex" then
     return
   end
 
@@ -204,7 +206,7 @@ local function adjust_popup_win_config(border)
     col = 0,
   }
 
-  local char = border.border_props.char
+  local char = props.char
 
   if is_type("map", char) then
     if char.top ~= "" then
@@ -216,7 +218,7 @@ local function adjust_popup_win_config(border)
     end
   end
 
-  local padding = border.border_props.padding
+  local padding = props.padding
 
   if padding then
     if padding.top then
@@ -228,17 +230,19 @@ local function adjust_popup_win_config(border)
     end
   end
 
+  local popup = border.popup
+
   if not has_nvim_0_5_1 then
-    border.popup.win_config.row = border.border_props.position.row + popup_position.row
-    border.popup.win_config.col = border.border_props.position.col + popup_position.col
+    popup.win_config.row = props.position.row + popup_position.row
+    popup.win_config.col = props.position.col + popup_position.col
     return
   end
 
-  border.popup.win_config.relative = "win"
-  border.popup.win_config.win = border.winid
-  border.popup.win_config.bufpos = nil
-  border.popup.win_config.row = popup_position.row
-  border.popup.win_config.col = popup_position.col
+  popup.win_config.relative = "win"
+  popup.win_config.win = border.winid
+  popup.win_config.bufpos = nil
+  popup.win_config.row = popup_position.row
+  popup.win_config.col = popup_position.col
 end
 
 local function init(class, popup, options)
@@ -387,6 +391,10 @@ end
 function Border:resize()
   local props = self.border_props
 
+  if props.type ~= "complex" then
+    return
+  end
+
   props.size = calculate_size(self)
   self.win_config.width = props.size.width
   self.win_config.height = props.size.height
@@ -398,7 +406,7 @@ function Border:resize()
   end
 
   if self.bufnr then
-    if self.border_props.buf_lines then
+    if props.buf_lines then
       vim.api.nvim_buf_set_lines(self.bufnr, 0, props.size.height, false, props.buf_lines)
     end
   end
@@ -409,16 +417,18 @@ end
 function Border:reposition()
   local props = self.border_props
 
-  if props.type == "complex" then
-    local position_meta = self.popup.popup_state.position_meta
-    self.win_config.relative = position_meta.relative
-    self.win_config.win = position_meta.relative == "win" and position_meta.win or nil
-    self.win_config.bufpos = position_meta.bufpos
-
-    props.position = calculate_position(self)
-    self.win_config.row = props.position.row
-    self.win_config.col = props.position.col
+  if props.type ~= "complex" then
+    return
   end
+
+  local position_meta = self.popup.popup_state.position_meta
+  self.win_config.relative = position_meta.relative
+  self.win_config.win = position_meta.relative == "win" and position_meta.win or nil
+  self.win_config.bufpos = position_meta.bufpos
+
+  props.position = calculate_position(self)
+  self.win_config.row = props.position.row
+  self.win_config.col = props.position.col
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)

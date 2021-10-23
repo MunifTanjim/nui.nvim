@@ -197,14 +197,6 @@ local function init(class, options)
 
   win_config.border = self.border:get()
 
-  if win_config.width < 1 then
-    error("width can not be negative. is padding more than width?")
-  end
-
-  if win_config.height < 1 then
-    error("height can not be negative. is padding more than height?")
-  end
-
   return self
 end
 
@@ -310,9 +302,7 @@ function Popup:set_size(size)
   self.win_config.width = props.size.width
   self.win_config.height = props.size.height
 
-  if self.border.win_config then
-    self.border:resize()
-  end
+  self.border:resize()
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
@@ -337,9 +327,7 @@ function Popup:set_position(position, relative)
   win_config.row = state.position.row
   win_config.col = state.position.col
 
-  if self.border.win_config then
-    self.border:reposition()
-  end
+  self.border:reposition()
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
