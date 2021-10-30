@@ -253,6 +253,7 @@ local function init(class, popup, options)
   self.border_props = {
     type = "simple",
     style = options.style,
+    highlight = defaults(options.highlight, "FloatBorder"),
     padding = parse_padding(options.padding),
     text = options.text,
   }
@@ -311,7 +312,6 @@ local function init(class, popup, options)
     props.buf_lines = calculate_buf_lines(props)
   end
 
-  props.highlight = defaults(options.highlight, "FloatBorder")
   if props.type == "complex" and not string.match(props.highlight, ":") then
     props.highlight = "Normal:" .. props.highlight
   end
