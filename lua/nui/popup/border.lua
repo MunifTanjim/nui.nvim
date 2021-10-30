@@ -288,31 +288,29 @@ local function init(class, popup, options)
     return self
   end
 
-  if props.type == "complex" then
-    self.win_config = {
-      style = "minimal",
-      border = "none",
-      focusable = false,
-      zindex = self.popup.win_config.zindex - 1,
-    }
+  self.win_config = {
+    style = "minimal",
+    border = "none",
+    focusable = false,
+    zindex = self.popup.win_config.zindex - 1,
+  }
 
-    local position_meta = popup.popup_state.position_meta
-    self.win_config.relative = position_meta.relative
-    self.win_config.win = position_meta.relative == "win" and position_meta.win or nil
-    self.win_config.bufpos = position_meta.bufpos
+  local position_meta = popup.popup_state.position_meta
+  self.win_config.relative = position_meta.relative
+  self.win_config.win = position_meta.relative == "win" and position_meta.win or nil
+  self.win_config.bufpos = position_meta.bufpos
 
-    props.size = calculate_size(self)
-    self.win_config.width = props.size.width
-    self.win_config.height = props.size.height
+  props.size = calculate_size(self)
+  self.win_config.width = props.size.width
+  self.win_config.height = props.size.height
 
-    props.position = calculate_position(self)
-    self.win_config.row = props.position.row
-    self.win_config.col = props.position.col
+  props.position = calculate_position(self)
+  self.win_config.row = props.position.row
+  self.win_config.col = props.position.col
 
-    props.buf_lines = calculate_buf_lines(props)
-  end
+  props.buf_lines = calculate_buf_lines(props)
 
-  if props.type == "complex" and not string.match(props.highlight, ":") then
+  if not string.match(props.highlight, ":") then
     props.highlight = "Normal:" .. props.highlight
   end
 
@@ -466,21 +464,21 @@ end
 function Border:get()
   local props = self.border_props
 
-  if props.type == "simple" then
-    if is_type("string", props.char) then
-      return props.char
-    end
-
-    local char = {}
-
-    for position, item in pairs(props.char) do
-      char[position] = { item, props.highlight }
-    end
-
-    return to_border_list(char)
+  if props.type ~= "simple" then
+    return nil
   end
 
-  return nil
+  if is_type("string", props.char) then
+    return props.char
+  end
+
+  local char = {}
+
+  for position, item in pairs(props.char) do
+    char[position] = { item, props.highlight }
+  end
+
+  return to_border_list(char)
 end
 
 local BorderClass = setmetatable({
