@@ -209,7 +209,7 @@ function Popup:init(options)
   return init(self, options)
 end
 
-function Popup:mount()
+function Popup:mount(bufnr)
   if self.popup_state.loading or self.popup_state.mounted then
     return
   end
@@ -218,7 +218,7 @@ function Popup:mount()
 
   self.border:mount()
 
-  self.bufnr = vim.api.nvim_create_buf(false, true)
+  self.bufnr = bufnr or vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
 
   for name, value in pairs(self.buf_options) do
