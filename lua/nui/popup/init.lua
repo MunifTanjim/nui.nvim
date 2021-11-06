@@ -149,7 +149,7 @@ local function init(class, options)
   self.popup_state = {
     loading = false,
     mounted = false,
-    close = true,
+    hidden = true,
   }
 
   self.popup_props = {
@@ -235,11 +235,11 @@ function Popup:mount()
 
   self.popup_state.loading = false
   self.popup_state.mounted = true
-  self.popup_state.closed = false
+  self.popup_state.hidden = false
 end
 
-function Popup:close()
-  if self.popup_state.loading or self.popup_state.closed or not self.popup_state.mounted then
+function Popup:hide()
+  if self.popup_state.loading or self.popup_state.hidden or not self.popup_state.mounted then
     return
   end
 
@@ -256,9 +256,29 @@ function Popup:close()
 
   self.popup_state.loading = false
   self.popup_state.mounted = false
-  self.popup_state.closed = true
+  self.popup_state.hidden = true
 end
 
+function Popup:show()
+  if self.popup_state.loading or not self.popup_state.hidden or self.popup_state.mounted then
+    return
+  end
+
+  self.popup_state.loading = true
+
+  self.border:mount()
+
+  self.winid = vim.api.nvim_open_win(self.bufnr, self.popup_props.win_enter, self.win_config)
+  assert(self.winid, "failed to create popup window")
+
+  for name, value in pairs(self.win_options) do
+    vim.api.nvim_win_set_option(self.winid, name, value)
+  end
+
+  self.popup_state.loading = false
+  self.popup_state.mounted = true
+  self.popup_state.hidden = false
+end
 
 function Popup:unmount()
   if self.popup_state.loading or not self.popup_state.mounted then
@@ -287,7 +307,7 @@ function Popup:unmount()
 
   self.popup_state.loading = false
   self.popup_state.mounted = false
-  self.popup_state.closed = true
+  self.popup_state.hidden = true
 end
 
 -- set keymap for this popup window. if keymap was already set and
