@@ -149,6 +149,7 @@ local function init(class, options)
   self.popup_state = {
     loading = false,
     mounted = false,
+    close = true,
   }
 
   self.popup_props = {
@@ -209,7 +210,7 @@ function Popup:init(options)
   return init(self, options)
 end
 
-function Popup:mount(bufnr)
+function Popup:mount()
   if self.popup_state.loading or self.popup_state.mounted then
     return
   end
@@ -218,7 +219,7 @@ function Popup:mount(bufnr)
 
   self.border:mount()
 
-  self.bufnr = bufnr or vim.api.nvim_create_buf(false, true)
+  self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
 
   for name, value in pairs(self.buf_options) do
@@ -234,7 +235,30 @@ function Popup:mount(bufnr)
 
   self.popup_state.loading = false
   self.popup_state.mounted = true
+  self.popup_state.closed = false
 end
+
+function Popup:close()
+  if self.popup_state.loading or self.popup_state.closed or not self.popup_state.mounted then
+    return
+  end
+
+  self.popup_state.loading = true
+
+  self.border:unmount()
+
+  if self.winid then
+    if vim.api.nvim_win_is_valid(self.winid) then
+      vim.api.nvim_win_close(self.winid, true)
+    end
+    self.winid = nil
+  end
+
+  self.popup_state.loading = false
+  self.popup_state.mounted = false
+  self.popup_state.closed = true
+end
+
 
 function Popup:unmount()
   if self.popup_state.loading or not self.popup_state.mounted then
@@ -263,6 +287,7 @@ function Popup:unmount()
 
   self.popup_state.loading = false
   self.popup_state.mounted = false
+  self.popup_state.closed = true
 end
 
 -- set keymap for this popup window. if keymap was already set and
