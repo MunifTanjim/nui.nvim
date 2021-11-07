@@ -279,7 +279,7 @@ function Popup:hide()
 end
 
 function Popup:show()
-  if self.popup_state.loading or not self.popup_state.mounted then
+  if self.popup_state.loading or self.popup_state.mounted then
     return
   end
 
