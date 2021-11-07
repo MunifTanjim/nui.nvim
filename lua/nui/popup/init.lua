@@ -229,8 +229,9 @@ function Popup:_close_window()
     return
   end
 
+  self.border:unmount()
+
   if vim.api.nvim_win_is_valid(self.winid) then
-    self.border:unmount()
     vim.api.nvim_win_close(self.winid, true)
   end
 
