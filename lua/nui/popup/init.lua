@@ -284,11 +284,11 @@ function Popup:show()
   end
 
   self.popup_state.loading = true
-  self.popup_state.mounted = true
 
   self:_open_window()
 
   self.popup_state.loading = false
+  self.popup_state.mounted = true
 end
 
 function Popup:unmount()
