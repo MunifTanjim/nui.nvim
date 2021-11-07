@@ -275,6 +275,7 @@ function Popup:hide()
   self:_close_window()
 
   self.popup_state.loading = false
+  self.popup_state.mounted = false
 end
 
 function Popup:show()
@@ -287,6 +288,7 @@ function Popup:show()
   self:_open_window()
 
   self.popup_state.loading = false
+  self.popup_state.mounted = true
 end
 
 function Popup:unmount()
