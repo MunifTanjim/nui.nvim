@@ -394,6 +394,18 @@ popup:unmount()
 
 ---
 
+### `popup:hide()`
+
+Hides the popup window. Preserves the buffer (related content, autocmds and keymaps).
+
+---
+
+### `popup:show()`
+
+Shows the hidden popup window.
+
+---
+
 ### `popup:map(mode, key, handler, opts, force)`
 
 Sets keymap for the popup.
