@@ -252,7 +252,7 @@ local function init(class, popup, options)
 
   self.border_props = {
     type = "simple",
-    style = options.style,
+    style = defaults(options.style, "none"),
     highlight = defaults(options.highlight, "FloatBorder"),
     padding = parse_padding(options.padding),
     text = options.text,
