@@ -46,12 +46,4 @@ Table containing window options to set for this split.
 
 ## Methods
 
-Methods from `nui.popup` are also available for `nui.split`.
-
-### split:hide()
-
-Hides the split window.
-
-### split:show()
-
-Shows the hidden split window.
+[Methods from `nui.popup`](/lua/nui/popup#methods) are also available for `nui.split`.
