@@ -129,7 +129,7 @@ function Split:_close_window()
   end
 
   if vim.api.nvim_win_is_valid(self.winid) then
-    vim.api.nvim_win_hide(self.winid)
+    vim.api.nvim_win_close(self.winid, true)
   end
 
   self.winid = nil
@@ -195,12 +195,7 @@ function Split:unmount()
     self.bufnr = nil
   end
 
-  if self.winid then
-    if vim.api.nvim_win_is_valid(self.winid) then
-      vim.api.nvim_win_close(self.winid, true)
-    end
-    self.winid = nil
-  end
+  self:_close_window()
 
   self.split_state.loading = false
   self.split_state.mounted = false
