@@ -210,11 +210,9 @@ function Popup:init(options)
 end
 
 function Popup:_open_window()
-  if self.winid then
+  if self.winid or not self.bufnr then
     return
   end
-
-  self.border:mount()
 
   self.winid = vim.api.nvim_open_win(self.bufnr, self.popup_props.win_enter, self.win_config)
   assert(self.winid, "failed to create popup window")
@@ -228,8 +226,6 @@ function Popup:_close_window()
   if not self.winid then
     return
   end
-
-  self.border:unmount()
 
   if vim.api.nvim_win_is_valid(self.winid) then
     vim.api.nvim_win_close(self.winid, true)
@@ -254,12 +250,7 @@ function Popup:mount()
     vim.api.nvim_buf_set_option(self.bufnr, name, value)
   end
 
-  self.winid = vim.api.nvim_open_win(self.bufnr, self.popup_props.win_enter, self.win_config)
-  assert(self.winid, "failed to create popup window")
-
-  for name, value in pairs(self.win_options) do
-    vim.api.nvim_win_set_option(self.winid, name, value)
-  end
+  self:_open_window()
 
   self.popup_state.loading = false
   self.popup_state.mounted = true
@@ -272,23 +263,25 @@ function Popup:hide()
 
   self.popup_state.loading = true
 
+  self.border:_close_window()
+
   self:_close_window()
 
   self.popup_state.loading = false
-  self.popup_state.mounted = false
 end
 
 function Popup:show()
-  if self.popup_state.loading or self.popup_state.mounted then
+  if self.popup_state.loading or not self.popup_state.mounted then
     return
   end
 
   self.popup_state.loading = true
 
+  self.border:_open_window()
+
   self:_open_window()
 
   self.popup_state.loading = false
-  self.popup_state.mounted = true
 end
 
 function Popup:unmount()
@@ -309,12 +302,7 @@ function Popup:unmount()
     self.bufnr = nil
   end
 
-  if self.winid then
-    if vim.api.nvim_win_is_valid(self.winid) then
-      vim.api.nvim_win_close(self.winid, true)
-    end
-    self.winid = nil
-  end
+  self:_close_window()
 
   self.popup_state.loading = false
   self.popup_state.mounted = false

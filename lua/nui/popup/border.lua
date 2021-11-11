@@ -326,6 +326,33 @@ function Border:init(popup, options)
   return init(self, popup, options)
 end
 
+function Border:_open_window()
+  if self.winid or not self.bufnr then
+    return
+  end
+
+  self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
+  assert(self.winid, "failed to create border window")
+
+  vim.api.nvim_win_set_option(self.winid, "winhighlight", self.border_props.highlight)
+
+  adjust_popup_win_config(self)
+
+  vim.api.nvim_command("redraw")
+end
+
+function Border:_close_window()
+  if not self.winid then
+    return
+  end
+
+  if vim.api.nvim_win_is_valid(self.winid) then
+    vim.api.nvim_win_close(self.winid, true)
+  end
+
+  self.winid = nil
+end
+
 function Border:mount()
   local popup = self.popup
 
@@ -348,14 +375,7 @@ function Border:mount()
     vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height, false, props.buf_lines)
   end
 
-  self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
-  assert(self.winid, "failed to create border window")
-
-  vim.api.nvim_win_set_option(self.winid, "winhighlight", self.border_props.highlight)
-
-  adjust_popup_win_config(self)
-
-  vim.api.nvim_command("redraw")
+  self:_open_window()
 end
 
 function Border:unmount()
@@ -378,12 +398,7 @@ function Border:unmount()
     self.bufnr = nil
   end
 
-  if self.winid then
-    if vim.api.nvim_win_is_valid(self.winid) then
-      vim.api.nvim_win_close(self.winid, true)
-    end
-    self.winid = nil
-  end
+  self:_close_window()
 end
 
 function Border:resize()
