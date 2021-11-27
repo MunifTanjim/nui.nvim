@@ -17,8 +17,8 @@ jobs:
         run: sudo apt-get install luarocks -q
       - name: Setup luacheck
         run: sudo luarocks install luacheck
-      - name: Lint using luacheck
-        run: luacheck lua/**/*.lua
+      - name: Lint
+        run: ./scripts/lint.sh
 
   format:
     name: stylua
