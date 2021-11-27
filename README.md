@@ -28,6 +28,12 @@ Quickly add line containing highlighted text chunks on the buffer.
 
 **[Check Detailed Documentation for `nui.line`](lua/nui/line)**
 
+### [NuiTree](lua/nui/tree)
+
+Quickly render tree-like structured content on the buffer.
+
+**[Check Detailed Documentation for `nui.tree`](lua/nui/tree)**
+
 ## Components
 
 ### [Popup](lua/nui/popup)
