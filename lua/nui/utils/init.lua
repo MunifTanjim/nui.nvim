@@ -70,6 +70,24 @@ function utils._.char_to_byte_range(bufnr, linenr, char_start, char_end)
 end
 
 ---@private
+---@param bufnr number
+---@param buf_options table<string, any>
+function utils._.set_buf_options(bufnr, buf_options)
+  for name, value in pairs(buf_options) do
+    vim.api.nvim_buf_set_option(bufnr, name, value)
+  end
+end
+
+---@private
+---@param winid number
+---@param win_options table<string, any>
+function utils._.set_win_options(winid, win_options)
+  for name, value in pairs(win_options) do
+    vim.api.nvim_win_set_option(winid, name, value)
+  end
+end
+
+---@private
 ---@param dimension number | string
 ---@param container_dimension number
 ---@return nil | number
