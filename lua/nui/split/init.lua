@@ -78,10 +78,7 @@ local function init(class, options)
   self.win_options = vim.tbl_extend("force", {
     winfixwidth = true,
     winfixheight = true,
-  }, defaults(
-    options.win_options,
-    {}
-  ))
+  }, defaults(options.win_options, {}))
 
   return self
 end

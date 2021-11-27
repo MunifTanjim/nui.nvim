@@ -122,9 +122,7 @@ local function init(class, popup_options, options)
   local props = vim.tbl_extend("force", {
     separator = defaults(options.separator, {}),
     keymap = parse_keymap(options.keymap),
-  }, parse_lines(
-    options.lines
-  ))
+  }, parse_lines(options.lines))
 
   local state = {
     curr_index = nil,
