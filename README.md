@@ -14,6 +14,14 @@ Install the plugins with your preferred plugin manager. For example, with [`vim-
 Plug 'MunifTanjim/nui.nvim'
 ```
 
+## Blocks
+
+### [NuiText](lua/nui/text)
+
+Quickly add highlighted text on the buffer.
+
+**[Check Detailed Documentation for `nui.text`](lua/nui/text)**
+
 ## Components
 
 ### [Popup](lua/nui/popup)

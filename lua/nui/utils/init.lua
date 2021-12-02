@@ -53,6 +53,23 @@ function utils.parse_number_input(v)
 end
 
 ---@private
+---@param bufnr number
+---@param linenr number line number (1-indexed)
+---@param char_start number start character position (0-indexed)
+---@param char_end number end character position (0-indexed)
+---@return number[] byte_range
+function utils._.char_to_byte_range(bufnr, linenr, char_start, char_end)
+  local line = vim.api.nvim_buf_get_lines(bufnr, linenr - 1, linenr, false)[1]
+  local skipped_part = vim.fn.strcharpart(line, 0, char_start)
+  local target_part = vim.fn.strcharpart(line, char_start, char_end - char_start)
+
+  local byte_start = vim.fn.strlen(skipped_part)
+  local byte_end = math.min(byte_start + vim.fn.strlen(target_part), vim.fn.strlen(line))
+  print(string.format("|%s|%s|", byte_start, byte_end))
+  return { byte_start, byte_end }
+end
+
+---@private
 ---@param dimension number | string
 ---@param container_dimension number
 ---@return nil | number
