@@ -22,18 +22,21 @@ line:render(bufnr, linenr)
 
 ## Methods
 
-### `line:append(text, highlight)`
+### `line:append(text, highlight?)`
 
 Adds a chunk of text to the line.
 
 **Parameters**
 
-| Name        | Type                | Description           |
-| ----------- | ------------------- | --------------------- |
-| `text`      | `string`            | text content          |
-| `highlight` | `string` or `table` | highlight information |
+| Name        | Type                  | Description           |
+| ----------- | --------------------- | --------------------- |
+| `text`      | `string` or `NuiText` | text content          |
+| `highlight` | `string` or `table`   | highlight information |
 
-These parameters are passed to [`NuiText`](../text).
+If `text` is `string`, these parameters are passed to `NuiText`
+and a `NuiText` object is returned.
+
+It `text` is already a `NuiText` object, it is returned unchanged.
 
 ### `line:content()`
 

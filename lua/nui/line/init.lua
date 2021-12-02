@@ -1,4 +1,5 @@
 local NuiText = require("nui.text")
+local is_type = require("nui.utils").is_type
 
 local Line = {
   name = "NuiLine",
@@ -15,9 +16,11 @@ end
 
 ---@param text string text to add
 ---@param highlight? string|table data for highlight
+---@return table NuiText
 function Line:append(text, highlight)
-  local nui_text = NuiText(text, highlight)
+  local nui_text = is_type("string", text) and NuiText(text, highlight) or text
   table.insert(self._chunks, nui_text)
+  return nui_text
 end
 
 ---@return string
