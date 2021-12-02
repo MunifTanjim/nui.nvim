@@ -22,6 +22,12 @@ Quickly add highlighted text on the buffer.
 
 **[Check Detailed Documentation for `nui.text`](lua/nui/text)**
 
+### [NuiLine](lua/nui/line)
+
+Quickly add line containing highlighted text chunks on the buffer.
+
+**[Check Detailed Documentation for `nui.line`](lua/nui/line)**
+
 ## Components
 
 ### [Popup](lua/nui/popup)
