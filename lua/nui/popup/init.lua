@@ -3,6 +3,9 @@ local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
+
+local _ = utils._
+local defaults = utils.defaults
 local is_type = utils.is_type
 
 local function get_container_info(position_meta)
@@ -33,10 +36,10 @@ local function calculate_window_size(size, container_size)
     }
   end
 
-  local width = utils._.normalize_dimension(size.width, container_size.width)
+  local width = _.normalize_dimension(size.width, container_size.width)
   assert(width, "invalid size.width")
 
-  local height = utils._.normalize_dimension(size.height, container_size.height)
+  local height = _.normalize_dimension(size.height, container_size.height)
   assert(height, "invalid size.height")
 
   return {
@@ -98,7 +101,7 @@ local function calculate_winblend(opacity)
 end
 
 local function parse_relative(relative, fallback_winid)
-  local winid = utils.defaults(relative.winid, fallback_winid)
+  local winid = defaults(relative.winid, fallback_winid)
 
   if relative.type == "buf" then
     return {
@@ -118,20 +121,20 @@ local function parse_relative(relative, fallback_winid)
 end
 
 local function normalize_options(options)
-  options.enter = utils.defaults(options.enter, false)
-  options.zindex = utils.defaults(options.zindex, 50)
+  options.enter = defaults(options.enter, false)
+  options.zindex = defaults(options.zindex, 50)
 
-  options.relative = utils.defaults(options.relative, "win")
+  options.relative = defaults(options.relative, "win")
   if is_type("string", options.relative) then
     options.relative = {
       type = options.relative,
     }
   end
 
-  options.buf_options = utils.defaults(options.buf_options, {})
-  options.win_options = utils.defaults(options.win_options, {})
+  options.buf_options = defaults(options.buf_options, {})
+  options.win_options = defaults(options.win_options, {})
 
-  options.border = utils.defaults(options.border, "none")
+  options.border = defaults(options.border, "none")
   if is_type("string", options.border) then
     options.border = {
       style = options.border,
@@ -217,9 +220,7 @@ function Popup:_open_window()
   self.winid = vim.api.nvim_open_win(self.bufnr, self.popup_props.win_enter, self.win_config)
   assert(self.winid, "failed to create popup window")
 
-  for name, value in pairs(self.win_options) do
-    vim.api.nvim_win_set_option(self.winid, name, value)
-  end
+  _.set_win_options(self.winid, self.win_options)
 end
 
 function Popup:_close_window()
@@ -246,9 +247,7 @@ function Popup:mount()
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
 
-  for name, value in pairs(self.buf_options) do
-    vim.api.nvim_buf_set_option(self.bufnr, name, value)
-  end
+  _.set_buf_options(self.bufnr, self.buf_options)
 
   self:_open_window()
 
