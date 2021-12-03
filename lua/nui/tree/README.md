@@ -111,7 +111,7 @@ Contains all buffer related options (check `:h options | /local to buffer`).
 
 ```lua
 buf_options = {
-  bufhidden = "wipe",
+  bufhidden = "hide",
   buflisted = false,
   buftype = "nofile",
   swapfile = false,

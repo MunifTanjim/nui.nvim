@@ -168,7 +168,7 @@ local function init(class, options)
   self.bufnr = vim.api.nvim_win_get_buf(self.winid)
 
   self.buf_options = vim.tbl_extend("force", {
-    bufhidden = "wipe",
+    bufhidden = "hide",
     buflisted = false,
     buftype = "nofile",
     modifiable = false,
