@@ -1,5 +1,0 @@
-describe("nui", function()
-  it("meaning of life", function()
-    assert.equals("42", "42")
-  end)
-end)
