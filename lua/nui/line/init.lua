@@ -9,7 +9,7 @@ local Line = {
 local function init(class)
   local self = setmetatable({}, class)
 
-  self._chunks = {}
+  self._texts = {}
 
   return self
 end
@@ -19,15 +19,15 @@ end
 ---@return table NuiText
 function Line:append(text, highlight)
   local nui_text = is_type("string", text) and NuiText(text, highlight) or text
-  table.insert(self._chunks, nui_text)
+  table.insert(self._texts, nui_text)
   return nui_text
 end
 
 ---@return string
 function Line:content()
-  return table.concat(vim.tbl_map(function(chunk)
-    return chunk:content()
-  end, self._chunks))
+  return table.concat(vim.tbl_map(function(text)
+    return text:content()
+  end, self._texts))
 end
 
 ---@param bufnr number buffer number
@@ -36,9 +36,9 @@ end
 ---@return nil
 function Line:highlight(bufnr, linenr, ns_id)
   local current_byte_start = 0
-  for _, chunk in ipairs(self._chunks) do
-    chunk:highlight(bufnr, linenr, current_byte_start, ns_id)
-    current_byte_start = current_byte_start + chunk:length()
+  for _, text in ipairs(self._texts) do
+    text:highlight(bufnr, linenr, current_byte_start, ns_id)
+    current_byte_start = current_byte_start + text:length()
   end
 end
 
