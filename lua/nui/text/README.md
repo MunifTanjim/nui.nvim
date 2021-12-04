@@ -19,11 +19,13 @@ text:render(bufnr, linenr, byte_pos, linenr, byte_pos)
 
 ## Parameters
 
+_Signature:_ `NuiText(content, highlight?)`
+
 ### `content`
 
 **Type:** `string`
 
-The text content.
+Text content.
 
 ### `highlight`
 
@@ -40,6 +42,19 @@ or a `table` with the following keys:
 | `"ns_id"` | namespace id         |
 
 ## Methods
+
+### `text:set(content, highlight?)`
+
+Sets the text content and highlight information.
+
+**Parameters**
+
+| Name        | Type                | Description           |
+| ----------- | ------------------- | --------------------- |
+| `content`   | `string`            | text content          |
+| `highlight` | `string` or `table` | highlight information |
+
+These parameters are exactly the same as `NuiText` parameters.
 
 ### `text:content()`
 

@@ -10,16 +10,20 @@ local Text = {
 ---@param highlight? string|table data for highlight
 local function init(class, content, highlight)
   local self = setmetatable({}, class)
+  self:set(content, highlight)
+  return self
+end
 
-  self._content = content
-  self._length = vim.fn.strlen(content)
-  self._width = vim.api.nvim_strwidth(content)
-
-  if highlight then
-    self._highlight = is_type("table", highlight) and highlight or { group = highlight }
+---@param content string text content
+---@param highlight? string|table data for highlight
+function Text:set(content, highlight)
+  if self._content ~= content then
+    self._content = content
+    self._length = vim.fn.strlen(content)
+    self._width = vim.api.nvim_strwidth(content)
   end
 
-  return self
+  self._highlight = is_type("string", highlight) and { group = highlight } or highlight
 end
 
 ---@return string
