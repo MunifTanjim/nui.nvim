@@ -36,10 +36,10 @@ Highlight information.
 It can be a `string` specifying the highlight group name,
 or a `table` with the following keys:
 
-| Key       | Description          |
-| --------- | -------------------- |
-| `"group"` | highlight group name |
-| `"ns_id"` | namespace id         |
+| Key          | Description          |
+| ------------ | -------------------- |
+| `"hl_group"` | highlight group name |
+| `"ns_id"`    | namespace id         |
 
 ## Methods
 

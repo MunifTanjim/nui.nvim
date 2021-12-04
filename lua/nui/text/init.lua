@@ -23,7 +23,7 @@ function Text:set(content, highlight)
     self._width = vim.api.nvim_strwidth(content)
   end
 
-  self._highlight = is_type("string", highlight) and { group = highlight } or highlight
+  self._highlight = is_type("string", highlight) and { hl_group = highlight } or highlight
 end
 
 ---@return string
@@ -55,7 +55,7 @@ function Text:highlight(bufnr, linenr, byte_start, ns_id)
 
   local byte_end = byte_start + self:length()
 
-  vim.api.nvim_buf_add_highlight(bufnr, ns_id, self._highlight.group, linenr - 1, byte_start, byte_end)
+  vim.api.nvim_buf_add_highlight(bufnr, ns_id, self._highlight.hl_group, linenr - 1, byte_start, byte_end)
 end
 
 ---@param bufnr number buffer number
