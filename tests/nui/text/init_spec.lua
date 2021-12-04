@@ -104,17 +104,16 @@ describe("nui.text", function()
       end)
 
       local function assert_highlight()
-        eq(
-          tbl_pick(
-            vim.api.nvim_buf_get_extmarks(bufnr, ns_id, linenr - 1, byte_start, { details = true })[1][4],
-            { "end_row", "end_col", "hl_group" }
-          ),
-          {
-            end_row = linenr - 1,
-            end_col = byte_start + text:length(),
-            hl_group = hl_group,
-          }
-        )
+        local extmarks = vim.api.nvim_buf_get_extmarks(bufnr, ns_id, linenr - 1, byte_start, { details = true })
+
+        eq(#extmarks, 1)
+        eq(extmarks[1][2], linenr - 1)
+        eq(extmarks[1][3], byte_start)
+        eq(tbl_pick(extmarks[1][4], { "end_row", "end_col", "hl_group" }), {
+          end_row = linenr - 1,
+          end_col = byte_start + text:length(),
+          hl_group = hl_group,
+        })
       end
 
       it("is applied with :render", function()
