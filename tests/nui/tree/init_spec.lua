@@ -1,17 +1,19 @@
 local Tree = require("nui.tree")
+local helper = require("tests.nui")
 
-local eq = assert.are.same
+local eq = helper.eq
 
 describe("nui.tree", function()
-  local winid
+  local winid, bufnr
 
   before_each(function()
     winid = vim.api.nvim_get_current_win()
+    bufnr = vim.api.nvim_create_buf(false, true)
+
+    vim.api.nvim_win_set_buf(winid, bufnr)
   end)
 
   it("sets t.winid and t.bufnr properly", function()
-    local bufnr = vim.api.nvim_win_get_buf(winid)
-
     local tree = Tree({ winid = winid })
 
     eq(winid, tree.winid)
