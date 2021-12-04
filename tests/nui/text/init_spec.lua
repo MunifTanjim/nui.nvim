@@ -1,0 +1,225 @@
+local Text = require("nui.text")
+local helper = require("tests.nui")
+local spy = require("luassert.spy")
+
+local eq, tbl_pick = helper.eq, helper.tbl_pick
+
+describe("nui.text", function()
+  local multibyte_char
+
+  before_each(function()
+    multibyte_char = "║"
+  end)
+
+  describe("method :set", function()
+    it("works", function()
+      local content = "42"
+      local hl_group = "NuiTextTest"
+      local text = Text(content, hl_group)
+
+      eq(text:content(), content)
+      eq(text:length(), 2)
+      eq(text._highlight, {
+        hl_group = hl_group,
+      })
+
+      text:set("3")
+      eq(text:content(), "3")
+      eq(text:length(), 1)
+      eq(text._highlight, nil)
+
+      text:set("3", { hl_group = hl_group, ns_id = 0 })
+      eq(text:content(), "3")
+      eq(text._highlight, { hl_group = hl_group, ns_id = 0 })
+    end)
+  end)
+
+  describe("method :content", function()
+    it("works", function()
+      local content = "42"
+      local text = Text(content)
+      eq(text:content(), content)
+
+      local multibyte_content = multibyte_char
+      local multibyte_text = Text(multibyte_content)
+      eq(multibyte_text:content(), multibyte_content)
+    end)
+  end)
+
+  describe("method :length", function()
+    it("works", function()
+      local content = "42"
+      local text = Text(content)
+      eq(text:length(), 2)
+      eq(text:length(), vim.fn.strlen(content))
+
+      local multibyte_content = multibyte_char
+      local multibyte_text = Text(multibyte_content)
+      eq(multibyte_text:length(), 3)
+      eq(multibyte_text:length(), vim.fn.strlen(multibyte_content))
+    end)
+  end)
+
+  describe("method :width", function()
+    it("works", function()
+      local content = "42"
+      local text = Text(content)
+      eq(text:width(), 2)
+      eq(text:width(), vim.fn.strwidth(content))
+
+      local multibyte_content = multibyte_char
+      local multibyte_text = Text(multibyte_content)
+      eq(multibyte_text:width(), 1)
+      eq(multibyte_text:width(), vim.fn.strwidth(multibyte_content))
+    end)
+  end)
+
+  describe("method", function()
+    local winid, bufnr
+    local initial_lines
+
+    before_each(function()
+      winid = vim.api.nvim_get_current_win()
+      bufnr = vim.api.nvim_create_buf(false, true)
+
+      vim.api.nvim_win_set_buf(winid, bufnr)
+
+      initial_lines = { "  1", multibyte_char .. " 2", "  3" }
+    end)
+
+    local function reset_lines(lines)
+      initial_lines = lines or initial_lines
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, initial_lines)
+    end
+
+    describe(":highlight", function()
+      local hl_group, ns, ns_id
+      local linenr, byte_start
+      local text
+
+      before_each(function()
+        hl_group = "NuiTextTest"
+        ns = "NuiTest"
+        ns_id = vim.api.nvim_create_namespace(ns)
+      end)
+
+      local function assert_highlight()
+        eq(
+          tbl_pick(
+            vim.api.nvim_buf_get_extmarks(bufnr, ns_id, linenr - 1, byte_start, { details = true })[1][4],
+            { "end_row", "end_col", "hl_group" }
+          ),
+          {
+            end_row = linenr - 1,
+            end_col = byte_start + text:length(),
+            hl_group = hl_group,
+          }
+        )
+      end
+
+      it("is applied with :render", function()
+        reset_lines()
+        linenr, byte_start = 1, 0
+        text = Text("a", hl_group)
+        text:render(bufnr, linenr, byte_start, nil, nil, ns_id)
+        assert_highlight()
+      end)
+
+      it("is applied with :render_char", function()
+        reset_lines()
+        linenr, byte_start = 1, 0
+        text = Text(multibyte_char, hl_group)
+        text:render_char(bufnr, linenr, byte_start, nil, nil, ns_id)
+        assert_highlight()
+      end)
+
+      it("can highlight existing buffer text", function()
+        reset_lines()
+        linenr, byte_start = 2, 0
+        text = Text(initial_lines[linenr], hl_group)
+        text:highlight(bufnr, linenr, byte_start, ns_id)
+        assert_highlight()
+      end)
+    end)
+
+    describe(":render", function()
+      it("works on line with singlebyte characters", function()
+        reset_lines()
+
+        local text = Text("a")
+
+        spy.on(text, "highlight")
+
+        text:render(bufnr, 1, 1)
+
+        assert.spy(text.highlight).was_called(1)
+        assert.spy(text.highlight).was_called_with(text, bufnr, 1, 1, nil)
+
+        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+          " a1",
+          initial_lines[2],
+          initial_lines[3],
+        })
+      end)
+
+      it("works on line with multibyte characters", function()
+        reset_lines()
+
+        local text = Text("a")
+
+        spy.on(text, "highlight")
+
+        text:render(bufnr, 2, vim.fn.strlen(multibyte_char))
+
+        assert.spy(text.highlight).was_called(1)
+        assert.spy(text.highlight).was_called_with(text, bufnr, 2, vim.fn.strlen(multibyte_char), nil)
+
+        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+          initial_lines[1],
+          multibyte_char .. "a2",
+          initial_lines[3],
+        })
+      end)
+    end)
+
+    describe(":render_char", function()
+      it("works on line with singlebyte characters", function()
+        reset_lines()
+
+        local text = Text("a")
+
+        spy.on(text, "highlight")
+
+        text:render_char(bufnr, 1, 1)
+
+        assert.spy(text.highlight).was_called(1)
+        assert.spy(text.highlight).was_called_with(text, bufnr, 1, 1, nil)
+
+        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+          " a1",
+          initial_lines[2],
+          initial_lines[3],
+        })
+      end)
+
+      it("works on line with multibyte characters", function()
+        reset_lines()
+
+        local text = Text("a")
+
+        spy.on(text, "highlight")
+
+        text:render_char(bufnr, 2, 1)
+
+        assert.spy(text.highlight).was_called(1)
+        assert.spy(text.highlight).was_called_with(text, bufnr, 2, vim.fn.strlen(multibyte_char), nil)
+
+        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+          initial_lines[1],
+          multibyte_char .. "a2",
+          initial_lines[3],
+        })
+      end)
+    end)
+  end)
+end)
