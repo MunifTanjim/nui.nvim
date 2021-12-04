@@ -65,7 +65,6 @@ function utils._.char_to_byte_range(bufnr, linenr, char_start, char_end)
 
   local byte_start = vim.fn.strlen(skipped_part)
   local byte_end = math.min(byte_start + vim.fn.strlen(target_part), vim.fn.strlen(line))
-  print(string.format("|%s|%s|", byte_start, byte_end))
   return { byte_start, byte_end }
 end
 
