@@ -82,13 +82,7 @@ describe("nui.line", function()
         t2 = Text("Two", hl_group)
         t3 = Text("Three")
 
-        vim.api.nvim_buf_set_lines(bufnr, linenr - 1, -1, false, { t1:content() .. t2:content() .. t3:content() })
-
-        line = Line()
-
-        line:append(t1)
-        line:append(t2)
-        line:append(t3)
+        line = Line({ t1, t2, t3 })
       end)
 
       local function assert_highlight()
@@ -111,6 +105,8 @@ describe("nui.line", function()
       end)
 
       it("can highlight existing buffer line", function()
+        vim.api.nvim_buf_set_lines(bufnr, linenr - 1, -1, false, { t1:content() .. t2:content() .. t3:content() })
+
         line:highlight(bufnr, linenr, ns_id)
 
         assert_highlight()
