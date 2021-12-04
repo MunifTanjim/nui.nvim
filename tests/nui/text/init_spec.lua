@@ -2,13 +2,29 @@ local Text = require("nui.text")
 local helper = require("tests.nui")
 local spy = require("luassert.spy")
 
-local eq, tbl_pick = helper.eq, helper.tbl_pick
+local eq, tbl_pick, tbl_omit = helper.eq, helper.tbl_pick, helper.tbl_omit
 
 describe("nui.text", function()
   local multibyte_char
 
   before_each(function()
     multibyte_char = "║"
+  end)
+
+  it("can clone nui.text object", function()
+    local content = "42"
+    local hl_group = "NuiTextTest"
+
+    local t1 = Text(content, hl_group)
+
+    local t2 = Text(t1)
+    eq(t1:content(), t2:content())
+    eq(t1.extmark, t2.extmark)
+
+    t2.extmark.id = 42
+    local t3 = Text(t2)
+    eq(t2:content(), t3:content())
+    eq(tbl_omit(t2.extmark, { "id" }), t3.extmark)
   end)
 
   describe("method :set", function()
@@ -19,18 +35,26 @@ describe("nui.text", function()
 
       eq(text:content(), content)
       eq(text:length(), 2)
-      eq(text._highlight, {
+      eq(text.extmark, {
         hl_group = hl_group,
       })
 
       text:set("3")
       eq(text:content(), "3")
       eq(text:length(), 1)
-      eq(text._highlight, nil)
+      eq(text.extmark, {
+        hl_group = hl_group,
+      })
 
-      text:set("3", { hl_group = hl_group, ns_id = 0 })
+      text:set("3", {
+        hl_group = hl_group,
+        ns_id = 0,
+      })
       eq(text:content(), "3")
-      eq(text._highlight, { hl_group = hl_group, ns_id = 0 })
+      eq(text.extmark, {
+        hl_group = hl_group,
+        ns_id = 0,
+      })
     end)
   end)
 
@@ -136,6 +160,19 @@ describe("nui.text", function()
         reset_lines()
         linenr, byte_start = 2, 0
         text = Text(initial_lines[linenr], hl_group)
+        text:highlight(bufnr, linenr, byte_start, ns_id)
+        assert_highlight()
+      end)
+
+      it("does not create multiple extmarks", function()
+        reset_lines()
+        linenr, byte_start = 2, 0
+        text = Text(initial_lines[linenr], hl_group)
+
+        text:highlight(bufnr, linenr, byte_start, ns_id)
+        assert_highlight()
+        text:highlight(bufnr, linenr, byte_start, ns_id)
+        assert_highlight()
         text:highlight(bufnr, linenr, byte_start, ns_id)
         assert_highlight()
       end)

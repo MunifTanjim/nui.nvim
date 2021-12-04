@@ -68,6 +68,14 @@ function utils._.char_to_byte_range(bufnr, linenr, char_start, char_end)
   return { byte_start, byte_end }
 end
 
+local default_ns_id = vim.api.nvim_create_namespace("nui.nvim")
+---@private
+---@param ns_id? number
+---@return number
+function utils._.ensure_namespace_id(ns_id)
+  return ns_id or default_ns_id
+end
+
 ---@private
 ---@param bufnr number
 ---@param buf_options table<string, any>

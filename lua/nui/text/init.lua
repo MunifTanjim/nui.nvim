@@ -6,24 +6,35 @@ local Text = {
   super = nil,
 }
 
----@param content string text content
----@param highlight? string|table data for highlight
-local function init(class, content, highlight)
+---@param content string|table text content or NuiText object
+---@param extmark? string|table highlight group name or extmark options
+local function init(class, content, extmark)
   local self = setmetatable({}, class)
-  self:set(content, highlight)
+
+  if is_type("table", content) then
+    -- cloning
+    ---@diagnostic disable-next-line: undefined-field
+    self:set(content._content, content.extmark)
+  else
+    self:set(content, extmark)
+  end
+
   return self
 end
 
 ---@param content string text content
----@param highlight? string|table data for highlight
-function Text:set(content, highlight)
+---@param extmark? string|table highlight group name or extmark options
+function Text:set(content, extmark)
   if self._content ~= content then
     self._content = content
     self._length = vim.fn.strlen(content)
     self._width = vim.api.nvim_strwidth(content)
   end
 
-  self._highlight = is_type("string", highlight) and { hl_group = highlight } or highlight
+  if extmark then
+    self.extmark = is_type("string", extmark) and { hl_group = extmark } or vim.deepcopy(extmark)
+    self.extmark.id = nil
+  end
 end
 
 ---@return string
@@ -47,15 +58,19 @@ end
 ---@param ns_id? number namespace id
 ---@return nil
 function Text:highlight(bufnr, linenr, byte_start, ns_id)
-  if not self._highlight then
+  if not self.extmark then
     return
   end
 
-  ns_id = ns_id or self._highlight.ns_id or -1
+  self.extmark.end_col = byte_start + self:length()
 
-  local byte_end = byte_start + self:length()
-
-  vim.api.nvim_buf_add_highlight(bufnr, ns_id, self._highlight.hl_group, linenr - 1, byte_start, byte_end)
+  self.extmark.id = vim.api.nvim_buf_set_extmark(
+    bufnr,
+    _.ensure_namespace_id(ns_id),
+    linenr - 1,
+    byte_start,
+    self.extmark
+  )
 end
 
 ---@param bufnr number buffer number
