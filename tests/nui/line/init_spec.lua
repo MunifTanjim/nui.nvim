@@ -5,6 +5,13 @@ local helper = require("tests.nui")
 local eq, tbl_pick = helper.eq, helper.tbl_pick
 
 describe("nui.line", function()
+  it("can accept initial nui.text objects", function()
+    local t1, t2 = Text("One"), Text("Two")
+    local line = Line({ t1, t2 })
+
+    eq(#line._texts, 2)
+  end)
+
   describe("method :append", function()
     it("returns nui.text for string parameter", function()
       local line = Line()

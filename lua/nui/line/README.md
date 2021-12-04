@@ -20,6 +20,24 @@ local bufnr, linenr = 0, 1
 line:render(bufnr, linenr)
 ```
 
+## Parameters
+
+_Signature:_ `NuiLine(texts?)`
+
+### `texts`
+
+**Type:** `table[]`
+
+List of `NuiText` objects to set as initial texts.
+
+**Example**
+
+```lua
+local text_one = NuiText("One")
+local text_two = NuiText("Two")
+local line = NuiLine({ text_one, text_two })
+```
+
 ## Methods
 
 ### `line:append(text, highlight?)`

@@ -1,4 +1,5 @@
 local NuiText = require("nui.text")
+local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
 local Line = {
@@ -6,15 +7,16 @@ local Line = {
   super = nil,
 }
 
-local function init(class)
+---@param texts? table[] NuiText objects
+local function init(class, texts)
   local self = setmetatable({}, class)
 
-  self._texts = {}
+  self._texts = defaults(texts, {})
 
   return self
 end
 
----@param text string text to add
+---@param text string|table text content or NuiText object
 ---@param highlight? string|table data for highlight
 ---@return table NuiText
 function Line:append(text, highlight)
