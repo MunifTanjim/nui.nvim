@@ -99,7 +99,7 @@ describe("nui.line", function()
       end
 
       it("is applied with :render", function()
-        line:render(bufnr, linenr, nil, ns_id)
+        line:render(bufnr, ns_id, linenr)
 
         assert_highlight()
       end)
@@ -107,7 +107,7 @@ describe("nui.line", function()
       it("can highlight existing buffer line", function()
         vim.api.nvim_buf_set_lines(bufnr, linenr - 1, -1, false, { t1:content() .. t2:content() .. t3:content() })
 
-        line:highlight(bufnr, linenr, ns_id)
+        line:highlight(bufnr, ns_id, linenr)
 
         assert_highlight()
       end)
@@ -120,7 +120,7 @@ describe("nui.line", function()
         local line = Line()
         line:append("4")
         line:append("2")
-        line:render(bufnr, linenr)
+        line:render(bufnr, -1, linenr)
 
         eq(vim.api.nvim_buf_get_lines(bufnr, linenr - 1, linenr, false), {
           "42",
