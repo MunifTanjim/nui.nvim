@@ -60,27 +60,27 @@ It `text` is already a `NuiText` object, it is returned unchanged.
 
 Returns the line content.
 
-### `line:highlight(bufnr, linenr, ns_id?)`
+### `line:highlight(bufnr, ns_id, linenr)`
 
 Applies highlight for the line.
 
 **Parameters**
 
-| Name     | Type     | Description             |
-| -------- | -------- | ----------------------- |
-| `bufnr`  | `number` | buffer number           |
-| `linenr` | `number` | line number (1-indexed) |
-| `ns_id`  | `number` | namespace id            |
+| Name     | Type     | Description                                    |
+| -------- | -------- | ---------------------------------------------- |
+| `bufnr`  | `number` | buffer number                                  |
+| `ns_id`  | `number` | namespace id (use `-1` for fallback namespace) |
+| `linenr` | `number` | line number (1-indexed)                        |
 
-### `line:render(bufnr, linenr_start, linenr_end?, ns_id?)`
+### `line:render(bufnr, ns_id, linenr_start, linenr_end?)`
 
 Sets the line on buffer and applies highlight.
 
 **Parameters**
 
-| Name           | Type     | Description                   |
-| -------------- | -------- | ----------------------------- |
-| `bufnr`        | `number` | buffer number                 |
-| `linenr_start` | `number` | start line number (1-indexed) |
-| `linenr_end`   | `number` | end line number (1-indexed)   |
-| `ns_id`        | `number` | namespace id                  |
+| Name           | Type     | Description                                    |
+| -------------- | -------- | ---------------------------------------------- |
+| `bufnr`        | `number` | buffer number                                  |
+| `ns_id`        | `number` | namespace id (use `-1` for fallback namespace) |
+| `linenr_start` | `number` | start line number (1-indexed)                  |
+| `linenr_end`   | `number` | end line number (1-indexed)                    |

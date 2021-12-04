@@ -33,28 +33,28 @@ function Line:content()
 end
 
 ---@param bufnr number buffer number
+---@param ns_id number namespace id
 ---@param linenr number line number (1-indexed)
----@param ns_id? number namespace id
 ---@return nil
-function Line:highlight(bufnr, linenr, ns_id)
+function Line:highlight(bufnr, ns_id, linenr)
   local current_byte_start = 0
   for _, text in ipairs(self._texts) do
-    text:highlight(bufnr, linenr, current_byte_start, ns_id)
+    text:highlight(bufnr, ns_id, linenr, current_byte_start)
     current_byte_start = current_byte_start + text:length()
   end
 end
 
 ---@param bufnr number buffer number
+---@param ns_id number namespace id
 ---@param linenr_start number start line number (1-indexed)
 ---@param linenr_end? number end line number (1-indexed)
----@param ns_id? number namespace id
 ---@return nil
-function Line:render(bufnr, linenr_start, linenr_end, ns_id)
+function Line:render(bufnr, ns_id, linenr_start, linenr_end)
   local row_start = linenr_start - 1
   local row_end = linenr_end and linenr_end - 1 or row_start + 1
   local content = self:content()
   vim.api.nvim_buf_set_lines(bufnr, row_start, row_end, false, { content })
-  self:highlight(bufnr, linenr_start, ns_id)
+  self:highlight(bufnr, ns_id, linenr_start)
 end
 
 local LineClass = setmetatable({
