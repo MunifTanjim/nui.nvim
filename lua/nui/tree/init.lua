@@ -304,7 +304,7 @@ function Tree:render()
 
   for i, line in ipairs(self._content.lines) do
     if not is_type("string", line) then
-      line:highlight(self.bufnr, i, self.ns_id)
+      line:highlight(self.bufnr, self.ns_id, i)
     end
   end
 
