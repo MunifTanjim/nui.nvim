@@ -73,7 +73,7 @@ Returns the byte length of the text.
 
 Returns the character length of the text.
 
-### `text:highlight(bufnr, linenr, byte_start, ns_id?)`
+### `text:highlight(bufnr, ns_id, linenr, byte_start)`
 
 Applies highlight for the text.
 
@@ -82,11 +82,11 @@ Applies highlight for the text.
 | Name         | Type     | Description                                        |
 | ------------ | -------- | -------------------------------------------------- |
 | `bufnr`      | `number` | buffer number                                      |
+| `ns_id`      | `number` | namespace id (use `-1` for fallback namespace)     |
 | `linenr`     | `number` | line number (1-indexed)                            |
 | `byte_start` | `number` | start position of the text on the line (0-indexed) |
-| `ns_id`      | `number` | namespace id                                       |
 
-### `text:render(bufnr, linenr_start, byte_start, linenr_end?, byte_end?, ns_id?)`
+### `text:render(bufnr, ns_id, linenr_start, byte_start, linenr_end?, byte_end?)`
 
 Sets the text on buffer and applies highlight.
 
@@ -95,13 +95,13 @@ Sets the text on buffer and applies highlight.
 | Name           | Type     | Description                                        |
 | -------------- | -------- | -------------------------------------------------- |
 | `bufnr`        | `number` | buffer number                                      |
+| `ns_id`        | `number` | namespace id (use `-1` for fallback namespace)     |
 | `linenr_start` | `number` | start line number (1-indexed)                      |
 | `byte_start`   | `number` | start position of the text on the line (0-indexed) |
 | `linenr_end`   | `number` | end line number (1-indexed)                        |
 | `byte_end`     | `number` | end position of the text on the line (0-indexed)   |
-| `ns_id`        | `number` | namespace id                                       |
 
-### `text:render_char(bufnr, linenr_start, char_start, linenr_end?, char_end?, ns_id?)`
+### `text:render_char(bufnr, ns_id, linenr_start, char_start, linenr_end?, char_end?)`
 
 Sets the text on buffer and applies highlight.
 
@@ -114,8 +114,8 @@ byte count for you.
 | Name           | Type     | Description                                        |
 | -------------- | -------- | -------------------------------------------------- |
 | `bufnr`        | `number` | buffer number                                      |
+| `ns_id`        | `number` | namespace id (use `-1` for fallback namespace)     |
 | `linenr_start` | `number` | start line number (1-indexed)                      |
 | `char_start`   | `number` | start position of the text on the line (0-indexed) |
 | `linenr_end`   | `number` | end line number (1-indexed)                        |
 | `char_end`     | `number` | end position of the text on the line (0-indexed)   |
-| `ns_id`        | `number` | namespace id                                       |
