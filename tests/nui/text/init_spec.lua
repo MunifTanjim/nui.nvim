@@ -48,12 +48,10 @@ describe("nui.text", function()
 
       text:set("3", {
         hl_group = hl_group,
-        ns_id = 0,
       })
       eq(text:content(), "3")
       eq(text.extmark, {
         hl_group = hl_group,
-        ns_id = 0,
       })
     end)
   end)
@@ -144,7 +142,7 @@ describe("nui.text", function()
         reset_lines()
         linenr, byte_start = 1, 0
         text = Text("a", hl_group)
-        text:render(bufnr, linenr, byte_start, nil, nil, ns_id)
+        text:render(bufnr, ns_id, linenr, byte_start)
         assert_highlight()
       end)
 
@@ -152,7 +150,7 @@ describe("nui.text", function()
         reset_lines()
         linenr, byte_start = 1, 0
         text = Text(multibyte_char, hl_group)
-        text:render_char(bufnr, linenr, byte_start, nil, nil, ns_id)
+        text:render_char(bufnr, ns_id, linenr, byte_start)
         assert_highlight()
       end)
 
@@ -160,7 +158,7 @@ describe("nui.text", function()
         reset_lines()
         linenr, byte_start = 2, 0
         text = Text(initial_lines[linenr], hl_group)
-        text:highlight(bufnr, linenr, byte_start, ns_id)
+        text:highlight(bufnr, ns_id, linenr, byte_start)
         assert_highlight()
       end)
 
@@ -169,11 +167,11 @@ describe("nui.text", function()
         linenr, byte_start = 2, 0
         text = Text(initial_lines[linenr], hl_group)
 
-        text:highlight(bufnr, linenr, byte_start, ns_id)
+        text:highlight(bufnr, ns_id, linenr, byte_start)
         assert_highlight()
-        text:highlight(bufnr, linenr, byte_start, ns_id)
+        text:highlight(bufnr, ns_id, linenr, byte_start)
         assert_highlight()
-        text:highlight(bufnr, linenr, byte_start, ns_id)
+        text:highlight(bufnr, ns_id, linenr, byte_start)
         assert_highlight()
       end)
     end)
@@ -186,10 +184,10 @@ describe("nui.text", function()
 
         spy.on(text, "highlight")
 
-        text:render(bufnr, 1, 1)
+        text:render(bufnr, -1, 1, 1)
 
         assert.spy(text.highlight).was_called(1)
-        assert.spy(text.highlight).was_called_with(text, bufnr, 1, 1, nil)
+        assert.spy(text.highlight).was_called_with(text, bufnr, -1, 1, 1)
 
         eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
           " a1",
@@ -205,10 +203,10 @@ describe("nui.text", function()
 
         spy.on(text, "highlight")
 
-        text:render(bufnr, 2, vim.fn.strlen(multibyte_char))
+        text:render(bufnr, -1, 2, vim.fn.strlen(multibyte_char))
 
         assert.spy(text.highlight).was_called(1)
-        assert.spy(text.highlight).was_called_with(text, bufnr, 2, vim.fn.strlen(multibyte_char), nil)
+        assert.spy(text.highlight).was_called_with(text, bufnr, -1, 2, vim.fn.strlen(multibyte_char))
 
         eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
           initial_lines[1],
@@ -226,10 +224,10 @@ describe("nui.text", function()
 
         spy.on(text, "highlight")
 
-        text:render_char(bufnr, 1, 1)
+        text:render_char(bufnr, -1, 1, 1)
 
         assert.spy(text.highlight).was_called(1)
-        assert.spy(text.highlight).was_called_with(text, bufnr, 1, 1, nil)
+        assert.spy(text.highlight).was_called_with(text, bufnr, -1, 1, 1)
 
         eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
           " a1",
@@ -245,10 +243,10 @@ describe("nui.text", function()
 
         spy.on(text, "highlight")
 
-        text:render_char(bufnr, 2, 1)
+        text:render_char(bufnr, -1, 2, 1)
 
         assert.spy(text.highlight).was_called(1)
-        assert.spy(text.highlight).was_called_with(text, bufnr, 2, vim.fn.strlen(multibyte_char), nil)
+        assert.spy(text.highlight).was_called_with(text, bufnr, -1, 2, vim.fn.strlen(multibyte_char))
 
         eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
           initial_lines[1],
