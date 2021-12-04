@@ -184,7 +184,10 @@ local function init(class, options)
   }, defaults(options.win_options, {}))
   _.set_win_options(self.winid, self.win_options)
 
-  self.ns_id = is_type("string", options.ns) and vim.api.nvim_create_namespace(options.ns) or options.ns
+  self.ns_id = defaults(options.ns_id, -1)
+  if is_type("string", self.ns_id) then
+    self.ns_id = vim.api.nvim_create_namespace(self.ns_id)
+  end
 
   self.get_node_id = defaults(options.get_node_id, default_get_node_id)
   self.prepare_node = defaults(options.prepare_node, default_prepare_node)

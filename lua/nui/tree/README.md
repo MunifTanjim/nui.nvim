@@ -29,7 +29,7 @@ Id of the window where the tree will be rendered.
 
 ---
 
-### `ns`
+### `ns_id`
 
 **Type:** `number` or `string`
 

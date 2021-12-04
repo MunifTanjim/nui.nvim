@@ -37,19 +37,19 @@ describe("nui.tree", function()
     eq(vim.api.nvim_win_get_option(tree.winid, "wrap"), false)
   end)
 
-  it("sets t.ns_id if o.ns is string", function()
+  it("sets t.ns_id if o.ns_id is string", function()
     local ns = "NuiTreeTest"
-    local tree = Tree({ winid = winid, ns = ns })
+    local tree = Tree({ winid = winid, ns_id = ns })
 
     local namespaces = vim.api.nvim_get_namespaces()
 
     eq(tree.ns_id, namespaces[ns])
   end)
 
-  it("sets t.ns_id if o.ns is number", function()
+  it("sets t.ns_id if o.ns_id is number", function()
     local ns = "NuiTreeTest"
     local ns_id = vim.api.nvim_create_namespace(ns)
-    local tree = Tree({ winid = winid, ns = ns_id })
+    local tree = Tree({ winid = winid, ns_id = ns_id })
 
     eq(tree.ns_id, ns_id)
   end)
