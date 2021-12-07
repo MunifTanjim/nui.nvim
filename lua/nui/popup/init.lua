@@ -167,6 +167,8 @@ local function init(class, options)
   self.buf_options = options.buf_options
   self.win_options = options.win_options
 
+  self.ns_id = _.normalize_namespace_id(options.ns_id)
+
   if not self.win_options.winblend and is_type("number", options.opacity) then
     -- @deprecated
     self.win_options.winblend = calculate_winblend(options.opacity)

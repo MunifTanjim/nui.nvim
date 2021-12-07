@@ -69,11 +69,22 @@ function utils._.char_to_byte_range(bufnr, linenr, char_start, char_end)
 end
 
 local fallback_namespace_id = vim.api.nvim_create_namespace("nui.nvim")
+
 ---@private
 ---@param ns_id number
 ---@return number
 function utils._.ensure_namespace_id(ns_id)
   return ns_id == -1 and fallback_namespace_id or ns_id
+end
+
+---@private
+---@param ns_id? number
+---@return number ns_id namespace id
+function utils._.normalize_namespace_id(ns_id)
+  if utils.is_type("string", ns_id) then
+    return vim.api.nvim_create_namespace(ns_id)
+  end
+  return ns_id or fallback_namespace_id
 end
 
 ---@private
