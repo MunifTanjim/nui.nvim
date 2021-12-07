@@ -144,14 +144,12 @@ directly.
 
 Text displayed on the border (as title/footnote).
 
-| Key              | Description                  |
-| ---------------- | ---------------------------- |
-| `"top"`          | top border text              |
-| `"top_align"`    | top border text alignment    |
-| `"bottom"`       | bottom border text           |
-| `"bottom_align"` | bottom border text alignment |
-
-Possible values for `"top_align"` and `"bottom_align"` are: `"left"`, `"right"` or `"center"` _(default)_.
+| Key              | Type                                         | Description                  |
+| ---------------- | -------------------------------------------- | ---------------------------- |
+| `"top"`          | `string` / `NuiText`                         | top border text              |
+| `"top_align"`    | `"left"` / `"right"`/ `"center"` _(default)_ | top border text alignment    |
+| `"bottom"`       | `string` / `NuiText`                         | bottom border text           |
+| `"bottom_align"` | `"left"` / `"right"`/ `"center"` _(default)_ | bottom border text alignment |
 
 **Examples**
 
