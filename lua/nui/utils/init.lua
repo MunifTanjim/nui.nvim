@@ -157,4 +157,47 @@ function utils._.align_text(text, align, line_length, gap_char)
   return gap_left .. text .. gap_right
 end
 
+---@param align "'left'" | "'center'" | "'right'"
+---@param line table NuiLine
+---@param text table NuiText
+---@param gap_char string
+---@param gap_highlight? nil | string
+---@param gap_length number
+function utils._.align_line(align, line, text, gap_char, gap_highlight, gap_length)
+  if align == "left" then
+    line:append(text)
+    line:append(string.rep(gap_char, gap_length), gap_highlight)
+  elseif align == "center" then
+    line:append(string.rep(gap_char, math.floor(gap_length / 2)), gap_highlight)
+    line:append(text)
+    line:append(string.rep(gap_char, math.ceil(gap_length / 2)), gap_highlight)
+  elseif align == "right" then
+    line:append(string.rep(gap_char, gap_length), gap_highlight)
+    line:append(text)
+  end
+
+  return line
+end
+
+---@param lines table[] NuiLine[]
+---@param bufnr number
+---@param ns_id number
+---@param linenr_start number
+---@param linenr_end number
+function utils._.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end)
+  vim.api.nvim_buf_set_lines(
+    bufnr,
+    linenr_start - 1,
+    linenr_end - 1,
+    false,
+    vim.tbl_map(function(line)
+      return line:content()
+    end, lines)
+  )
+
+  for linenr, line in ipairs(lines) do
+    line:highlight(bufnr, ns_id, linenr)
+  end
+end
+
 return utils

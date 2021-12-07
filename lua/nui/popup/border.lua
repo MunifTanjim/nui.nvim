@@ -1,14 +1,10 @@
-local _utils = require("nui.utils")._
+local Line = require("nui.line")
+local Text = require("nui.text")
+local _ = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
 local has_nvim_0_5_1 = vim.fn.has("nvim-0.5.1") == 1
-
----@param str string
----@return number
-local function strwidth(str)
-  return vim.api.nvim_strwidth(str)
-end
 
 local index_name = {
   "top_left",
@@ -80,10 +76,10 @@ local function parse_padding(padding)
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text nil | string
----@param alignment nil | "'left'" | "'center'" | "'right'"
----@return string
-local function calculate_buf_edge_line(props, edge, text, alignment)
+---@param text? nil | string | table # string or NuiText
+---@param align? nil | "'left'" | "'center'" | "'right'"
+---@return table NuiLine
+local function calculate_buf_edge_line(props, edge, text, align)
   local char, size = props.char, props.size
 
   local left_char = char[edge .. "_left"]
@@ -98,21 +94,30 @@ local function calculate_buf_edge_line(props, edge, text, alignment)
     right_char = mid_char == "" and char["right"] or mid_char
   end
 
-  local max_length = size.width - strwidth(left_char .. right_char)
+  local left_text = Text(left_char)
+  local right_text = Text(right_char)
 
-  local content = defaults(text, "")
-  local align = defaults(alignment, "center")
+  local max_width = size.width - left_text:width() - right_text:width()
 
+  local content_text = Text(defaults(text, ""))
   if mid_char == "" then
-    content = string.rep(" ", max_length)
+    content_text:set(string.rep(" ", max_width))
   else
-    content = _utils.truncate_text(content, max_length)
+    content_text:set(_.truncate_text(content_text:content(), max_width))
   end
 
-  return left_char .. _utils.align_text(content, align, max_length, mid_char) .. right_char
+  local gap_length = max_width - content_text:width()
+
+  local line = Line()
+
+  line:append(left_text)
+  _.align_line(defaults(align, "center"), line, content_text, mid_char, nil, gap_length)
+  line:append(right_text)
+
+  return line
 end
 
----@return nil | string[]
+---@return nil | table[] # NuiLine[]
 local function calculate_buf_lines(props)
   local char, size, text = props.char, props.size, defaults(props.text, {})
 
@@ -120,14 +125,23 @@ local function calculate_buf_lines(props)
     return nil
   end
 
-  local gap_length = size.width - strwidth(char.left .. char.right)
-  local middle_line = char.left .. string.rep(" ", gap_length) .. char.right
+  local left_text = Text(char.left)
+  local right_text = Text(char.right)
+
+  local gap_length = size.width - left_text:width() - right_text:width()
 
   local lines = {}
 
   table.insert(lines, calculate_buf_edge_line(props, "top", text.top, text.top_align))
   for _ = 1, size.height - 2 do
-    table.insert(lines, middle_line)
+    table.insert(
+      lines,
+      Line({
+        Text(left_text),
+        Text(string.rep(" ", gap_length)),
+        Text(right_text),
+      })
+    )
   end
   table.insert(lines, calculate_buf_edge_line(props, "bottom", text.bottom, text.bottom_align))
 
@@ -308,7 +322,7 @@ local function init(class, popup, options)
   self.win_config.row = props.position.row
   self.win_config.col = props.position.col
 
-  props.buf_lines = calculate_buf_lines(props)
+  props._lines = calculate_buf_lines(props)
 
   if not string.match(props.highlight, ":") then
     props.highlight = "Normal:" .. props.highlight
@@ -366,13 +380,11 @@ function Border:mount()
     return
   end
 
-  local size = props.size
-
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create border buffer")
 
-  if props.buf_lines then
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, size.height, false, props.buf_lines)
+  if props._lines then
+    _.render_lines(props._lines, self.bufnr, popup.ns_id, 1, #props._lines)
   end
 
   self:_open_window()
@@ -412,15 +424,15 @@ function Border:resize()
   self.win_config.width = props.size.width
   self.win_config.height = props.size.height
 
-  props.buf_lines = calculate_buf_lines(props)
+  props._lines = calculate_buf_lines(props)
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
   end
 
   if self.bufnr then
-    if props.buf_lines then
-      vim.api.nvim_buf_set_lines(self.bufnr, 0, props.size.height, false, props.buf_lines)
+    if props._lines then
+      _.render_lines(props._lines, self.bufnr, self.popup.ns_id, 1, #props._lines)
     end
   end
 
@@ -453,12 +465,12 @@ function Border:reposition()
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text nil | string
----@param align nil | "'left'" | "'center'" | "'right'"
+---@param text? nil | string | table # string or NuiText
+---@param align? nil | "'left'" | "'center'" | "'right'"
 function Border:set_text(edge, text, align)
   local props = self.border_props
 
-  if not props.buf_lines or not props.text then
+  if not props._lines or not props.text then
     return
   end
 
@@ -467,13 +479,10 @@ function Border:set_text(edge, text, align)
 
   local line = calculate_buf_edge_line(props, edge, props.text[edge], props.text[edge .. "_align"])
 
-  if edge == "top" then
-    props.buf_lines[1] = line
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, 1, false, { line })
-  elseif edge == "bottom" then
-    props.buf_lines[#props.buf_lines] = line
-    vim.api.nvim_buf_set_lines(self.bufnr, props.size.height - 1, props.size.height, true, { line })
-  end
+  local linenr = edge == "top" and 1 or #props._lines
+
+  props._lines[linenr] = line
+  line:render(self.bufnr, self.popup.ns_id, linenr)
 end
 
 function Border:get()
