@@ -115,13 +115,19 @@ keymap = {
 },
 ```
 
-### `on_close`
+### `on_change(item)`
+
+**Type:** `function`
+
+Callback function, called when menu item is focused.
+
+### `on_close()`
 
 **Type:** `function`
 
 Callback function, called when menu is closed.
 
-### `on_submit`
+### `on_submit(item)`
 
 **Type:** `function`
 
