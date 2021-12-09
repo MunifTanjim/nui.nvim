@@ -2,6 +2,12 @@ local mod = {}
 
 mod.eq = assert.are.same
 
+---@param keys string
+---@param mode string
+function mod.feedkeys(keys, mode)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, false, true), mode or "", true)
+end
+
 function mod.tbl_pick(tbl, keys)
   if not keys or #keys == 0 then
     return tbl
