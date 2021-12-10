@@ -63,27 +63,72 @@ You can manipulate the assocciated buffer and window using the
 
 **Type:** `table`
 
-**`Menu.item(item, props)`**
+List of menu items.
+
+**`Menu.item(text, data)`**
 
 `Menu.item` is used to create an item object for the `Menu`. You also get this
 object when `on_submit` is called.
 
-| Usage                                  | Result                                     |
-| -------------------------------------- | ------------------------------------------ |
-| `Menu.item("Name")`                    | `{ text = "Name", type = "item" }`         |
-| `Menu.item("Name", { id = 1 })`        | `{ id = 1, text = "Name", type = "item" }` |
-| `Menu.item({ id = 1, text = "Name" })` | `{ id = 1, text = "Name", type = "item" }` |
+| Usage                                  | Result                       |
+| -------------------------------------- | ---------------------------- |
+| `Menu.item("Name")`                    | `{ text = "Name" }`          |
+| `Menu.item(NuiText("Name"))`           | `{ text = NuiText("Name") }` |
+| `Menu.item("Name", { id = 1 })`        | `{ id = 1, text = "Name" }`  |
+| `Menu.item({ id = 1, text = "Name" })` | `{ id = 1, text = "Name" }`  |
 
-The Result is what you get as the argument of `on_submit` callback function.
+The result is what you get as the argument of `on_submit` callback function.
 You can include whatever you want in the item object.
+
+**`Menu.separator(text)`**
+
+`Menu.separator` is used to create a menu item that can't be focused.
+
+You can just use `Menu.item` only and implement `Menu.separator`'s behavior
+by providing a custom `should_skip_item` function.
+
+### `prepare_item(item)`
+
+**Type:** `function`
+
+If provided, this function is used for preparing each menu item.
+
+The return value should be a `NuiLine` object or `string`.
+
+### `should_skip_item(item)`
+
+**Type:** `function`
+
+If provided, this function is used to determine if an item should be
+skipped when focusing previous/next item.
+
+The return value should be `boolean`.
+
+By default, items created by `Menu.separator` are skipped.
 
 ### `max_height`
 
 **Type:** `number`
 
+Maximum height of the menu.
+
+### `min_height`
+
+**Type:** `number`
+
+Minimum height of the menu.
+
 ### `max_width`
 
 **Type:** `number`
+
+Maximum width of the menu.
+
+### `min_width`
+
+**Type:** `number`
+
+Minimum width of the menu.
 
 ### `separator`
 
