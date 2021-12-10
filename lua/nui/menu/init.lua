@@ -91,9 +91,7 @@ local function init(class, popup_options, options)
   local props = vim.tbl_extend("force", {
     separator = defaults(options.separator, {}),
     keymap = parse_keymap(options.keymap),
-  }, prepare_lines(
-    options.lines
-  ))
+  }, prepare_lines(options.lines))
 
   local width = math.max(
     math.min(props._max_line_width, defaults(options.max_width, 999)),
