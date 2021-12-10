@@ -5,7 +5,7 @@ ignore = {
   "212/_.*",
   "213/_.*",
 }
-include_files = { "*.luacheckrc", "lua/nui" }
+include_files = { "*.luacheckrc", "lua/nui", "lua/tests/nui", "tests/nui" }
 read_globals = { "vim" }
 std = "luajit"
 
