@@ -13,10 +13,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup luarocks
-        run: sudo apt-get install luarocks -q
+      - name: Setup Lua
+        uses: MunifTanjim/luver-action@v1
+        with:
+          lua_versions: 5.1.5
+          luarocks_versions: 5.1.5:3.8.0
       - name: Setup luacheck
-        run: sudo luarocks install luacheck
+        run: |
+          luver alias 5.1.5 default
+          luver use default
+          luarocks install luacheck
       - name: Lint
         run: ./scripts/lint.sh
 
