@@ -35,19 +35,19 @@ describe("nui.menu", function()
     menu:mount()
 
     -- initial focus
-    assert.spy(on_change).called_with(lines[1])
+    assert.spy(on_change).called_with(lines[1], menu)
     on_change:clear()
 
     feedkeys("j", "x")
-    assert.spy(on_change).called_with(lines[2])
+    assert.spy(on_change).called_with(lines[2], menu)
     on_change:clear()
 
     feedkeys("j", "x")
-    assert.spy(on_change).called_with(lines[1])
+    assert.spy(on_change).called_with(lines[1], menu)
     on_change:clear()
 
     feedkeys("k", "x")
-    assert.spy(on_change).called_with(lines[2])
+    assert.spy(on_change).called_with(lines[2], menu)
     on_change:clear()
   end)
 end)
