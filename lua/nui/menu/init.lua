@@ -83,7 +83,7 @@ local function focus_item(menu, direction, current_id)
 
   if next_id then
     vim.api.nvim_win_set_cursor(menu.winid, { next_id, 0 })
-    menu.menu_props._on_change(next_node)
+    menu.menu_props._on_change(next_node, menu)
   end
 end
 
@@ -91,7 +91,9 @@ local function init(class, popup_options, options)
   local props = vim.tbl_extend("force", {
     separator = defaults(options.separator, {}),
     keymap = parse_keymap(options.keymap),
-  }, prepare_lines(options.lines))
+  }, prepare_lines(
+    options.lines
+  ))
 
   local width = math.max(
     math.min(props._max_line_width, defaults(options.max_width, 999)),
@@ -118,7 +120,7 @@ local function init(class, popup_options, options)
 
   props._on_change = function(node)
     if options.on_change then
-      options.on_change(node)
+      options.on_change(node, self)
     end
   end
 
@@ -251,7 +253,7 @@ function Menu:mount()
     local node = self._tree:get_node(node_id)
     if node.type == "item" then
       vim.api.nvim_win_set_cursor(self.winid, { node_id, 0 })
-      props._on_change(node)
+      props._on_change(node, self)
       break
     end
   end
