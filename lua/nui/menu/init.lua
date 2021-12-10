@@ -6,28 +6,25 @@ local _ = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
-local function prepare_lines(lines)
-  local data = {
-    lines = {},
-    _max_line_width = 0,
-  }
+local function prepare_items(items)
+  local max_width = 0
 
-  for index, line in ipairs(lines) do
-    line._index = index
+  for index, item in ipairs(items) do
+    item._index = index
 
-    if line.type == "item" then
-      local line_length = vim.api.nvim_strwidth(line.text)
-      if data._max_line_width < line_length then
-        data._max_line_width = line_length
-      end
+    local width = 0
+    if is_type("string", item.text) then
+      width = vim.api.nvim_strwidth(item.text)
+    elseif is_type("table", item.text) and item.text.width then
+      width = item.text:width()
+    end
 
-      data.lines[index] = line
-    elseif line.type == "separator" then
-      data.lines[index] = line
+    if max_width < width then
+      max_width = width
     end
   end
 
-  return data
+  return items, max_width
 end
 
 local default_keymap = {
@@ -129,16 +126,15 @@ local function focus_item(menu, direction, current_id)
 end
 
 local function init(class, popup_options, options)
-  local props = vim.tbl_extend("force", {
+  local props = {
     separator = defaults(options.separator, {}),
     keymap = parse_keymap(options.keymap),
-  }, prepare_lines(options.lines))
+  }
 
-  local width = math.max(
-    math.min(props._max_line_width, defaults(options.max_width, 999)),
-    defaults(options.min_width, 16)
-  )
-  local height = math.max(math.min(#props.lines, defaults(options.max_height, 999)), defaults(options.min_height, 1))
+  local items, max_width = prepare_items(options.lines)
+
+  local width = math.max(math.min(max_width, defaults(options.max_width, 256)), defaults(options.min_width, 4))
+  local height = math.max(math.min(#items, defaults(options.max_height, 256)), defaults(options.min_height, 1))
 
   popup_options = vim.tbl_deep_extend("force", {
     enter = true,
@@ -154,6 +150,8 @@ local function init(class, popup_options, options)
   }, popup_options)
 
   local self = class.super.init(class, popup_options)
+
+  self._items = items
 
   self.menu_props = props
 
@@ -259,7 +257,7 @@ function Menu:mount()
   self._tree = Tree({
     winid = self.winid,
     ns_id = self.ns_id,
-    nodes = self.menu_props.lines,
+    nodes = self._items,
     get_node_id = function(node)
       return node._index
     end,
