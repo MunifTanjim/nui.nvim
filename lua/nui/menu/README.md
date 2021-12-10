@@ -115,7 +115,7 @@ keymap = {
 },
 ```
 
-### `on_change(item)`
+### `on_change(item, menu)`
 
 **Type:** `function`
 
