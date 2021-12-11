@@ -1,7 +1,8 @@
+local Popup = require("nui.popup")
+local Text = require("nui.text")
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 local event = require("nui.utils.autocmd").event
-local Popup = require("nui.popup")
 
 local function init(class, popup_options, options)
   popup_options.enter = true
@@ -21,7 +22,7 @@ local function init(class, popup_options, options)
 
   local props = {
     default_value = defaults(options.default_value, ""),
-    prompt = defaults(options.prompt, ""),
+    prompt = Text(defaults(options.prompt, "")),
   }
 
   self.input_props = props
@@ -61,7 +62,7 @@ local function init(class, popup_options, options)
   if options.on_change then
     props.on_change = function()
       local value_with_prompt = vim.api.nvim_buf_get_lines(self.bufnr, 0, 1, false)[1]
-      local value = string.sub(value_with_prompt, #props.prompt + 1)
+      local value = string.sub(value_with_prompt, props.prompt:length() + 1)
       options.on_change(value)
     end
   end
@@ -94,12 +95,16 @@ function Input:mount()
   if #props.default_value then
     self:on(event.InsertEnter, function()
       vim.api.nvim_feedkeys(props.default_value, "n", false)
-    end, {
-      once = true,
-    })
+    end, { once = true })
   end
 
-  vim.fn.prompt_setprompt(self.bufnr, props.prompt)
+  vim.fn.prompt_setprompt(self.bufnr, props.prompt:content())
+  if props.prompt:length() > 0 then
+    vim.schedule(function()
+      props.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
+    end)
+  end
+
   vim.fn.prompt_setcallback(self.bufnr, props.on_submit)
   vim.fn.prompt_setinterrupt(self.bufnr, props.on_close)
 

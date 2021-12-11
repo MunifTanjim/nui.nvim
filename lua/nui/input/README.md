@@ -64,7 +64,7 @@ You can manipulate the assocciated buffer and window using the
 
 ### `prompt`
 
-**Type:** `string`
+**Type:** `string` or `NuiText`
 
 Prefix in the input.
 
