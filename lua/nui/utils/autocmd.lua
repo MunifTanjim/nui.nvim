@@ -50,16 +50,16 @@ local autocmd = {
     ChanOpen = "ChanOpen",
     -- command undefined
     CmdUndefined = "CmdUndefined",
-    -- after entering the cmdline window
-    CmdWinEnter = "CmdWinEnter",
-    -- before leaving the cmdline window
-    CmdWinLeave = "CmdWinLeave",
     -- command line was modified
     CmdlineChanged = "CmdlineChanged",
     -- after entering cmdline mode
     CmdlineEnter = "CmdlineEnter",
     -- before leaving cmdline mode
     CmdlineLeave = "CmdlineLeave",
+    -- after entering the cmdline window
+    CmdWinEnter = "CmdwinEnter",
+    -- before leaving the cmdline window
+    CmdWinLeave = "CmdwinLeave",
     -- after loading a colorscheme
     ColorScheme = "ColorScheme",
     -- before loading a colorscheme
@@ -118,8 +118,8 @@ local autocmd = {
     FilterReadPre = "FilterReadPre",
     -- after writing to a filter
     FilterWritePost = "FilterWritePost",
-    "FilterWritePre",
-    "FilterWritePre", -- before writing to a filter
+    -- before writing to a filter
+    FilterWritePre = "FilterWritePre",
     -- got the focus
     FocusGained = "FocusGained",
     -- lost the focus to another app
@@ -142,6 +142,8 @@ local autocmd = {
     InsertLeavePre = "InsertLeavePre",
     -- just before popup menu is displayed
     MenuPopup = "MenuPopup",
+    -- after changing the mode
+    ModeChanged = "ModeChanged",
     -- after setting any option
     OptionSet = "OptionSet",
     -- after :make, :grep etc.
@@ -152,6 +154,8 @@ local autocmd = {
     QuitPre = "QuitPre",
     -- upon string reception from a remote vim
     RemoteReply = "RemoteReply",
+    -- when the search wraps around the document
+    SearchWrapped = "SearchWrapped",
     -- after loading a session file
     SessionLoadPost = "SessionLoadPost",
     -- after ":!cmd"
@@ -212,6 +216,8 @@ local autocmd = {
     UILeave = "UILeave",
     -- user defined autocommand
     User = "User",
+    -- whenthe user presses the same key 42 times
+    UserGettingBored = "UserGettingBored",
     -- after starting Vim
     VimEnter = "VimEnter",
     -- before exiting Vim
