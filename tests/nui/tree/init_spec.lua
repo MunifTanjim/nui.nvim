@@ -181,4 +181,79 @@ describe("nui.tree", function()
       })
     end)
   end)
+
+  describe("method :set_nodes", function()
+    it("can set nodes at root", function()
+      local tree = Tree({
+        winid = winid,
+        nodes = {
+          Tree.Node({ text = "x" }),
+        },
+      })
+
+      tree:set_nodes({
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+      })
+
+      tree:render()
+
+      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+        "  a",
+        "  b",
+      })
+
+      tree:set_nodes({
+        Tree.Node({ text = "c" }),
+      })
+
+      tree:render()
+
+      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+        "  c",
+      })
+    end)
+
+    it("can set nodes under parent node", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }, {
+          Tree.Node({ text = "b-1" }),
+        }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:set_nodes({
+        Tree.Node({ text = "b-2" }),
+      }, "b")
+
+      tree:get_node("b"):expand()
+
+      tree:set_nodes({
+        Tree.Node({ text = "c-1" }),
+        Tree.Node({ text = "c-2" }),
+      }, "c")
+
+      tree:get_node("c"):expand()
+
+      tree:render()
+
+      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+        "  a",
+        " b",
+        "    b-2",
+        " c",
+        "    c-1",
+        "    c-2",
+      })
+    end)
+  end)
 end)
