@@ -172,6 +172,18 @@ Returns the removed node.
 | --------- | -------- | ----------- |
 | `node_id` | `string` | node's id   |
 
+### `tree:set_nodes(nodes, parent_id?)`
+
+Adds a node to the tree.
+
+| Name        | Type              | Description      |
+| ----------- | ----------------- | ---------------- |
+| `nodes`     | `NuiTree.Node[]`  | list of nodes    |
+| `parent_id` | `string` or `nil` | parent node's id |
+
+If `parent_id` is present, nodes are set as parent node's children,
+otherwise nodes are set at tree root.
+
 ### `tree:render()`
 
 Renders the tree on buffer.
