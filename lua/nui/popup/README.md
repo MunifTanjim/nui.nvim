@@ -4,6 +4,8 @@ Popup is an abstraction layer on top of window.
 
 Creates a new popup object (but does not mount it immediately).
 
+**Examples**
+
 ```lua
 local Popup = require("nui.popup")
 
@@ -376,7 +378,9 @@ win_options = {
 
 ## Methods
 
-### `popup:mount()`
+### `popup:mount`
+
+_Signature:_ `popup:mount()`
 
 Mounts the popup.
 
@@ -388,7 +392,9 @@ popup:mount()
 
 ---
 
-### `popup:unmount()`
+### `popup:unmount`
+
+_Signature:_ `popup:unmount()`
 
 Unmounts the popup.
 
@@ -400,19 +406,25 @@ popup:unmount()
 
 ---
 
-### `popup:hide()`
+### `popup:hide`
+
+_Signature:_ `popup:hide()`
 
 Hides the popup window. Preserves the buffer (related content, autocmds and keymaps).
 
 ---
 
-### `popup:show()`
+### `popup:show`
+
+_Signature:_ `popup:show()`
 
 Shows the hidden popup window.
 
 ---
 
-### `popup:map(mode, key, handler, opts, force)`
+### `popup:map`
+
+_Signature:_ `popup:map(mode, key, handler, opts, force)`
 
 Sets keymap for the popup.
 
@@ -438,7 +450,9 @@ end, { noremap = true })
 
 ---
 
-### `popup:on(event, handler, options)`
+### `popup:on`
+
+_Signature:_ `popup:on(event, handler, options)`
 
 Defines `autocmd` to run on specific events for this popup.
 
@@ -476,7 +490,9 @@ event.BufLeave
 
 ---
 
-### `popup:off(event)`
+### `popup:off`
+
+_Signature:_ `popup:off(event)`
 
 Removes `autocmd` defined with `popup:on({ ... })`
 
@@ -494,7 +510,9 @@ popup:off("*")
 
 ---
 
-### `popup:set_size(size)`
+### `popup:set_size`
+
+_Signature:_ `popup:set_size(size)`
 
 Sets the size of the popup.
 
@@ -513,7 +531,9 @@ popup:set_size({ width = 80, height = 40 })
 
 ---
 
-### `popup.border:set_text(edge, text, align)`
+### `popup.border:set_text`
+
+_Signature:_ `popup.border:set_text(edge, text, align)`
 
 Sets border text.
 
