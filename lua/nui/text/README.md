@@ -7,6 +7,10 @@ NuiText is an abstraction layer on top of the following native functions:
 
 It helps you set text and add highlight for it on the buffer.
 
+_Signature:_ `NuiText(content, extmark?)`
+
+**Examples**
+
 ```lua
 local NuiText = require("nui.text")
 
@@ -18,8 +22,6 @@ text:render(bufnr, linenr, byte_pos, linenr, byte_pos)
 ```
 
 ## Parameters
-
-_Signature:_ `NuiText(content, extmark?)`
 
 ### `content`
 
@@ -48,7 +50,9 @@ For more, check `:help nvim_buf_set_extmark()`.
 
 ## Methods
 
-### `text:set(content, extmark?)`
+### `text:set`
+
+_Signature:_ `text:set(content, extmark?)`
 
 Sets the text content and highlight information.
 
@@ -61,19 +65,27 @@ Sets the text content and highlight information.
 
 This `extmark` parameter is exactly the same as `NuiText`'s `extmark` parameter.
 
-### `text:content()`
+### `text:content`
+
+_Signature:_ `text:content()`
 
 Returns the text content.
 
-### `text:length()`
+### `text:length`
+
+_Signature:_ `text:length()`
 
 Returns the byte length of the text.
 
-### `text:width()`
+### `text:width`
+
+_Signature:_ `text:width()`
 
 Returns the character length of the text.
 
-### `text:highlight(bufnr, ns_id, linenr, byte_start)`
+### `text:highlight`
+
+_Signature:_ `text:highlight(bufnr, ns_id, linenr, byte_start)`
 
 Applies highlight for the text.
 
@@ -86,7 +98,9 @@ Applies highlight for the text.
 | `linenr`     | `number` | line number (1-indexed)                            |
 | `byte_start` | `number` | start position of the text on the line (0-indexed) |
 
-### `text:render(bufnr, ns_id, linenr_start, byte_start, linenr_end?, byte_end?)`
+### `text:render`
+
+_Signature:_ `text:render(bufnr, ns_id, linenr_start, byte_start, linenr_end?, byte_end?)`
 
 Sets the text on buffer and applies highlight.
 
@@ -101,7 +115,9 @@ Sets the text on buffer and applies highlight.
 | `linenr_end`   | `number` | end line number (1-indexed)                        |
 | `byte_end`     | `number` | end position of the text on the line (0-indexed)   |
 
-### `text:render_char(bufnr, ns_id, linenr_start, char_start, linenr_end?, char_end?)`
+### `text:render_char`
+
+_Signature:_ `text:render_char(bufnr, ns_id, linenr_start, char_start, linenr_end?, char_end?)`
 
 Sets the text on buffer and applies highlight.
 
