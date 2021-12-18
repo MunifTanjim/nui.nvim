@@ -208,12 +208,7 @@ function Tree:get_node(node_id)
   return self.nodes.by_id[id]
 end
 
-function Tree:_add_nodes(nodes, parent_id)
-  local parent_node = parent_id and self.nodes.by_id[parent_id] or nil
-  if parent_id and not parent_node then
-    error("invalid parent_id " .. parent_id)
-  end
-
+function Tree:_add_nodes(nodes, parent_node)
   local new_nodes = initialize_nodes(nodes, parent_node, self.get_node_id)
 
   self.nodes.by_id = vim.tbl_extend("force", self.nodes.by_id, new_nodes.by_id)
@@ -238,27 +233,37 @@ end
 function Tree:set_nodes(nodes, parent_id)
   self._content = { lines = {}, node_id_by_linenr = {} }
 
-  if parent_id then
-    local parent_node = self.nodes.by_id[parent_id]
-
-    if parent_node and parent_node._child_ids then
-      for _, node_id in ipairs(parent_node._child_ids) do
-        self.nodes.by_id[node_id] = nil
-      end
-
-      parent_node._child_ids = nil
-    end
-  else
+  if not parent_id then
     self.nodes = { by_id = {}, root_ids = {} }
+    self:_add_nodes(nodes)
+    return
   end
 
-  self:_add_nodes(nodes, parent_id)
+  local parent_node = self.nodes.by_id[parent_id]
+  if not parent_node then
+    error("invalid parent_id " .. parent_id)
+  end
+
+  if parent_node._child_ids then
+    for _, node_id in ipairs(parent_node._child_ids) do
+      self.nodes.by_id[node_id] = nil
+    end
+
+    parent_node._child_ids = nil
+  end
+
+  self:_add_nodes(nodes, parent_node)
 end
 
 ---@param node table NuiTreeNode
 ---@param parent_id? string parent node's id
 function Tree:add_node(node, parent_id)
-  self:_add_nodes({ node }, parent_id)
+  local parent_node = self.nodes.by_id[parent_id]
+  if parent_id and not parent_node then
+    error("invalid parent_id " .. parent_id)
+  end
+
+  self:_add_nodes({ node }, parent_node)
 end
 
 function Tree:remove_node(node_id)
