@@ -8,6 +8,10 @@ NuiLine is an abstraction layer on top of the following native functions:
 
 It helps you create line on the buffer containing multiple [`NuiText`](../text)s.
 
+_Signature:_ `NuiLine(texts?)`
+
+**Example**
+
 ```lua
 local NuiLine = require("nui.line")
 
@@ -21,8 +25,6 @@ line:render(bufnr, linenr)
 ```
 
 ## Parameters
-
-_Signature:_ `NuiLine(texts?)`
 
 ### `texts`
 
@@ -40,7 +42,9 @@ local line = NuiLine({ text_one, text_two })
 
 ## Methods
 
-### `line:append(text, highlight?)`
+### `line:append`
+
+_Signature:_ `line:append(text, highlight?)`
 
 Adds a chunk of text to the line.
 
@@ -56,11 +60,15 @@ and a `NuiText` object is returned.
 
 It `text` is already a `NuiText` object, it is returned unchanged.
 
-### `line:content()`
+### `line:content`
+
+_Signature:_ `line:content()`
 
 Returns the line content.
 
-### `line:highlight(bufnr, ns_id, linenr)`
+### `line:highlight`
+
+_Signature:_ `line:highlight(bufnr, ns_id, linenr)`
 
 Applies highlight for the line.
 
@@ -72,7 +80,9 @@ Applies highlight for the line.
 | `ns_id`  | `number` | namespace id (use `-1` for fallback namespace) |
 | `linenr` | `number` | line number (1-indexed)                        |
 
-### `line:render(bufnr, ns_id, linenr_start, linenr_end?)`
+### `line:render`
+
+_Signature:_ `line:render(bufnr, ns_id, linenr_start, linenr_end?)`
 
 Sets the line on buffer and applies highlight.
 
