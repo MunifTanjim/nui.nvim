@@ -2,6 +2,8 @@
 
 NuiTree can render tree-like structured content on the buffer.
 
+**Examples**
+
 ```lua
 local NuiTree = require("nui.tree")
 
@@ -45,9 +47,11 @@ List of [`NuiTree.Node`](#nuitreenode) objects.
 
 ---
 
-### `get_node_id(node)`
+### `get_node_id`
 
 **Type:** `function`
+
+_Signature:_ `get_node_id(node)`
 
 If provided, this function is used for generating node's id.
 
@@ -71,9 +75,11 @@ end,
 
 ---
 
-### `prepare_node(node)`
+### `prepare_node`
 
 **Type:** `function`
+
+_Signature:_ `prepare_node(node)`
 
 If provided, this function is used for preparing each node line.
 
@@ -138,7 +144,9 @@ win_options = {
 
 ## Methods
 
-### `tree:get_node(node_id?)`
+### `tree:get_node`
+
+_Signature:_ `tree:get_node(node_id?)`
 
 Returns `NuiTree.Node` object.
 
@@ -150,7 +158,9 @@ Returns `NuiTree.Node` object.
 
 If `node_id` is `nil`, the current node under cursor is returned.
 
-### `tree:add_node(node, parent_id?)`
+### `tree:add_node`
+
+_Signature:_ `tree:add_node(node, parent_id?)`
 
 Adds a node to the tree.
 
@@ -162,7 +172,9 @@ Adds a node to the tree.
 If `parent_id` is present, node is added under that parent,
 Otherwise node is added to the tree root.
 
-### `tree:remove_node(node)`
+### `tree:remove_node`
+
+_Signature:_ `tree:remove_node(node)`
 
 Removes a node from the tree.
 
@@ -172,7 +184,9 @@ Returns the removed node.
 | --------- | -------- | ----------- |
 | `node_id` | `string` | node's id   |
 
-### `tree:set_nodes(nodes, parent_id?)`
+### `tree:set_nodes`
+
+_Signature:_ `tree:set_nodes(nodes, parent_id?)`
 
 Adds a node to the tree.
 
@@ -184,13 +198,19 @@ Adds a node to the tree.
 If `parent_id` is present, nodes are set as parent node's children,
 otherwise nodes are set at tree root.
 
-### `tree:render()`
+### `tree:render`
+
+_Signature:_ `tree:render()`
 
 Renders the tree on buffer.
 
 ## NuiTree.Node
 
 `NuiTree.Node` is used to create a node object for `NuiTree`.
+
+_Signature:_ `NuiTree.Node(data, children)`
+
+**Examples**
 
 ```lua
 local NuiTree = require("nui.tree")
@@ -202,8 +222,6 @@ local node = NuiTree.Node({ text = "b" }, {
 ```
 
 ### Parameters
-
-_Signature:_ `NuiTree.Node(data, children)`
 
 #### `data`
 
@@ -232,30 +250,44 @@ List of `NuiTree.Node` objects.
 
 ### Methods
 
-#### `node:get_id()`
+#### `node:get_id`
+
+_Signature:_ `node:get_id()`
 
 Returns node's id.
 
-#### `node:get_depth()`
+#### `node:get_depth`
+
+_Signature:_ `node:get_depth()`
 
 Returns node's depth.
 
-#### `node:get_parent_id()`
+#### `node:get_parent_id`
+
+_Signature:_ `node:get_parent_id()`
 
 Returns parent node's id.
 
-#### `node:has_children()`
+#### `node:has_children`
+
+_Signature:_ `node:has_children()`
 
 Checks if node has children.
 
-#### `node:is_expanded()`
+#### `node:is_expanded`
+
+_Signature:_ `node:is_expanded()`
 
 Checks if node is expanded.
 
-#### `node:expand()`
+#### `node:expand`
+
+_Signature:_ `node:expand()`
 
 Expands node.
 
-#### `node:collapse()`
+#### `node:collapse`
+
+_Signature:_ `node:collapse()`
 
 Collapses node.
