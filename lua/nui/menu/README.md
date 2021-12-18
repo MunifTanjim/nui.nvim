@@ -87,17 +87,21 @@ You can include whatever you want in the item object.
 You can just use `Menu.item` only and implement `Menu.separator`'s behavior
 by providing a custom `should_skip_item` function.
 
-### `prepare_item(item)`
+### `prepare_item`
 
 **Type:** `function`
+
+_Signature:_ `prepare_item(item)`
 
 If provided, this function is used for preparing each menu item.
 
 The return value should be a `NuiLine` object or `string`.
 
-### `should_skip_item(item)`
+### `should_skip_item`
 
 **Type:** `function`
+
+_Signature:_ `should_skip_item(item)`
 
 If provided, this function is used to determine if an item should be
 skipped when focusing previous/next item.
@@ -160,21 +164,27 @@ keymap = {
 },
 ```
 
-### `on_change(item, menu)`
+### `on_change`
 
 **Type:** `function`
+
+_Signature:_ `on_change(item, menu)`
 
 Callback function, called when menu item is focused.
 
-### `on_close()`
+### `on_close`
 
 **Type:** `function`
+
+_Signature:_ `on_close(item, menu)`
 
 Callback function, called when menu is closed.
 
-### `on_submit(item)`
+### `on_submit`
 
 **Type:** `function`
+
+_Signature:_ `on_submit(item)`
 
 Callback function, called when menu is submitted.
 
