@@ -22,6 +22,8 @@ Quickly add highlighted text on the buffer.
 
 **[Check Detailed Documentation for `nui.text`](lua/nui/text)**
 
+**[Check Wiki Page for `nui.text`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.text)**
+
 ### [NuiLine](lua/nui/line)
 
 Quickly add line containing highlighted text chunks on the buffer.

@@ -135,3 +135,7 @@ byte count for you.
 | `char_start`   | `number` | start position of the text on the line (0-indexed) |
 | `linenr_end`   | `number` | end line number (1-indexed)                        |
 | `char_end`     | `number` | end position of the text on the line (0-indexed)   |
+
+## Wiki Page
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.text wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.text).
