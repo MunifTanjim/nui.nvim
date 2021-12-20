@@ -82,6 +82,8 @@ vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, { "Hello World" })
 
 **[Check Detailed Documentation for `nui.popup`](lua/nui/popup)**
 
+**[Check Wiki Page for `nui.popup`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.popup)**
+
 ### [Input](lua/nui/input)
 
 ![Input GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/input.gif)

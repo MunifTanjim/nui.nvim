@@ -550,3 +550,7 @@ Sets border text.
 ```lua
 popup.border:set_text("bottom", "[Progress: 42%]", "right")
 ```
+
+## Wiki Page
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.popup wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.popup).
