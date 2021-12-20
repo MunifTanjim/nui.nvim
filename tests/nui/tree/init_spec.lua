@@ -182,6 +182,46 @@ describe("nui.tree", function()
     end)
   end)
 
+  describe("method :get_nodes", function()
+    it("can get nodes at root", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }, {
+          Tree.Node({ text = "b-1" }),
+        }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      eq(tree:get_nodes(), nodes)
+    end)
+
+    it("can get nodes under parent node", function()
+      local child_nodes = {
+        Tree.Node({ text = "b-1" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = {
+          Tree.Node({ text = "a" }),
+          Tree.Node({ text = "b" }, child_nodes),
+        },
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      eq(tree:get_nodes("b"), child_nodes)
+    end)
+  end)
+
   describe("method :set_nodes", function()
     it("can set nodes at root", function()
       local tree = Tree({

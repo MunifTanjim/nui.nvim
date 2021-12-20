@@ -158,6 +158,19 @@ Returns `NuiTree.Node` object.
 
 If `node_id` is `nil`, the current node under cursor is returned.
 
+### `tree:get_nodes`
+
+_Signature:_ `tree:get_node(parent_id?) -> NuiTreeNode[]`
+
+**Parameters**
+
+| Name        | Type              | Description      |
+| ----------- | ----------------- | ---------------- |
+| `parent_id` | `string` or `nil` | parent node's id |
+
+If `parent_id` is present, child nodes under that parent are returned,
+Otherwise root nodes are returned.
+
 ### `tree:add_node`
 
 _Signature:_ `tree:add_node(node, parent_id?)`

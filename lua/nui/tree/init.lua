@@ -176,6 +176,25 @@ function Tree:get_node(node_id)
   return self.nodes.by_id[id]
 end
 
+---@param parent_id? string parent node's id
+---@return table[] nodes NuiTreeNode[]
+function Tree:get_nodes(parent_id)
+  local node_ids = {}
+
+  if parent_id then
+    local parent_node = self.nodes.by_id[parent_id]
+    if parent_node then
+      node_ids = parent_node._child_ids
+    end
+  else
+    node_ids = self.nodes.root_ids
+  end
+
+  return vim.tbl_map(function(id)
+    return self.nodes.by_id[id]
+  end, node_ids or {})
+end
+
 function Tree:_add_nodes(nodes, parent_node)
   local new_nodes = initialize_nodes(nodes, parent_node, self.get_node_id)
 
