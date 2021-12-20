@@ -191,3 +191,7 @@ Callback function, called when menu is submitted.
 ## Methods
 
 Methods from `nui.popup` are also available for `nui.menu`.
+
+## Wiki Page
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.menu wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.menu).

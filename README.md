@@ -195,6 +195,8 @@ menu:on(event.BufLeave, menu.menu_props.on_close, { once = true })
 
 **[Check Detailed Documentation for `nui.menu`](lua/nui/menu)**
 
+**[Check Wiki Page for `nui.menu`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.menu)**
+
 ### [Split](lua/nui/split)
 
 ![Split GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/split.gif)
