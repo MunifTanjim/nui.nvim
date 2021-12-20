@@ -1,7 +1,7 @@
-local NuiLine = require("nui.line")
 local _ = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
+local tree_util = require("nui.tree.util")
 
 local function initialize_nodes(nodes, parent_node, get_node_id)
   local start_depth = parent_node and parent_node:get_depth() + 1 or 1
@@ -52,38 +52,6 @@ local function initialize_nodes(nodes, parent_node, get_node_id)
     by_id = by_id,
     root_ids = root_ids,
   }
-end
-
-local function default_get_node_id(node)
-  if node.id then
-    return "-" .. node.id
-  end
-
-  if node.text then
-    return string.format("%s-%s-%s", node._parent_id or "", node._depth, node.text)
-  end
-
-  return "-" .. math.random()
-end
-
-local function default_prepare_node(node)
-  local line = NuiLine()
-
-  line:append(string.rep("  ", node._depth - 1))
-
-  if node:has_children() then
-    line:append(node:is_expanded() and " " or " ")
-  else
-    line:append("  ")
-  end
-
-  if not node.text then
-    error("missing node.text")
-  end
-
-  line:append(node.text)
-
-  return line
 end
 
 local TreeNode = {
@@ -189,8 +157,8 @@ local function init(class, options)
     self.ns_id = vim.api.nvim_create_namespace(self.ns_id)
   end
 
-  self.get_node_id = defaults(options.get_node_id, default_get_node_id)
-  self.prepare_node = defaults(options.prepare_node, default_prepare_node)
+  self.get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id)
+  self.prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node)
 
   self:set_nodes(defaults(options.nodes, {}))
 
