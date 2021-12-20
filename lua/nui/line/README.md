@@ -94,3 +94,7 @@ Sets the line on buffer and applies highlight.
 | `ns_id`        | `number` | namespace id (use `-1` for fallback namespace) |
 | `linenr_start` | `number` | start line number (1-indexed)                  |
 | `linenr_end`   | `number` | end line number (1-indexed)                    |
+
+## Wiki Page
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.line wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.line).

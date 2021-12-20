@@ -28,6 +28,8 @@ Quickly add line containing highlighted text chunks on the buffer.
 
 **[Check Detailed Documentation for `nui.line`](lua/nui/line)**
 
+**[Check Wiki Page for `nui.line`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.line)**
+
 ### [NuiTree](lua/nui/tree)
 
 Quickly render tree-like structured content on the buffer.
