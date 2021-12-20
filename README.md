@@ -224,6 +224,8 @@ end)
 
 **[Check Detailed Documentation for `nui.split`](lua/nui/split)**
 
+**[Check Wiki Page for `nui.split`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.split)**
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.

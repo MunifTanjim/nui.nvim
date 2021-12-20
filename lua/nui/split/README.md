@@ -47,3 +47,7 @@ Table containing window options to set for this split.
 ## Methods
 
 [Methods from `nui.popup`](/lua/nui/popup#methods) are also available for `nui.split`.
+
+## Wiki Page
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.split wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.split).
