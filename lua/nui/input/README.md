@@ -89,3 +89,7 @@ Callback function, called when input value is changed.
 ## Methods
 
 Methods from `nui.popup` are also available for `nui.input`.
+
+## Wiki Page
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.input wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.input).

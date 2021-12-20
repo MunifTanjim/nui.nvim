@@ -131,6 +131,8 @@ end)
 
 **[Check Detailed Documentation for `nui.input`](lua/nui/input)**
 
+**[Check Wiki Page for `nui.input`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.input)**
+
 ### [Menu](lua/nui/menu)
 
 ![Menu GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/menu.gif)
