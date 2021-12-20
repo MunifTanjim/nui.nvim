@@ -304,3 +304,7 @@ Expands node.
 _Signature:_ `node:collapse()`
 
 Collapses node.
+
+## Additional Documentation
+
+You can find additional documentation/examples/guides/tips-n-tricks in [nui.tree wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.tree).
