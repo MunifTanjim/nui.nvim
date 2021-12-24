@@ -88,39 +88,38 @@ local function make_default_prepare_node(menu)
 end
 
 ---@param direction "'next'" | "'prev'"
----@param current_id nil | number
-local function focus_item(menu, direction, current_id)
+---@param current_linenr nil | number
+local function focus_item(menu, direction, current_linenr)
   if not menu.popup_state.mounted then
     return
   end
 
-  local curr_node = menu._tree:get_node(current_id)
-  local curr_id = curr_node:get_id()
+  local curr_linenr = current_linenr or vim.api.nvim_win_get_cursor(menu.winid)[1]
 
-  local next_id = nil
+  local next_linenr = nil
 
   if direction == "next" then
-    if curr_id == #menu._tree.nodes.root_ids then
-      next_id = 1
+    if curr_linenr == #menu._tree.nodes.root_ids then
+      next_linenr = 1
     else
-      next_id = curr_id + 1
+      next_linenr = curr_linenr + 1
     end
   elseif direction == "prev" then
-    if curr_id == 1 then
-      next_id = #menu._tree.nodes.root_ids
+    if curr_linenr == 1 then
+      next_linenr = #menu._tree.nodes.root_ids
     else
-      next_id = curr_id - 1
+      next_linenr = curr_linenr - 1
     end
   end
 
-  local next_node = menu._tree:get_node(next_id)
+  local next_node = menu._tree:get_node(next_linenr)
 
   if menu._should_skip_item(next_node) then
-    return focus_item(menu, direction, next_id)
+    return focus_item(menu, direction, next_linenr)
   end
 
-  if next_id then
-    vim.api.nvim_win_set_cursor(menu.winid, { next_id, 0 })
+  if next_linenr then
+    vim.api.nvim_win_set_cursor(menu.winid, { next_linenr, 0 })
     menu.menu_props._on_change(next_node, menu)
   end
 end
