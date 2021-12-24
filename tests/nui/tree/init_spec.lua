@@ -355,3 +355,36 @@ describe("nui.tree", function()
     end)
   end)
 end)
+
+describe("nui.tree.Node", function()
+  describe("method :has_children", function()
+    it("works before initialization", function()
+      local node_wo_children = Tree.Node({ text = "a" })
+      local node_w_children = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
+
+      eq(node_wo_children._initialized, false)
+      eq(node_wo_children:has_children(), false)
+
+      eq(node_w_children._initialized, false)
+      eq(type(node_w_children.__children), "table")
+      eq(node_w_children:has_children(), true)
+    end)
+
+    it("works after initialization", function()
+      local node_wo_children = Tree.Node({ text = "a" })
+      local node_w_children = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
+
+      Tree({
+        winid = vim.api.nvim_get_current_win(),
+        nodes = { node_wo_children, node_w_children },
+      })
+
+      eq(node_wo_children._initialized, true)
+      eq(node_wo_children:has_children(), false)
+
+      eq(node_w_children._initialized, true)
+      eq(type(node_w_children.__children), "nil")
+      eq(node_w_children:has_children(), true)
+    end)
+  end)
+end)
