@@ -166,7 +166,7 @@ local function init(class, options)
 end
 
 ---@param node_id_or_linenr? string | number
----@return table NuiTreeNode
+---@return table|nil NuiTreeNode
 function Tree:get_node(node_id_or_linenr)
   if is_type("string", node_id_or_linenr) then
     return self.nodes.by_id[node_id_or_linenr]
