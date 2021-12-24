@@ -76,7 +76,7 @@ end
 
 ---@return boolean
 function TreeNode:has_children()
-  return self._child_ids and #self._child_ids > 0
+  return #(self._child_ids or self.__children or {}) > 0
 end
 
 ---@return boolean
