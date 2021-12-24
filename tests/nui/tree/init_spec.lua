@@ -182,6 +182,64 @@ describe("nui.tree", function()
     end)
   end)
 
+  describe("method :get_node", function()
+    it("can get node under cursor", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+      })
+
+      tree:render()
+
+      vim.api.nvim_win_set_cursor(winid, { 3, 0 })
+
+      eq(tree:get_node(), nodes[3])
+    end)
+
+    it("can get node with id", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:render()
+
+      eq(tree:get_node("b"), nodes[2])
+    end)
+
+    it("can get node on linenr", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+      })
+
+      tree:render()
+
+      eq(tree:get_node(1), nodes[1])
+    end)
+  end)
+
   describe("method :get_nodes", function()
     it("can get nodes at root", function()
       local nodes = {
