@@ -165,15 +165,16 @@ local function init(class, options)
   return self
 end
 
----@param node_id? string
+---@param node_id_or_linenr? string | number
 ---@return table NuiTreeNode
-function Tree:get_node(node_id)
-  local id = node_id
-  if not id then
-    local linenr = vim.api.nvim_win_get_cursor(self.winid)[1]
-    id = self._content.node_id_by_linenr[linenr]
+function Tree:get_node(node_id_or_linenr)
+  if is_type("string", node_id_or_linenr) then
+    return self.nodes.by_id[node_id_or_linenr]
   end
-  return self.nodes.by_id[id]
+
+  local linenr = node_id_or_linenr or vim.api.nvim_win_get_cursor(self.winid)[1]
+  local node_id = self._content.node_id_by_linenr[linenr]
+  return self.nodes.by_id[node_id]
 end
 
 ---@param parent_id? string parent node's id

@@ -51,7 +51,7 @@ List of [`NuiTree.Node`](#nuitreenode) objects.
 
 **Type:** `function`
 
-_Signature:_ `get_node_id(node)`
+_Signature:_ `get_node_id(node) -> string`
 
 If provided, this function is used for generating node's id.
 
@@ -146,15 +146,17 @@ win_options = {
 
 ### `tree:get_node`
 
-_Signature:_ `tree:get_node(node_id?)`
-
-Returns `NuiTree.Node` object.
+_Signature:_ `tree:get_node(node_id_or_linenr?) -> NuiTreeNode | nil`
 
 **Parameters**
 
-| Name      | Type              | Description |
-| --------- | ----------------- | ----------- |
-| `node_id` | `string` or `nil` | node's id   |
+| Name                | Type                          | Description              |
+| ------------------- | ----------------------------- | ------------------------ |
+| `node_id_or_linenr` | `number` or `string` or `nil` | node's id or line number |
+
+If `node_id_or_linenr` is `string`, the node with that _id_ is returned.
+
+If `node_id_or_linenr` is `number`, the node on that _linenr_ is returned.
 
 If `node_id` is `nil`, the current node under cursor is returned.
 
