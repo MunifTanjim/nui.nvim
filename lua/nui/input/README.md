@@ -17,7 +17,6 @@ local popup_options = {
   size = 20,
   border = {
     style = "rounded",
-    highlight = "FloatBorder",
     text = {
       top = "[Input]",
       top_align = "left",

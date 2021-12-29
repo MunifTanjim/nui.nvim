@@ -14,13 +14,14 @@ local popup_options = {
   },
   border = {
     style = "rounded",
-    highlight = "FloatBorder",
     text = {
       top = "[Choose Item]",
       top_align = "center",
     },
   },
-  highlight = "Normal:Normal",
+  win_options = {
+    winhighlight = "Normal:Normal",
+  }
 }
 
 local menu = Menu(popup_options, {

@@ -55,7 +55,6 @@ local popup = Popup({
   focusable = true,
   border = {
     style = "rounded",
-    highlight = "FloatBorder",
   },
   position = "50%",
   size = {
@@ -100,7 +99,6 @@ local input = Input({
   },
   relative = "editor",
   border = {
-    highlight = "MyHighlightGroup",
     style = "single",
     text = {
         top = "How old are you?",
@@ -151,7 +149,6 @@ local menu = Menu({
   },
   relative = "editor",
   border = {
-    highlight = "MyHighlightGroup",
     style = "single",
     text = {
       top = "Choose Something",
