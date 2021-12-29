@@ -5,6 +5,109 @@ local helper = require("tests.nui")
 local eq, tbl_pick = helper.eq, helper.tbl_pick
 
 describe("nui.popup", function()
+  local popup_options = {}
+
+  before_each(function()
+    popup_options = {
+      ns_id = vim.api.nvim_create_namespace("NuiTest"),
+      position = "50%",
+      size = {
+        height = "20",
+        width = "40",
+      },
+    }
+  end)
+
+  describe("border.style", function()
+    local function get_size()
+      return { height = 4, width = 8 }
+    end
+
+    local function get_border_style_list()
+      return { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
+    end
+
+    local function get_border_style_map()
+      return {
+        top_left = "╭",
+        top = "─",
+        top_right = "╮",
+        left = "│",
+        right = "│",
+        bottom_left = "╰",
+        bottom = "─",
+        bottom_right = "╯",
+      }
+    end
+
+    it("supports string name", function()
+      local popup = Popup(vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          padding = { 0 },
+        },
+        size = get_size(),
+      }))
+
+      popup:mount()
+
+      eq(vim.api.nvim_buf_get_lines(popup.border.bufnr, 0, -1, false), {
+        "╭────────╮",
+        "│        │",
+        "│        │",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+    end)
+
+    it("supports list table", function()
+      local style = get_border_style_list()
+
+      local popup = Popup(vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = style,
+          padding = { 0 },
+        },
+        size = get_size(),
+      }))
+
+      popup:mount()
+
+      eq(vim.api.nvim_buf_get_lines(popup.border.bufnr, 0, -1, false), {
+        "╭────────╮",
+        "│        │",
+        "│        │",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+    end)
+
+    it("supports map table", function()
+      local style = get_border_style_map()
+
+      local popup = Popup(vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = style,
+          padding = { 0 },
+        },
+        size = get_size(),
+      }))
+
+      popup:mount()
+
+      eq(vim.api.nvim_buf_get_lines(popup.border.bufnr, 0, -1, false), {
+        "╭────────╮",
+        "│        │",
+        "│        │",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+    end)
+  end)
+
   describe("border.text", function()
     it("supports simple text", function()
       local text = "popup"
