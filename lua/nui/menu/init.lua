@@ -80,7 +80,7 @@ local function make_default_prepare_node(menu)
       local gap_width = separator_max_width - text:width()
       local line = Line()
       line:append(separator_char)
-      _.align_line(defaults(separator_text_align, "center"), line, text, separator_char, nil, gap_width)
+      _.align_line(defaults(separator_text_align, "center"), line, text, Text(separator_char), gap_width)
       line:append(separator_char)
       return line
     end

@@ -160,19 +160,22 @@ end
 ---@param align "'left'" | "'center'" | "'right'"
 ---@param line table NuiLine
 ---@param text table NuiText
----@param gap_char string
----@param gap_highlight? nil | string
----@param gap_length number
-function utils._.align_line(align, line, text, gap_char, gap_highlight, gap_length)
+---@param gap_char_text table NuiText
+---@param gap_width number
+function utils._.align_line(align, line, text, gap_char_text, gap_width)
   if align == "left" then
     line:append(text)
-    line:append(string.rep(gap_char, gap_length), gap_highlight)
+
+    gap_char_text:set(string.rep(gap_char_text:content(), gap_width))
+    line:append(gap_char_text)
   elseif align == "center" then
-    line:append(string.rep(gap_char, math.floor(gap_length / 2)), gap_highlight)
+    line:append(gap_char_text:new(string.rep(gap_char_text:content(), math.floor(gap_width / 2))))
     line:append(text)
-    line:append(string.rep(gap_char, math.ceil(gap_length / 2)), gap_highlight)
+    line:append(gap_char_text:new(string.rep(gap_char_text:content(), math.ceil(gap_width / 2))))
   elseif align == "right" then
-    line:append(string.rep(gap_char, gap_length), gap_highlight)
+    gap_char_text:set(string.rep(gap_char_text:content(), gap_width))
+    line:append(gap_char_text)
+
     line:append(text)
   end
 

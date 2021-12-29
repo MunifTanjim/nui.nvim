@@ -95,23 +95,24 @@ local function calculate_buf_edge_line(props, edge, text, align)
   end
 
   local left_text = Text(left_char)
+  local mid_char_text = Text(mid_char)
   local right_text = Text(right_char)
 
   local max_width = size.width - left_text:width() - right_text:width()
 
   local content_text = Text(defaults(text, ""))
-  if mid_char == "" then
+  if mid_char_text:width() == 0 then
     content_text:set(string.rep(" ", max_width))
   else
     content_text:set(_.truncate_text(content_text:content(), max_width))
   end
 
-  local gap_length = max_width - content_text:width()
+  local gap_width = max_width - content_text:width()
 
   local line = Line()
 
   line:append(left_text)
-  _.align_line(defaults(align, "center"), line, content_text, mid_char, nil, gap_length)
+  _.align_line(defaults(align, "center"), line, content_text, mid_char_text, gap_width)
   line:append(right_text)
 
   return line
