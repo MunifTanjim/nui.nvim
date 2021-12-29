@@ -169,9 +169,11 @@ function utils._.align_line(align, line, text, gap_char_text, gap_width)
     gap_char_text:set(string.rep(gap_char_text:content(), gap_width))
     line:append(gap_char_text)
   elseif align == "center" then
-    line:append(gap_char_text:new(string.rep(gap_char_text:content(), math.floor(gap_width / 2))))
+    line:append(
+      gap_char_text:new(string.rep(gap_char_text:content(), math.floor(gap_width / 2)), gap_char_text.extmark)
+    )
     line:append(text)
-    line:append(gap_char_text:new(string.rep(gap_char_text:content(), math.ceil(gap_width / 2))))
+    line:append(gap_char_text:new(string.rep(gap_char_text:content(), math.ceil(gap_width / 2)), gap_char_text.extmark))
   elseif align == "right" then
     gap_char_text:set(string.rep(gap_char_text:content(), gap_width))
     line:append(gap_char_text)

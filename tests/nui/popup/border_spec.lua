@@ -40,6 +40,14 @@ describe("nui.popup", function()
       }
     end
 
+    local function get_borer_style_map_with_nui_text(hl_group)
+      local style = get_border_style_map()
+      for k, v in pairs(style) do
+        style[k] = Text(v, hl_group .. "_" .. k)
+      end
+      return style
+    end
+
     it("supports string name", function()
       local popup = Popup(vim.tbl_deep_extend("force", popup_options, {
         border = {
@@ -105,6 +113,74 @@ describe("nui.popup", function()
         "│        │",
         "╰────────╯",
       })
+    end)
+
+    describe("w/ hl", function()
+      it("supports nui.text", function()
+        local hl_group = "NuiPopupTest"
+        local style = get_borer_style_map_with_nui_text(hl_group)
+
+        local size = get_size()
+        size.height = 2
+
+        local popup = Popup(vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+            padding = { 0 },
+          },
+          size = size,
+        }))
+
+        popup:mount()
+
+        eq(vim.api.nvim_buf_get_lines(popup.border.bufnr, 0, -1, false), {
+          "╭────────╮",
+          "│        │",
+          "│        │",
+          "╰────────╯",
+        })
+
+        for linenr = 1, size.height + 2 do
+          local is_top_line = linenr == 1
+          local is_bottom_line = linenr == size.height + 2
+
+          local extmarks = vim.api.nvim_buf_get_extmarks(
+            popup.border.bufnr,
+            popup_options.ns_id,
+            { linenr - 1, 0 },
+            { linenr - 1, -1 },
+            { details = true }
+          )
+
+          eq(#extmarks, (is_top_line or is_bottom_line) and 4 or 2)
+
+          eq(extmarks[1][2], linenr - 1)
+          eq(tbl_pick(extmarks[1][4], { "end_row", "hl_group" }), {
+            end_row = linenr - 1,
+            hl_group = hl_group .. (is_top_line and "_top_left" or is_bottom_line and "_bottom_left" or "_left"),
+          })
+
+          if is_top_line or is_bottom_line then
+            eq(extmarks[2][2], linenr - 1)
+            eq(tbl_pick(extmarks[2][4], { "end_row", "hl_group" }), {
+              end_row = linenr - 1,
+              hl_group = hl_group .. (is_top_line and "_top" or "_bottom"),
+            })
+
+            eq(extmarks[3][2], linenr - 1)
+            eq(tbl_pick(extmarks[3][4], { "end_row", "hl_group" }), {
+              end_row = linenr - 1,
+              hl_group = hl_group .. (is_top_line and "_top" or "_bottom"),
+            })
+          end
+
+          eq(extmarks[#extmarks][2], linenr - 1)
+          eq(tbl_pick(extmarks[#extmarks][4], { "end_row", "hl_group" }), {
+            end_row = linenr - 1,
+            hl_group = hl_group .. (is_top_line and "_top_right" or is_bottom_line and "_bottom_right" or "_right"),
+          })
+        end
+      end)
     end)
   end)
 
