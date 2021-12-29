@@ -20,7 +20,6 @@ local popup = Popup({
   zindex = 50,
   relative = "editor",
   border = {
-    highlight = "FloatBorder",
     padding = {
       top = 2,
       bottom = 2,
@@ -41,7 +40,7 @@ local popup = Popup({
   },
   win_options = {
     winblend = 10,
-    winhighlight = "Normal:Normal",
+    winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
   },
 })
 ```
@@ -87,20 +86,6 @@ border = {
 },
 ```
 
-#### `border.highlight`
-
-**Type:** `string`
-
-Highlight group name for the border characters.
-
-**Examples**
-
-```lua
-border = {
-  highlight = "FloatBorder",
-},
-```
-
 #### `border.style`
 
 **Type:** `string` or `table`
@@ -139,6 +124,28 @@ border = {
 
 If you don't need all these options, you can also pass the value of `border.style` to `border`
 directly.
+
+To set the highlight group for all the border characters, use the `win_options.winhighlight`
+option and include the name of highlight group for `FloatBorder`.
+
+**Examples**
+
+```lua
+win_options = {
+  winhighlight = "Normal:Normal,FloatBorder:SpecialChar",
+},
+```
+
+To set the highlight group for individual border character, you can use `NuiText` or a tuple
+with `(char, hl_group)`.
+
+**Examples**
+
+```lua
+border = {
+  style = { { [[/]], "SpecialChar" }, [[─]], NuiText([[\]], "SpecialChar"), [[│]] },
+},
+```
 
 #### `border.text`
 
@@ -372,7 +379,7 @@ Contains all window related options (check `:h options | /local to window`).
 ```lua
 win_options = {
   winblend = 10,
-  winhighlight = "Normal:Normal",
+  winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
 },
 ```
 
