@@ -20,7 +20,7 @@ describe("nui.popup", function()
 
   describe("border.style", function()
     local function get_size()
-      return { height = 4, width = 8 }
+      return { height = 2, width = 8 }
     end
 
     local function get_border_style_list()
@@ -63,8 +63,6 @@ describe("nui.popup", function()
         "╭────────╮",
         "│        │",
         "│        │",
-        "│        │",
-        "│        │",
         "╰────────╯",
       })
     end)
@@ -84,8 +82,6 @@ describe("nui.popup", function()
 
       eq(vim.api.nvim_buf_get_lines(popup.border.bufnr, 0, -1, false), {
         "╭────────╮",
-        "│        │",
-        "│        │",
         "│        │",
         "│        │",
         "╰────────╯",
@@ -109,8 +105,6 @@ describe("nui.popup", function()
         "╭────────╮",
         "│        │",
         "│        │",
-        "│        │",
-        "│        │",
         "╰────────╯",
       })
     end)
@@ -121,7 +115,6 @@ describe("nui.popup", function()
         local style = get_borer_style_map_with_nui_text(hl_group)
 
         local size = get_size()
-        size.height = 2
 
         local popup = Popup(vim.tbl_deep_extend("force", popup_options, {
           border = {
