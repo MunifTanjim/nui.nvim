@@ -24,7 +24,7 @@ end
 
 ---@param content string|table text content or NuiText object
 ---@param extmark? string|table highlight group name or extmark options
-function Text:new(content, extmark)
+function Text:new(content, extmark) -- luacheck: ignore self
   return init({ __index = Text }, content, extmark)
 end
 

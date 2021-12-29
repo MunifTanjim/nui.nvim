@@ -36,7 +36,7 @@ jobs:
         run: |
           luarocks install luacheck
       - name: Lint
-        run: ./scripts/lint.sh
+        run: ./scripts/lint.sh --no-cache
 
   format:
     name: stylua
