@@ -502,7 +502,17 @@ function Border:get()
   local char = {}
 
   for position, item in pairs(props.char) do
-    char[position] = { item, props.highlight }
+    if is_type("string", item) then
+      char[position] = { item, props.highlight }
+    elseif item.content then
+      local hl_group = props.highlight
+      if item.extmark then
+        hl_group = item.extmark.hl_group or hl_group
+      end
+      char[position] = { item:content(), hl_group }
+    else
+      char[position] = item
+    end
   end
 
   return to_border_list(char)
