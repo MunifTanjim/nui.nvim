@@ -284,6 +284,8 @@ local function init(class, popup, options)
     end
 
     props.char = vim.deepcopy(styles[style])
+  else
+    props.char = props.style
   end
 
   local is_borderless = is_type("string", props.char)
