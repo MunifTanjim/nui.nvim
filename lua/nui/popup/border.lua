@@ -27,7 +27,11 @@ local function to_border_map(border)
   if count < 8 then
     for i = count + 1, 8 do
       local fallback_index = i % count
-      border[i] = border[fallback_index == 0 and count or fallback_index]
+      local char = border[fallback_index == 0 and count or fallback_index]
+      if is_type("table", char) then
+        char = char.content and Text(char) or vim.deepcopy(char)
+      end
+      border[i] = char
     end
   end
 
@@ -58,6 +62,54 @@ local function to_border_list(named_border)
   return border
 end
 
+local function normalize_border_char(props)
+  if not props.char or is_type("string", props.char) then
+    return props.char
+  end
+
+  if props.type == "simple" then
+    for position, item in pairs(props.char) do
+      if is_type("string", item) then
+        props.char[position] = item
+      elseif item.content then
+        if item.extmark and item.extmark.hl_group then
+          props.char[position] = { item:content(), item.extmark.hl_group }
+        else
+          props.char[position] = item:content()
+        end
+      else
+        props.char[position] = item
+      end
+    end
+
+    return props.char
+  end
+
+  for position, item in pairs(props.char) do
+    if is_type("string", item) then
+      props.char[position] = Text(item, props.highlight)
+    elseif not item.content then
+      props.char[position] = Text(item[1], item[2] or props.highlight)
+    end
+  end
+
+  return props.char
+end
+
+local function normalize_highlight(props)
+  if props.highlight and string.match(props.highlight, ":") then
+    -- @deprecated
+    props._winhighlight = props.highlight
+    props.highlight = nil
+  end
+
+  if not props.highlight and props._winhighlight then
+    props.highlight = string.match(props._winhighlight, "FloatBorder:([^,]+)")
+  end
+
+  return props.highlight or "FloatBorder"
+end
+
 local function parse_padding(padding)
   if not padding then
     return nil
@@ -86,22 +138,18 @@ local function calculate_buf_edge_line(props, edge, text, align)
   local mid_char = char[edge]
   local right_char = char[edge .. "_right"]
 
-  if left_char == "" then
-    left_char = mid_char == "" and char["left"] or mid_char
+  if left_char:content() == "" then
+    left_char = Text(mid_char:content() == "" and char["left"] or mid_char)
   end
 
-  if right_char == "" then
-    right_char = mid_char == "" and char["right"] or mid_char
+  if right_char:content() == "" then
+    right_char = Text(mid_char:content() == "" and char["right"] or mid_char)
   end
 
-  local left_text = Text(left_char)
-  local mid_char_text = Text(mid_char)
-  local right_text = Text(right_char)
-
-  local max_width = size.width - left_text:width() - right_text:width()
+  local max_width = size.width - left_char:width() - right_char:width()
 
   local content_text = Text(defaults(text, ""))
-  if mid_char_text:width() == 0 then
+  if mid_char:width() == 0 then
     content_text:set(string.rep(" ", max_width))
   else
     content_text:set(_.truncate_text(content_text:content(), max_width))
@@ -111,9 +159,9 @@ local function calculate_buf_edge_line(props, edge, text, align)
 
   local line = Line()
 
-  line:append(left_text)
-  _.align_line(defaults(align, "center"), line, content_text, mid_char_text, gap_width)
-  line:append(right_text)
+  line:append(left_char)
+  _.align_line(defaults(align, "center"), line, content_text, mid_char, gap_width)
+  line:append(right_char)
 
   return line
 end
@@ -126,10 +174,9 @@ local function calculate_buf_lines(props)
     return nil
   end
 
-  local left_text = Text(char.left)
-  local right_text = Text(char.right)
+  local left_char, right_char = char.left, char.right
 
-  local gap_length = size.width - left_text:width() - right_text:width()
+  local gap_length = size.width - left_char:width() - right_char:width()
 
   local lines = {}
 
@@ -138,9 +185,9 @@ local function calculate_buf_lines(props)
     table.insert(
       lines,
       Line({
-        Text(left_text),
+        Text(left_char),
         Text(string.rep(" ", gap_length)),
-        Text(right_text),
+        Text(right_char),
       })
     )
   end
@@ -268,9 +315,11 @@ local function init(class, popup, options)
   self.border_props = {
     type = "simple",
     style = defaults(options.style, "none"),
-    highlight = defaults(options.highlight, "FloatBorder"),
+    -- @deprecated
+    highlight = options.highlight,
     padding = parse_padding(options.padding),
     text = options.text,
+    _winhighlight = self.popup.win_options.winhighlight,
   }
 
   local props = self.border_props
@@ -301,6 +350,10 @@ local function init(class, popup, options)
     props.type = "complex"
   end
 
+  props.highlight = normalize_highlight(props)
+
+  props.char = normalize_border_char(props)
+
   if props.type == "simple" then
     return self
   end
@@ -327,10 +380,6 @@ local function init(class, popup, options)
 
   props._lines = calculate_buf_lines(props)
 
-  if not string.match(props.highlight, ":") then
-    props.highlight = "Normal:" .. props.highlight
-  end
-
   return self
 end
 
@@ -351,7 +400,9 @@ function Border:_open_window()
   self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
   assert(self.winid, "failed to create border window")
 
-  vim.api.nvim_win_set_option(self.winid, "winhighlight", self.border_props.highlight)
+  if self.border_props._winhighlight then
+    vim.api.nvim_win_set_option(self.winid, "winhighlight", self.border_props._winhighlight)
+  end
 
   adjust_popup_win_config(self)
 
@@ -499,23 +550,7 @@ function Border:get()
     return props.char
   end
 
-  local char = {}
-
-  for position, item in pairs(props.char) do
-    if is_type("string", item) then
-      char[position] = { item, props.highlight }
-    elseif item.content then
-      local hl_group = props.highlight
-      if item.extmark then
-        hl_group = item.extmark.hl_group or hl_group
-      end
-      char[position] = { item:content(), hl_group }
-    else
-      char[position] = item
-    end
-  end
-
-  return to_border_list(char)
+  return to_border_list(props.char)
 end
 
 local BorderClass = setmetatable({
