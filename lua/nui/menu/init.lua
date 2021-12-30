@@ -54,29 +54,48 @@ end
 
 local function make_default_prepare_node(menu)
   local props = menu.menu_props
-  local popup_props = menu.popup_props
   local border_props = menu.border.border_props
 
-  local default_char = is_type("table", border_props.char) and border_props.char.top or " "
-  local default_text_align = is_type("table", border_props.text) and border_props.text.top_align or "left"
+  local fallback_sep = {
+    char = Text(is_type("table", border_props.char) and border_props.char.top or " "),
+    text_align = is_type("table", border_props.text) and border_props.text.top_align or "left",
+  }
 
-  local sep_char = Text(defaults(props.separator.char, default_char))
-  local sep_text_align = defaults(props.separator.text_align, default_text_align)
+  if props._sep then
+    -- @deprecated
 
-  local max_width = popup_props.size.width
-  local sep_max_width = max_width - sep_char:width() * 2
+    if props._sep.char then
+      fallback_sep.char = Text(props._sep.char)
+    end
+
+    if props._sep.text_align then
+      fallback_sep.text_align = props._sep.text_align
+    end
+  end
+
+  local max_width = menu.popup_props.size.width
 
   return function(node)
     local text = is_type("string", node.text) and Text(node.text) or node.text
 
-    local truncate_width = node._type == "separator" and sep_max_width or max_width
-    if text:width() > truncate_width then
-      text:set(_.truncate_text(text:content(), truncate_width))
+    if node._type == "item" then
+      if text:width() > max_width then
+        text:set(_.truncate_text(text:content(), max_width))
+      end
+
+      return Line({ text })
     end
 
-    if node._type == "item" then
-      return Line({ text })
-    elseif node._type == "separator" then
+    if node._type == "separator" then
+      local sep_char = Text(defaults(node._char, fallback_sep.char))
+      local sep_text_align = defaults(node._text_align, fallback_sep.text_align)
+
+      local sep_max_width = max_width - sep_char:width() * 2
+
+      if text:width() > sep_max_width then
+        text:set(_.truncate_text(text:content(), sep_max_width))
+      end
+
       local left_gap_width, right_gap_width = _.calculate_gap_width(
         defaults(sep_text_align, "center"),
         sep_max_width,
@@ -143,7 +162,8 @@ end
 
 local function init(class, popup_options, options)
   local props = {
-    separator = defaults(options.separator, {}),
+    -- @deprecated
+    _sep = options.separator,
     keymap = parse_keymap(options.keymap),
   }
 
@@ -218,9 +238,12 @@ local Menu = setmetatable({
 
 ---@param text? string|table # text content or NuiText object
 ---@returns table NuiTreeNode
-function Menu.separator(text)
+function Menu.separator(text, options)
+  options = options or {}
   return Tree.Node({
     _type = "separator",
+    _char = options.char,
+    _text_align = options.text_align,
     text = defaults(text, ""),
   })
 end

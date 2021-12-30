@@ -29,15 +29,14 @@ local menu = Menu(popup_options, {
     Menu.separator("Group One"),
     Menu.item("Item 1"),
     Menu.item("Item 2"),
-    Menu.separator("Group Two"),
+    Menu.separator("Group Two", {
+      char = "-",
+      text_align = "right",
+    }),
     Menu.item("Item 3"),
     Menu.item("Item 4"),
   },
   max_width = 20,
-  separator = {
-    char = "-",
-    text_align = "right",
-  },
   keymap = {
     focus_next = { "j", "<Down>", "<Tab>" },
     focus_prev = { "k", "<Up>", "<S-Tab>" },
@@ -81,9 +80,24 @@ object when `on_submit` is called.
 The result is what you get as the argument of `on_submit` callback function.
 You can include whatever you want in the item object.
 
-**`Menu.separator(text)`**
+**`Menu.separator(text, options?)`**
 
 `Menu.separator` is used to create a menu item that can't be focused.
+
+Parameter `text` can be `string` or `NuiText`.
+
+Parameter `options` is an optional `table`. Key `options.char` can be `string` or
+`NuiText` (containing a single character). Key `options.text_align` can be
+`"left"` / `"right"`/ `"center"`.
+
+**Examples:**
+
+```lua
+separator = {
+  char = "-",
+  text_align = "right",
+},
+```
 
 You can just use `Menu.item` only and implement `Menu.separator`'s behavior
 by providing a custom `should_skip_item` function.
@@ -134,19 +148,6 @@ Maximum width of the menu.
 **Type:** `number`
 
 Minimum width of the menu.
-
-### `separator`
-
-**Type:** `table`
-
-**Example**
-
-```lua
-separator = {
-  char = "-",
-  text_align = "right",
-},
-```
 
 ### `keymap`
 

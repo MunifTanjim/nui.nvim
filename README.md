@@ -163,14 +163,13 @@ local menu = Menu({
   lines = {
     Menu.item("Item 1"),
     Menu.item("Item 2"),
-    Menu.separator("Menu Group"),
+    Menu.separator("Menu Group", {
+      char = "-",
+      text_align = "right",
+    }),
     Menu.item("Item 3"),
   },
   max_width = 20,
-  separator = {
-    char = "-",
-    text_align = "right",
-  },
   keymap = {
     focus_next = { "j", "<Down>", "<Tab>" },
     focus_prev = { "k", "<Up>", "<S-Tab>" },
