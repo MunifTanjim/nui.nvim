@@ -51,6 +51,22 @@ function mod.assert_buf_lines(bufnr, lines, linenr_start, linenr_end)
   mod.eq(vim.api.nvim_buf_get_lines(bufnr, linenr_start or 0, linenr_end or -1, false), lines)
 end
 
+---@param bufnr number
+---@param options table
+function mod.assert_buf_options(bufnr, options)
+  for name, value in pairs(options) do
+    mod.eq(vim.api.nvim_buf_get_option(bufnr, name), value)
+  end
+end
+
+---@param winid number
+---@param options table
+function mod.assert_win_options(winid, options)
+  for name, value in pairs(options) do
+    mod.eq(vim.api.nvim_win_get_option(winid, name), value)
+  end
+end
+
 ---@param extmark table
 ---@param linenr number
 ---@param text string

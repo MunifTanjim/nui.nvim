@@ -1,7 +1,7 @@
 local Tree = require("nui.tree")
-local helper = require("tests.nui")
+local h = require("tests.nui")
 
-local eq = helper.eq
+local eq = h.eq
 
 describe("nui.tree", function()
   local winid, bufnr
@@ -23,18 +23,22 @@ describe("nui.tree", function()
   it("sets default buf options emulating scratch-buffer", function()
     local tree = Tree({ winid = winid })
 
-    eq(vim.api.nvim_buf_get_option(tree.bufnr, "bufhidden"), "hide")
-    eq(vim.api.nvim_buf_get_option(tree.bufnr, "buflisted"), false)
-    eq(vim.api.nvim_buf_get_option(tree.bufnr, "buftype"), "nofile")
-    eq(vim.api.nvim_buf_get_option(tree.bufnr, "swapfile"), false)
+    h.assert_buf_options(tree.bufnr, {
+      bufhidden = "hide",
+      buflisted = false,
+      buftype = "nofile",
+      swapfile = false,
+    })
   end)
 
   it("sets default win options for handling folds", function()
     local tree = Tree({ winid = winid })
 
-    eq(vim.api.nvim_win_get_option(tree.winid, "foldcolumn"), "0")
-    eq(vim.api.nvim_win_get_option(tree.winid, "foldmethod"), "manual")
-    eq(vim.api.nvim_win_get_option(tree.winid, "wrap"), false)
+    h.assert_win_options(tree.winid, {
+      foldmethod = "manual",
+      foldcolumn = "0",
+      wrap = false,
+    })
   end)
 
   it("sets t.ns_id if o.ns_id is string", function()
@@ -99,6 +103,10 @@ describe("nui.tree", function()
   end)
 
   it("uses o.prepare_node if provided", function()
+    local function prepare_node(node)
+      return node:get_id()
+    end
+
     local nodes = {
       Tree.Node({ text = "a" }),
       Tree.Node({ text = "b" }, {
@@ -110,21 +118,16 @@ describe("nui.tree", function()
       }),
       Tree.Node({ text = "c" }),
     }
+
     local tree = Tree({
       winid = winid,
       nodes = nodes,
-      prepare_node = function(node)
-        return node:get_id()
-      end,
+      prepare_node = prepare_node,
     })
 
     tree:render()
 
-    local lines = vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false)
-
-    for i, line in ipairs(lines) do
-      eq(line, nodes[i]:get_id())
-    end
+    h.assert_buf_lines(tree.bufnr, vim.tbl_map(prepare_node, nodes))
   end)
 
   describe("default prepare_node", function()
@@ -142,11 +145,12 @@ describe("nui.tree", function()
 
       tree:render()
 
-      local lines = vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false)
-
-      for i, line in ipairs(lines) do
-        eq(line, "  " .. nodes[i].text)
-      end
+      h.assert_buf_lines(
+        tree.bufnr,
+        vim.tbl_map(function(node)
+          return "  " .. node.text
+        end, nodes)
+      )
     end)
 
     it("renders arrow if children are present", function()
@@ -164,7 +168,7 @@ describe("nui.tree", function()
 
       tree:render()
 
-      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+      h.assert_buf_lines(tree.bufnr, {
         "  a",
         " b",
         "  c",
@@ -173,7 +177,7 @@ describe("nui.tree", function()
       nodes[2]:expand()
       tree:render()
 
-      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+      h.assert_buf_lines(tree.bufnr, {
         "  a",
         " b",
         "    b-1",
@@ -296,7 +300,7 @@ describe("nui.tree", function()
 
       tree:render()
 
-      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+      h.assert_buf_lines(tree.bufnr, {
         "  a",
         "  b",
       })
@@ -307,7 +311,7 @@ describe("nui.tree", function()
 
       tree:render()
 
-      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+      h.assert_buf_lines(tree.bufnr, {
         "  c",
       })
     end)
@@ -344,7 +348,7 @@ describe("nui.tree", function()
 
       tree:render()
 
-      eq(vim.api.nvim_buf_get_lines(tree.bufnr, 0, -1, false), {
+      h.assert_buf_lines(tree.bufnr, {
         "  a",
         " b",
         "    b-2",
