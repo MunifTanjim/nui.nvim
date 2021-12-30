@@ -39,8 +39,16 @@ end
 ---@param bufnr number
 ---@param ns_id number
 ---@param linenr number
-function mod.get_line_extmarks(bufnr, ns_id, linenr)
-  return vim.api.nvim_buf_get_extmarks(bufnr, ns_id, { linenr - 1, 0 }, { linenr - 1, -1 }, { details = true })
+---@param col_start? number
+---@param col_end? number
+function mod.get_line_extmarks(bufnr, ns_id, linenr, col_start, col_end)
+  return vim.api.nvim_buf_get_extmarks(
+    bufnr,
+    ns_id,
+    { linenr - 1, col_start or 0 },
+    { linenr - 1, col_end or -1 },
+    { details = true }
+  )
 end
 
 ---@param bufnr number
@@ -73,7 +81,11 @@ end
 ---@param hl_group string
 function mod.assert_extmark(extmark, linenr, text, hl_group)
   mod.eq(extmark[2], linenr - 1)
-  mod.eq(extmark[4].end_col - extmark[3], #text)
+
+  if text then
+    mod.eq(extmark[4].end_col - extmark[3], #text)
+  end
+
   mod.eq(mod.tbl_pick(extmark[4], { "end_row", "hl_group" }), {
     end_row = linenr - 1,
     hl_group = hl_group,
