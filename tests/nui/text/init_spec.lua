@@ -1,8 +1,8 @@
 local Text = require("nui.text")
-local helper = require("tests.nui")
+local h = require("tests.nui")
 local spy = require("luassert.spy")
 
-local eq, tbl_pick, tbl_omit = helper.eq, helper.tbl_pick, helper.tbl_omit
+local eq, tbl_omit = h.eq, h.tbl_omit
 
 describe("nui.text", function()
   local multibyte_char
@@ -126,16 +126,11 @@ describe("nui.text", function()
       end)
 
       local function assert_highlight()
-        local extmarks = vim.api.nvim_buf_get_extmarks(bufnr, ns_id, linenr - 1, byte_start, { details = true })
+        local extmarks = h.get_line_extmarks(bufnr, ns_id, linenr)
 
         eq(#extmarks, 1)
-        eq(extmarks[1][2], linenr - 1)
         eq(extmarks[1][3], byte_start)
-        eq(tbl_pick(extmarks[1][4], { "end_row", "end_col", "hl_group" }), {
-          end_row = linenr - 1,
-          end_col = byte_start + text:length(),
-          hl_group = hl_group,
-        })
+        h.assert_extmark(extmarks[1], linenr, text:content(), hl_group)
       end
 
       it("is applied with :render", function()
@@ -189,7 +184,7 @@ describe("nui.text", function()
         assert.spy(text.highlight).was_called(1)
         assert.spy(text.highlight).was_called_with(text, bufnr, -1, 1, 1)
 
-        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+        h.assert_buf_lines(bufnr, {
           " a1",
           initial_lines[2],
           initial_lines[3],
@@ -208,7 +203,7 @@ describe("nui.text", function()
         assert.spy(text.highlight).was_called(1)
         assert.spy(text.highlight).was_called_with(text, bufnr, -1, 2, vim.fn.strlen(multibyte_char))
 
-        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+        h.assert_buf_lines(bufnr, {
           initial_lines[1],
           multibyte_char .. "a2",
           initial_lines[3],
@@ -229,7 +224,7 @@ describe("nui.text", function()
         assert.spy(text.highlight).was_called(1)
         assert.spy(text.highlight).was_called_with(text, bufnr, -1, 1, 1)
 
-        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+        h.assert_buf_lines(bufnr, {
           " a1",
           initial_lines[2],
           initial_lines[3],
@@ -248,7 +243,7 @@ describe("nui.text", function()
         assert.spy(text.highlight).was_called(1)
         assert.spy(text.highlight).was_called_with(text, bufnr, -1, 2, vim.fn.strlen(multibyte_char))
 
-        eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), {
+        h.assert_buf_lines(bufnr, {
           initial_lines[1],
           multibyte_char .. "a2",
           initial_lines[3],
