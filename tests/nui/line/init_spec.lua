@@ -1,8 +1,8 @@
 local Line = require("nui.line")
 local Text = require("nui.text")
-local helper = require("tests.nui")
+local h = require("tests.nui")
 
-local eq, tbl_pick = helper.eq, helper.tbl_pick
+local eq = h.eq
 
 describe("nui.line", function()
   it("can accept initial nui.text objects", function()
@@ -86,16 +86,11 @@ describe("nui.line", function()
       end)
 
       local function assert_highlight()
-        local extmarks = vim.api.nvim_buf_get_extmarks(bufnr, ns_id, linenr - 1, -1, { details = true })
+        local extmarks = h.get_line_extmarks(bufnr, ns_id, linenr)
 
         eq(#extmarks, 1)
-        eq(extmarks[1][2], linenr - 1)
         eq(extmarks[1][3], t1:length())
-        eq(tbl_pick(extmarks[1][4], { "end_row", "end_col", "hl_group" }), {
-          end_row = linenr - 1,
-          end_col = t1:length() + t2:length(),
-          hl_group = hl_group,
-        })
+        h.assert_extmark(extmarks[1], linenr, t2:content(), hl_group)
       end
 
       it("is applied with :render", function()

@@ -37,6 +37,13 @@ function mod.tbl_omit(tbl, keys)
 end
 
 ---@param bufnr number
+---@param ns_id number
+---@param linenr number
+function mod.get_line_extmarks(bufnr, ns_id, linenr)
+  return vim.api.nvim_buf_get_extmarks(bufnr, ns_id, { linenr - 1, 0 }, { linenr - 1, -1 }, { details = true })
+end
+
+---@param bufnr number
 ---@param lines string[]
 ---@param linenr_start? number
 ---@param linenr_end? number
