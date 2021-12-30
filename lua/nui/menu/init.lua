@@ -77,11 +77,28 @@ local function make_default_prepare_node(menu)
     if node._type == "item" then
       return Line({ text })
     elseif node._type == "separator" then
-      local gap_width = separator_max_width - text:width()
+      local left_gap_width, right_gap_width = _.calculate_gap_width(
+        defaults(separator_text_align, "center"),
+        separator_max_width,
+        text:width()
+      )
+
       local line = Line()
+
       line:append(separator_char)
-      _.align_line(defaults(separator_text_align, "center"), line, text, Text(separator_char), gap_width)
+
+      if left_gap_width > 0 then
+        line:append(Text(string.rep(separator_char, left_gap_width)))
+      end
+
+      line:append(text)
+
+      if right_gap_width > 0 then
+        line:append(Text(string.rep(separator_char, right_gap_width)))
+      end
+
       line:append(separator_char)
+
       return line
     end
   end
