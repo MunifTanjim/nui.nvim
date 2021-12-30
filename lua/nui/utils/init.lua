@@ -184,6 +184,23 @@ function utils._.align_line(align, line, text, gap_char_text, gap_width)
   return line
 end
 
+---@param align "'left'" | "'center'" | "'right'"
+---@param total_width number
+---@param text_width number
+---@return number left_gap_width, number right_gap_width
+function utils._.calculate_gap_width(align, total_width, text_width)
+  local gap_width = total_width - text_width
+  if align == "left" then
+    return 0, gap_width
+  elseif align == "center" then
+    return math.floor(gap_width / 2), math.ceil(gap_width / 2)
+  elseif align == "right" then
+    return gap_width, 0
+  end
+
+  error("invalid value align=" .. align)
+end
+
 ---@param lines table[] NuiLine[]
 ---@param bufnr number
 ---@param ns_id number
