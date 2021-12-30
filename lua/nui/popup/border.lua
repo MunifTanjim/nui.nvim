@@ -155,12 +155,26 @@ local function calculate_buf_edge_line(props, edge, text, align)
     content_text:set(_.truncate_text(content_text:content(), max_width))
   end
 
-  local gap_width = max_width - content_text:width()
+  local left_gap_width, right_gap_width = _.calculate_gap_width(
+    defaults(align, "center"),
+    max_width,
+    content_text:width()
+  )
 
   local line = Line()
 
   line:append(left_char)
-  _.align_line(defaults(align, "center"), line, content_text, mid_char, gap_width)
+
+  if left_gap_width > 0 then
+    line:append(Text(mid_char):set(string.rep(mid_char:content(), left_gap_width)))
+  end
+
+  line:append(content_text)
+
+  if right_gap_width > 0 then
+    line:append(Text(mid_char):set(string.rep(mid_char:content(), right_gap_width)))
+  end
+
   line:append(right_char)
 
   return line
