@@ -41,6 +41,8 @@ function Text:set(content, extmark)
     self.extmark = is_type("string", extmark) and { hl_group = extmark } or vim.deepcopy(extmark)
     self.extmark.id = nil
   end
+
+  return self
 end
 
 ---@return string
