@@ -60,7 +60,10 @@ local function make_default_prepare_node(menu)
   local default_char = is_type("table", border_props.char) and border_props.char.top or " "
   local default_text_align = is_type("table", border_props.text) and border_props.text.top_align or "left"
 
-  local separator_char = defaults(props.separator.char, default_char)
+  local separator_char = defaults(
+    props.separator.char,
+    is_type("table", default_char) and default_char:content() or default_char
+  )
   local separator_text_align = defaults(props.separator.text_align, default_text_align)
 
   local max_width = popup_props.size.width
