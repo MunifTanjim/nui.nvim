@@ -253,4 +253,129 @@ describe("nui.menu", function()
       })
     end)
   end)
+
+  describe("separator", function()
+    local function assert_extmark(extmark, linenr, text, hl_group)
+      eq(extmark[2], linenr - 1)
+      eq(extmark[4].end_col - extmark[3], #text)
+      eq(tbl_pick(extmark[4], { "end_row", "hl_group" }), {
+        end_row = linenr - 1,
+        hl_group = hl_group,
+      })
+    end
+
+    it("text supports string", function()
+      local menu = Menu(popup_options, {
+        lines = {
+          Menu.item("A"),
+          Menu.separator("Group"),
+        },
+        min_width = 10,
+      })
+
+      menu:mount()
+
+      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+        "A",
+        " Group    ",
+      })
+    end)
+
+    it("text supports nui.text", function()
+      local hl_group = "NuiMenuTest"
+      local text = "Group"
+
+      local menu = Menu(popup_options, {
+        lines = {
+          Menu.item("A"),
+          Menu.separator(Text(text, hl_group)),
+        },
+        min_width = 10,
+      })
+
+      menu:mount()
+
+      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+        "A",
+        " Group    ",
+      })
+
+      local linenr = 2
+
+      local extmarks = vim.api.nvim_buf_get_extmarks(
+        menu.bufnr,
+        menu.ns_id,
+        { linenr - 1, 0 },
+        { linenr - 1, -1 },
+        { details = true }
+      )
+
+      eq(#extmarks, 1)
+      eq(extmarks[1][2], linenr - 1)
+      eq(extmarks[1][4].end_col - extmarks[1][3], #text)
+      eq(tbl_pick(extmarks[1][4], { "end_row", "hl_group" }), {
+        end_row = linenr - 1,
+        hl_group = hl_group,
+      })
+    end)
+
+    it("o.char supports string", function()
+      local menu = Menu(popup_options, {
+        lines = {
+          Menu.item("A"),
+          Menu.separator("Group", {
+            char = "*",
+            text_align = "right",
+          }),
+        },
+        min_width = 10,
+      })
+
+      menu:mount()
+
+      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+        "A",
+        "****Group*",
+      })
+    end)
+
+    it("o.char supports nui.text", function()
+      local hl_group = "NuiMenuTest"
+
+      local menu = Menu(popup_options, {
+        lines = {
+          Menu.item("A"),
+          Menu.separator("Group", {
+            char = Text("*", hl_group),
+            text_align = "center",
+          }),
+        },
+        min_width = 10,
+      })
+
+      menu:mount()
+
+      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+        "A",
+        "**Group***",
+      })
+
+      local linenr = 2
+
+      local extmarks = vim.api.nvim_buf_get_extmarks(
+        menu.bufnr,
+        menu.ns_id,
+        { linenr - 1, 0 },
+        { linenr - 1, -1 },
+        { details = true }
+      )
+
+      eq(#extmarks, 4)
+
+      assert_extmark(extmarks[1], linenr, "*", hl_group)
+      assert_extmark(extmarks[2], linenr, "*", hl_group)
+      assert_extmark(extmarks[3], linenr, "**", hl_group)
+      assert_extmark(extmarks[4], linenr, "*", hl_group)
+    end)
+  end)
 end)
