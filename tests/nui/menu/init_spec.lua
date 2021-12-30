@@ -1,9 +1,9 @@
 local Menu = require("nui.menu")
 local Text = require("nui.text")
-local helper = require("tests.nui")
+local h = require("tests.nui")
 local spy = require("luassert.spy")
 
-local eq, feedkeys, tbl_pick = helper.eq, helper.feedkeys, helper.tbl_pick
+local eq, feedkeys = h.eq, h.feedkeys
 
 describe("nui.menu", function()
   local callbacks
@@ -39,7 +39,7 @@ describe("nui.menu", function()
 
       eq(vim.api.nvim_win_get_width(menu.winid), min_width)
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "A",
         " * ",
         "B",
@@ -64,7 +64,7 @@ describe("nui.menu", function()
 
       eq(vim.api.nvim_win_get_width(menu.winid), max_width)
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "Item 1",
         " *    ",
         "Item …",
@@ -161,7 +161,7 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), vim.tbl_map(prepare_item, items))
+      h.assert_buf_lines(menu.bufnr, vim.tbl_map(prepare_item, items))
     end)
 
     it("is prepared when o.prepare_item is not provided", function()
@@ -179,7 +179,7 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "A",
         "─*──",
         "B",
@@ -232,7 +232,9 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), { text })
+      h.assert_buf_lines(menu.bufnr, {
+        text,
+      })
 
       local linenr = 1
       local line = vim.api.nvim_buf_get_lines(menu.bufnr, linenr - 1, linenr, false)[linenr]
@@ -245,25 +247,11 @@ describe("nui.menu", function()
       eq(type(byte_start), "number")
 
       eq(#extmarks, 1)
-      eq(extmarks[1][2], linenr - 1)
-      eq(extmarks[1][4].end_col - extmarks[1][3], #text)
-      eq(tbl_pick(extmarks[1][4], { "end_row", "hl_group" }), {
-        end_row = linenr - 1,
-        hl_group = hl_group,
-      })
+      h.assert_extmark(extmarks[1], linenr, text, hl_group)
     end)
   end)
 
   describe("separator", function()
-    local function assert_extmark(extmark, linenr, text, hl_group)
-      eq(extmark[2], linenr - 1)
-      eq(extmark[4].end_col - extmark[3], #text)
-      eq(tbl_pick(extmark[4], { "end_row", "hl_group" }), {
-        end_row = linenr - 1,
-        hl_group = hl_group,
-      })
-    end
-
     it("text supports string", function()
       local menu = Menu(popup_options, {
         lines = {
@@ -275,7 +263,7 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "A",
         " Group    ",
       })
@@ -295,7 +283,7 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "A",
         " Group    ",
       })
@@ -311,12 +299,7 @@ describe("nui.menu", function()
       )
 
       eq(#extmarks, 1)
-      eq(extmarks[1][2], linenr - 1)
-      eq(extmarks[1][4].end_col - extmarks[1][3], #text)
-      eq(tbl_pick(extmarks[1][4], { "end_row", "hl_group" }), {
-        end_row = linenr - 1,
-        hl_group = hl_group,
-      })
+      h.assert_extmark(extmarks[1], linenr, text, hl_group)
     end)
 
     it("o.char supports string", function()
@@ -333,7 +316,7 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "A",
         "****Group*",
       })
@@ -355,7 +338,7 @@ describe("nui.menu", function()
 
       menu:mount()
 
-      eq(vim.api.nvim_buf_get_lines(menu.bufnr, 0, -1, false), {
+      h.assert_buf_lines(menu.bufnr, {
         "A",
         "**Group***",
       })
@@ -371,11 +354,10 @@ describe("nui.menu", function()
       )
 
       eq(#extmarks, 4)
-
-      assert_extmark(extmarks[1], linenr, "*", hl_group)
-      assert_extmark(extmarks[2], linenr, "*", hl_group)
-      assert_extmark(extmarks[3], linenr, "**", hl_group)
-      assert_extmark(extmarks[4], linenr, "*", hl_group)
+      h.assert_extmark(extmarks[1], linenr, "*", hl_group)
+      h.assert_extmark(extmarks[2], linenr, "*", hl_group)
+      h.assert_extmark(extmarks[3], linenr, "**", hl_group)
+      h.assert_extmark(extmarks[4], linenr, "*", hl_group)
     end)
   end)
 end)
