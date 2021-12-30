@@ -60,19 +60,16 @@ local function make_default_prepare_node(menu)
   local default_char = is_type("table", border_props.char) and border_props.char.top or " "
   local default_text_align = is_type("table", border_props.text) and border_props.text.top_align or "left"
 
-  local separator_char = defaults(
-    props.separator.char,
-    is_type("table", default_char) and default_char:content() or default_char
-  )
-  local separator_text_align = defaults(props.separator.text_align, default_text_align)
+  local sep_char = Text(defaults(props.separator.char, default_char))
+  local sep_text_align = defaults(props.separator.text_align, default_text_align)
 
   local max_width = popup_props.size.width
-  local separator_max_width = max_width - vim.api.nvim_strwidth(separator_char) * 2
+  local sep_max_width = max_width - sep_char:width() * 2
 
   return function(node)
     local text = is_type("string", node.text) and Text(node.text) or node.text
 
-    local truncate_width = node._type == "separator" and separator_max_width or max_width
+    local truncate_width = node._type == "separator" and sep_max_width or max_width
     if text:width() > truncate_width then
       text:set(_.truncate_text(text:content(), truncate_width))
     end
@@ -81,26 +78,26 @@ local function make_default_prepare_node(menu)
       return Line({ text })
     elseif node._type == "separator" then
       local left_gap_width, right_gap_width = _.calculate_gap_width(
-        defaults(separator_text_align, "center"),
-        separator_max_width,
+        defaults(sep_text_align, "center"),
+        sep_max_width,
         text:width()
       )
 
       local line = Line()
 
-      line:append(separator_char)
+      line:append(Text(sep_char))
 
       if left_gap_width > 0 then
-        line:append(Text(string.rep(separator_char, left_gap_width)))
+        line:append(Text(sep_char):set(string.rep(sep_char:content(), left_gap_width)))
       end
 
       line:append(text)
 
       if right_gap_width > 0 then
-        line:append(Text(string.rep(separator_char, right_gap_width)))
+        line:append(Text(sep_char):set(string.rep(sep_char:content(), right_gap_width)))
       end
 
-      line:append(separator_char)
+      line:append(Text(sep_char))
 
       return line
     end
