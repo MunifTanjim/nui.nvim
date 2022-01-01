@@ -16,9 +16,9 @@ local NuiText = require("nui.text")
 
 local text = NuiText("Something Went Wrong!", "Error")
 
-local bufnr, linenr, byte_pos = 0, 1, 0
+local bufnr, ns_id, linenr_start, byte_start = 0, -1, 1, 0
 
-text:render(bufnr, linenr, byte_pos, linenr, byte_pos)
+text:render(bufnr, ns_id, linenr_start, byte_start)
 ```
 
 ## Parameters
