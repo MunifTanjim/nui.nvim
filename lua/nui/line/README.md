@@ -19,9 +19,9 @@ local line = NuiLine()
 
 line:append("Something Went Wrong!", "Error")
 
-local bufnr, linenr = 0, 1
+local bufnr, ns_id, linenr_start = 0, -1, 1
 
-line:render(bufnr, linenr)
+line:render(bufnr, ns_id, linenr_start)
 ```
 
 ## Parameters
