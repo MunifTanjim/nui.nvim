@@ -1,9 +1,38 @@
 local Popup = require("nui.popup")
-local helper = require("tests.nui")
+local h = require("tests.nui")
 
-local eq = helper.eq
+local eq = h.eq
 
 describe("nui.popup", function()
+  it("supports o.bufnr (unmanaed buffer)", function()
+    local bufnr = vim.api.nvim_create_buf(false, true)
+
+    local lines = {
+      "a",
+      "b",
+      "c",
+    }
+
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+
+    local popup = Popup({
+      bufnr = bufnr,
+      position = "50%",
+      size = {
+        height = "60%",
+        width = "80%",
+      },
+    })
+
+    h.assert_buf_lines(bufnr, lines)
+    eq(popup.bufnr, bufnr)
+    popup:mount()
+    h.assert_buf_lines(bufnr, lines)
+    popup:unmount()
+    eq(popup.bufnr, bufnr)
+    h.assert_buf_lines(bufnr, lines)
+  end)
+
   it("accepts number as o.ns_id", function()
     local ns = "NuiPopupTest"
     local ns_id = vim.api.nvim_create_namespace(ns)
