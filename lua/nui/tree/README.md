@@ -289,6 +289,12 @@ _Signature:_ `node:has_children()`
 
 Checks if node has children.
 
+#### `node:get_child_ids`
+
+_Signature:_ `node:get_child_ids() -> string[]`
+
+Returns ids of child nodes.
+
 #### `node:is_expanded`
 
 _Signature:_ `node:is_expanded()`
