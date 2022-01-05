@@ -325,6 +325,18 @@ function Popup:map(mode, key, handler, opts, force)
   return keymap.set(self.bufnr, mode, key, handler, opts, force)
 end
 
+---@param mode "'i'" | "'n'"
+---@param key string
+---@param force? boolean
+---@return boolean ok
+function Popup:unmap(mode, key, force)
+  if not self.popup_state.mounted then
+    error("popup window is not mounted yet. call popup:mount()")
+  end
+
+  return keymap._del(self.bufnr, mode, key, force)
+end
+
 ---@param event string | string[]
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>

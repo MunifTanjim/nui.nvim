@@ -457,6 +457,27 @@ end, { noremap = true })
 
 ---
 
+### `popup:unmap`
+
+_Signature:_ `popup:unmap(mode, key, force?) -> boolean`
+
+Deletes keymap for the popup.
+
+**Parameters**
+
+| Name   | Type          | Description           |
+| ------ | ------------- | --------------------- |
+| `mode` | `"n"` / `"i"` | check `:h :map-modes` |
+| `key`  | `string`      | key for the mapping   |
+
+**Examples**
+
+```lua
+local ok = popup:unmap("n", "<esc>")
+```
+
+---
+
 ### `popup:on`
 
 _Signature:_ `popup:on(event, handler, options)`
