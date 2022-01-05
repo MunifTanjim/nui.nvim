@@ -79,6 +79,11 @@ function TreeNode:has_children()
   return #(self._child_ids or self.__children or {}) > 0
 end
 
+---@return string[]
+function TreeNode:get_child_ids()
+  return self._child_ids or {}
+end
+
 ---@return boolean
 function TreeNode:is_expanded()
   return self._is_expanded
