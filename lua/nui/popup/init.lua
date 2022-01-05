@@ -169,6 +169,11 @@ local function init(class, options)
 
   self.ns_id = _.normalize_namespace_id(options.ns_id)
 
+  if options.bufnr then
+    self.bufnr = options.bufnr
+    self._unmanaged_bufnr = true
+  end
+
   if not self.win_options.winblend and is_type("number", options.opacity) then
     -- @deprecated
     self.win_options.winblend = calculate_winblend(options.opacity)
@@ -246,8 +251,10 @@ function Popup:mount()
 
   self.border:mount()
 
-  self.bufnr = vim.api.nvim_create_buf(false, true)
-  assert(self.bufnr, "failed to create buffer")
+  if not self.bufnr then
+    self.bufnr = vim.api.nvim_create_buf(false, true)
+    assert(self.bufnr, "failed to create buffer")
+  end
 
   _.set_buf_options(self.bufnr, self.buf_options)
 
@@ -296,7 +303,7 @@ function Popup:unmount()
 
   buf_storage.cleanup(self.bufnr)
 
-  if self.bufnr then
+  if self.bufnr and not self._unmanaged_bufnr then
     if vim.api.nvim_buf_is_valid(self.bufnr) then
       vim.api.nvim_buf_delete(self.bufnr, { force = true })
     end

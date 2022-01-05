@@ -383,6 +383,20 @@ win_options = {
 },
 ```
 
+---
+
+### `bufnr`
+
+**Type:** `number`
+
+You can pass `bufnr` of an existing buffer to display it on the popup.
+
+**Examples:**
+
+```lua
+bufnr = vim.api.nvim_get_current_buf(),
+```
+
 ## Methods
 
 ### `popup:mount`
