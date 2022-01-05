@@ -79,7 +79,7 @@ end,
 
 **Type:** `function`
 
-_Signature:_ `prepare_node(node)`
+_Signature:_ `prepare_node(node, parent_node?) -> string | NuiLine`
 
 If provided, this function is used for preparing each node line.
 

@@ -103,21 +103,24 @@ describe("nui.tree", function()
   end)
 
   it("uses o.prepare_node if provided", function()
-    local function prepare_node(node)
-      return node:get_id()
+    local function prepare_node(node, parent_node)
+      if not parent_node then
+        return node.text
+      end
+
+      return parent_node.text .. ":" .. node.text
     end
 
     local nodes = {
       Tree.Node({ text = "a" }),
       Tree.Node({ text = "b" }, {
         Tree.Node({ text = "b-1" }),
-        Tree.Node({ text = "b-2" }, {
-          Tree.Node({ text = "b-2-x" }),
-          Tree.Node({ text = "b-2-y" }),
-        }),
+        Tree.Node({ text = "b-2" }),
       }),
       Tree.Node({ text = "c" }),
     }
+
+    nodes[2]:expand()
 
     local tree = Tree({
       winid = winid,
@@ -127,7 +130,13 @@ describe("nui.tree", function()
 
     tree:render()
 
-    h.assert_buf_lines(tree.bufnr, vim.tbl_map(prepare_node, nodes))
+    h.assert_buf_lines(tree.bufnr, {
+      "a",
+      "b",
+      "b:b-1",
+      "b:b-2",
+      "c",
+    })
   end)
 
   describe("default prepare_node", function()
