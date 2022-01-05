@@ -278,13 +278,13 @@ function Tree:_prepare_content()
 
   local current_linenr = 1
 
-  local function prepare(node_id)
+  local function prepare(node_id, parent_node)
     local node = self.nodes.by_id[node_id]
     if not node then
       return
     end
 
-    local line = self.prepare_node(node)
+    local line = self.prepare_node(node, parent_node)
     self._content.lines[current_linenr] = line
     self._content.node_id_by_linenr[current_linenr] = node:get_id()
     current_linenr = current_linenr + 1
@@ -293,8 +293,8 @@ function Tree:_prepare_content()
       return
     end
 
-    for _, child_node_id in ipairs(node._child_ids) do
-      prepare(child_node_id)
+    for _, child_node_id in ipairs(node:get_child_ids()) do
+      prepare(child_node_id, node)
     end
   end
 
