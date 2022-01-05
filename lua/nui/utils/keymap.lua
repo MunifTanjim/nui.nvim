@@ -5,16 +5,21 @@ local keymap = {
   storage = buf_storage.create("nui.utils.keymap", { _next_handler_id = 1, keys = {}, handlers = {} }),
 }
 
+local function get_key_id(mode, key)
+  return string.format("%s---%s", mode, vim.api.nvim_replace_termcodes(key, true, true, true))
+end
+
 local function store_keymap(bufnr, mode, key, handler, overwrite)
-  local key_id = string.format("%s---%s", mode, vim.api.nvim_replace_termcodes(key, true, true, true))
+  local key_id = get_key_id(mode, key)
 
   if keymap.storage[bufnr].keys[key_id] and not overwrite then
     return nil
   end
 
-  keymap.storage[bufnr].keys[key_id] = true
-
   local handler_id = keymap.storage[bufnr]._next_handler_id
+
+  keymap.storage[bufnr].keys[key_id] = handler_id
+
   keymap.storage[bufnr]._next_handler_id = handler_id + 1
 
   keymap.storage[bufnr].handlers[handler_id] = handler
@@ -43,6 +48,24 @@ function keymap.set(bufnr, mode, key, handler, opts, force)
   local handler_cmd = string.format("<cmd>lua require('nui.utils.keymap').execute(%s, %s)<CR>", bufnr, handler_id)
 
   vim.api.nvim_buf_set_keymap(bufnr, mode, key, handler_cmd, opts)
+
+  return true
+end
+
+function keymap._del(bufnr, mode, key, force)
+  local key_id = get_key_id(mode, key)
+
+  local handler_id = keymap.storage[bufnr].keys[key_id]
+
+  if not handler_id and not force then
+    return false
+  end
+
+  vim.api.nvim_buf_del_keymap(bufnr, mode, key)
+
+  keymap.storage[bufnr].keys[key_id] = nil
+
+  keymap.storage[bufnr].handlers[handler_id] = nil
 
   return true
 end
