@@ -128,41 +128,45 @@ local function init(class, options)
     error("invalid winid " .. winid)
   end
 
+  self.get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id)
+  self.prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node)
+
   self.winid = winid
   self.bufnr = vim.api.nvim_win_get_buf(self.winid)
-
-  self.buf_options = vim.tbl_extend("force", {
-    bufhidden = "hide",
-    buflisted = false,
-    buftype = "nofile",
-    modifiable = false,
-    readonly = true,
-    swapfile = false,
-  }, defaults(options.buf_options, {}))
-  _.set_buf_options(self.bufnr, self.buf_options)
-
-  self.win_options = vim.tbl_extend("force", {
-    foldcolumn = "0",
-    foldmethod = "manual",
-    wrap = false,
-  }, defaults(options.win_options, {}))
-  _.set_win_options(self.winid, self.win_options)
 
   self.ns_id = defaults(options.ns_id, -1)
   if is_type("string", self.ns_id) then
     self.ns_id = vim.api.nvim_create_namespace(self.ns_id)
   end
 
-  self.get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id)
-  self.prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node)
+  self._ = {
+    buf_options = vim.tbl_extend("force", {
+      bufhidden = "hide",
+      buflisted = false,
+      buftype = "nofile",
+      modifiable = false,
+      readonly = true,
+      swapfile = false,
+    }, defaults(options.buf_options, {})),
+    win_options = vim.tbl_extend("force", {
+      foldcolumn = "0",
+      foldmethod = "manual",
+      wrap = false,
+    }, defaults(options.win_options, {})),
+  }
+
+  _.set_buf_options(self.bufnr, self._.buf_options)
+
+  _.set_win_options(self.winid, self._.win_options)
 
   self:set_nodes(defaults(options.nodes, {}))
 
   return self
 end
 
----@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): string | NuiLine
 ---@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
+---@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): string | NuiLine
+---@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any> }
 
 ---@class NuiTree
 ---@field bufnr number
@@ -170,6 +174,7 @@ end
 ---@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
 ---@field ns_id number
 ---@field prepare_node nui_tree_prepare_node
+---@field private _ nui_tree_internal
 ---@field winid number
 local Tree = setmetatable({
   super = nil,
