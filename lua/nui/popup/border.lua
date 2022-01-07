@@ -441,7 +441,7 @@ end
 function Border:mount()
   local popup = self.popup
 
-  if not popup.popup_state.loading or popup.popup_state.mounted then
+  if not popup._.loading or popup._.mounted then
     return
   end
 
@@ -464,7 +464,7 @@ end
 function Border:unmount()
   local popup = self.popup
 
-  if not popup.popup_state.loading or not popup.popup_state.mounted then
+  if not popup._.loading or not popup._.mounted then
     return
   end
 

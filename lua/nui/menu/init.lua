@@ -123,10 +123,11 @@ local function make_default_prepare_node(menu)
   end
 end
 
+---@param menu NuiMenu
 ---@param direction "'next'" | "'prev'"
 ---@param current_linenr nil | number
 local function focus_item(menu, direction, current_linenr)
-  if not menu.popup_state.mounted then
+  if not menu._.mounted then
     return
   end
 
