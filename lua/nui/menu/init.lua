@@ -73,7 +73,7 @@ local function make_default_prepare_node(menu)
     end
   end
 
-  local max_width = menu.popup_props.size.width
+  local max_width = menu._.size.width
 
   return function(node)
     local text = is_type("string", node.text) and Text(node.text) or node.text

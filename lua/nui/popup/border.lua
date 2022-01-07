@@ -220,7 +220,7 @@ local styles = {
 }
 
 local function calculate_size(border)
-  local size = vim.deepcopy(border.popup.popup_props.size)
+  local size = vim.deepcopy(border.popup._.size)
 
   local char = border.border_props.char
 
