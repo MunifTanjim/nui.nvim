@@ -145,7 +145,7 @@ local function normalize_options(options)
 end
 
 local function init(class, options)
-  local self = setmetatable({}, class)
+  local self = setmetatable({}, { __index = class })
 
   options = normalize_options(options)
 
@@ -210,10 +210,13 @@ local function init(class, options)
   return self
 end
 
-local Popup = {
-  name = "Popup",
+---@class NuiPopup
+local Popup = setmetatable({
   super = nil,
-}
+}, {
+  __call = init,
+  __name = "NuiPopup",
+})
 
 function Popup:init(options)
   return init(self, options)
@@ -397,11 +400,8 @@ function Popup:set_position(position, relative)
   end
 end
 
-local PopupClass = setmetatable({
-  __index = Popup,
-}, {
-  __call = init,
-  __index = Popup,
-})
+---@alias NuiPopup.constructor fun(options: table): NuiPopup
+---@type NuiPopup|NuiPopup.constructor
+local NuiPopup = Popup
 
-return PopupClass
+return NuiPopup

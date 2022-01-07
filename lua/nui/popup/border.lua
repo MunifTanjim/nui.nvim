@@ -322,7 +322,7 @@ local function adjust_popup_win_config(border)
 end
 
 local function init(class, popup, options)
-  local self = setmetatable({}, class)
+  local self = setmetatable({}, { __index = class })
 
   self.popup = popup
 
@@ -397,10 +397,13 @@ local function init(class, popup, options)
   return self
 end
 
-local Border = {
+---@class NuiPopupBorder
+local Border = setmetatable({
   super = nil,
-  name = "Border",
-}
+}, {
+  __call = init,
+  __name = "NuiPopupBorder",
+})
 
 function Border:init(popup, options)
   return init(self, popup, options)
@@ -567,11 +570,8 @@ function Border:get()
   return to_border_list(props.char)
 end
 
-local BorderClass = setmetatable({
-  __index = Border,
-}, {
-  __call = init,
-  __index = Border,
-})
+---@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: table): NuiPopupBorder
+---@type NuiPopupBorder|NuiPopupBorder.constructor
+local NuiPopupBorder = Border
 
-return BorderClass
+return NuiPopupBorder
