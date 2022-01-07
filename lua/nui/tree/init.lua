@@ -3,12 +3,20 @@ local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 local tree_util = require("nui.tree.util")
 
+---@param nodes NuiTreeNode[]
+---@param parent_node? NuiTreeNode
+---@param get_node_id nui_tree_get_node_id
+---@return { by_id: table<string, NuiTreeNode>, root_ids: string[] }
 local function initialize_nodes(nodes, parent_node, get_node_id)
   local start_depth = parent_node and parent_node:get_depth() + 1 or 1
 
+  ---@type table<string, NuiTreeNode>
   local by_id = {}
+  ---@type string[]
   local root_ids = {}
 
+  ---@param node NuiTreeNode
+  ---@param depth number
   local function initialize(node, depth)
     node._depth = depth
     node._id = get_node_id(node)
@@ -54,8 +62,8 @@ local function initialize_nodes(nodes, parent_node, get_node_id)
   }
 end
 
+---@class NuiTreeNode
 local TreeNode = {
-  name = "NuiTreeNode",
   super = nil,
 }
 
@@ -89,6 +97,7 @@ function TreeNode:is_expanded()
   return self._is_expanded
 end
 
+---@return boolean is_updated
 function TreeNode:expand()
   if self:has_children() and not self:is_expanded() then
     self._is_expanded = true
@@ -97,6 +106,7 @@ function TreeNode:expand()
   return false
 end
 
+---@return boolean is_updated
 function TreeNode:collapse()
   if self:is_expanded() then
     self._is_expanded = false
@@ -105,30 +115,11 @@ function TreeNode:collapse()
   return false
 end
 
-local Tree = {
-  name = "NuiTree",
-  super = nil,
-}
-
-function Tree.Node(data, children)
-  local self = setmetatable(
-    vim.tbl_extend("force", data, {
-      __children = children,
-      _initialized = false,
-      _is_expanded = false,
-      _child_ids = nil,
-      _parent_id = nil,
-      _depth = nil,
-      _id = nil,
-    }),
-    { __index = TreeNode }
-  )
-
-  return self
-end
-
+---@param class NuiTree
+---@return NuiTree
 local function init(class, options)
-  local self = setmetatable({}, class)
+  ---@type NuiTree
+  local self = setmetatable({}, { __index = class })
 
   local winid = options.winid
   if not winid then
@@ -170,8 +161,49 @@ local function init(class, options)
   return self
 end
 
+---@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): string | NuiLine
+---@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
+
+---@class NuiTree
+---@field bufnr number
+---@field get_node_id nui_tree_get_node_id
+---@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
+---@field ns_id number
+---@field prepare_node nui_tree_prepare_node
+---@field winid number
+local Tree = setmetatable({
+  super = nil,
+}, {
+  __call = init,
+  __name = "NuiTree",
+})
+
+---@generic D : table
+---@param data D data table
+---@param children NuiTreeNode[]
+---@return NuiTreeNode|D
+function Tree.Node(data, children)
+  ---@type NuiTreeNode
+  local self = {
+    __children = children,
+    _initialized = false,
+    _is_expanded = false,
+    _child_ids = nil,
+    _parent_id = nil,
+    _depth = nil,
+    _id = nil,
+  }
+
+  self = setmetatable(vim.tbl_extend("keep", self, data), {
+    __index = TreeNode,
+    __name = "NuiTreeNode",
+  })
+
+  return self
+end
+
 ---@param node_id_or_linenr? string | number
----@return table|nil NuiTreeNode
+---@return NuiTreeNode|nil
 function Tree:get_node(node_id_or_linenr)
   if is_type("string", node_id_or_linenr) then
     return self.nodes.by_id[node_id_or_linenr]
@@ -183,7 +215,7 @@ function Tree:get_node(node_id_or_linenr)
 end
 
 ---@param parent_id? string parent node's id
----@return table[] nodes NuiTreeNode[]
+---@return NuiTreeNode[] nodes
 function Tree:get_nodes(parent_id)
   local node_ids = {}
 
@@ -201,6 +233,8 @@ function Tree:get_nodes(parent_id)
   end, node_ids or {})
 end
 
+---@param nodes NuiTreeNode[]
+---@param parent_node? NuiTreeNode
 function Tree:_add_nodes(nodes, parent_node)
   local new_nodes = initialize_nodes(nodes, parent_node, self.get_node_id)
 
@@ -221,9 +255,10 @@ function Tree:_add_nodes(nodes, parent_node)
   end
 end
 
----@param nodes table[] NuiTreeNode[]
+---@param nodes NuiTreeNode[]
 ---@param parent_id? string parent node's id
 function Tree:set_nodes(nodes, parent_id)
+  ---@type { lines: string[]|NuiLine[], node_id_by_linenr: table<number,string> }
   self._content = { lines = {}, node_id_by_linenr = {} }
 
   if not parent_id then
@@ -248,7 +283,7 @@ function Tree:set_nodes(nodes, parent_id)
   self:_add_nodes(nodes, parent_node)
 end
 
----@param node table NuiTreeNode
+---@param node NuiTreeNode
 ---@param parent_id? string parent node's id
 function Tree:add_node(node, parent_id)
   local parent_node = self.nodes.by_id[parent_id]
@@ -259,6 +294,8 @@ function Tree:add_node(node, parent_id)
   self:_add_nodes({ node }, parent_node)
 end
 
+---@param node_id string
+---@return NuiTreeNode
 function Tree:remove_node(node_id)
   local node = self.nodes.by_id[node_id]
   self.nodes.by_id[node_id] = nil
@@ -330,11 +367,8 @@ function Tree:render()
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
 end
 
-local TreeClass = setmetatable({
-  __index = Tree,
-}, {
-  __call = init,
-  __index = Tree,
-})
+---@alias NuiTree.constructor fun(options: table): NuiTree
+---@type NuiTree|NuiTree.constructor
+local NuiTree = Tree
 
-return TreeClass
+return NuiTree
