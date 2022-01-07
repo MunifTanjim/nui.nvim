@@ -155,9 +155,11 @@ local function init(class, options)
   options = normalize_options(options)
 
   self._ = {
+    buf_options = options.buf_options,
     loading = false,
     mounted = false,
     win_enter = options.enter,
+    win_options = options.win_options,
   }
 
   self.win_config = {
@@ -166,9 +168,6 @@ local function init(class, options)
     zindex = options.zindex,
   }
 
-  self.buf_options = options.buf_options
-  self.win_options = options.win_options
-
   self.ns_id = _.normalize_namespace_id(options.ns_id)
 
   if options.bufnr then
@@ -176,14 +175,14 @@ local function init(class, options)
     self._.unmanaged_bufnr = true
   end
 
-  if not self.win_options.winblend and is_type("number", options.opacity) then
+  if not self._.win_options.winblend and is_type("number", options.opacity) then
     -- @deprecated
-    self.win_options.winblend = calculate_winblend(options.opacity)
+    self._.win_options.winblend = calculate_winblend(options.opacity)
   end
 
-  if not self.win_options.winhighlight and not is_type("nil", options.highlight) then
+  if not self._.win_options.winhighlight and not is_type("nil", options.highlight) then
     -- @deprecated
-    self.win_options.winhighlight = options.highlight
+    self._.win_options.winhighlight = options.highlight
   end
 
   local win_config = self.win_config
@@ -219,7 +218,7 @@ end
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_popup_internal_size { height: number, width: number }
----@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean }
+---@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean, buf_options: table<string,any>, win_options: table<string,any> }
 ---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
 
 --luacheck: pop
@@ -250,7 +249,7 @@ function Popup:_open_window()
   self.winid = vim.api.nvim_open_win(self.bufnr, self._.win_enter, self.win_config)
   assert(self.winid, "failed to create popup window")
 
-  _.set_win_options(self.winid, self.win_options)
+  _.set_win_options(self.winid, self._.win_options)
 end
 
 function Popup:_close_window()
@@ -279,7 +278,7 @@ function Popup:mount()
     assert(self.bufnr, "failed to create buffer")
   end
 
-  _.set_buf_options(self.bufnr, self.buf_options)
+  _.set_buf_options(self.bufnr, self._.buf_options)
 
   self:_open_window()
 
