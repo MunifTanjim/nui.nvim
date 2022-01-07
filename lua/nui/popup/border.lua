@@ -62,54 +62,57 @@ local function to_border_list(named_border)
   return border
 end
 
-local function normalize_border_char(props)
-  if not props.char or is_type("string", props.char) then
-    return props.char
+---@param internal nui_popup_border_internal
+local function normalize_border_char(internal)
+  if not internal.char or is_type("string", internal.char) then
+    return internal.char
   end
 
-  if props.type == "simple" then
-    for position, item in pairs(props.char) do
+  if internal.type == "simple" then
+    for position, item in pairs(internal.char) do
       if is_type("string", item) then
-        props.char[position] = item
+        internal.char[position] = item
       elseif item.content then
         if item.extmark and item.extmark.hl_group then
-          props.char[position] = { item:content(), item.extmark.hl_group }
+          internal.char[position] = { item:content(), item.extmark.hl_group }
         else
-          props.char[position] = item:content()
+          internal.char[position] = item:content()
         end
       else
-        props.char[position] = item
+        internal.char[position] = item
       end
     end
 
-    return props.char
+    return internal.char
   end
 
-  for position, item in pairs(props.char) do
+  for position, item in pairs(internal.char) do
     if is_type("string", item) then
-      props.char[position] = Text(item, props.highlight)
+      internal.char[position] = Text(item, internal.highlight)
     elseif not item.content then
-      props.char[position] = Text(item[1], item[2] or props.highlight)
+      internal.char[position] = Text(item[1], item[2] or internal.highlight)
     end
   end
 
-  return props.char
+  return internal.char
 end
 
-local function normalize_highlight(props)
-  if props.highlight and string.match(props.highlight, ":") then
-    -- @deprecated
-    props._winhighlight = props.highlight
-    props.highlight = nil
+---@param internal nui_popup_border_internal
+local function normalize_highlight(internal)
+  -- @deprecated
+  if internal.highlight and string.match(internal.highlight, ":") then
+    internal.winhighlight = internal.highlight
+    internal.highlight = nil
   end
 
-  if not props.highlight and props._winhighlight then
-    props.highlight = string.match(props._winhighlight, "FloatBorder:([^,]+)")
+  if not internal.highlight and internal.winhighlight then
+    internal.highlight = string.match(internal.winhighlight, "FloatBorder:([^,]+)")
   end
 
-  return props.highlight or "FloatBorder"
+  return internal.highlight or "FloatBorder"
 end
 
+---@return nui_popup_border_internal_padding|nil
 local function parse_padding(padding)
   if not padding then
     return nil
@@ -131,8 +134,8 @@ end
 ---@param text? nil | string | table # string or NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 ---@return table NuiLine
-local function calculate_buf_edge_line(props, edge, text, align)
-  local char, size = props.char, props.size
+local function calculate_buf_edge_line(internal, edge, text, align)
+  local char, size = internal.char, internal.size
 
   local left_char = char[edge .. "_left"]
   local mid_char = char[edge]
@@ -181,8 +184,8 @@ local function calculate_buf_edge_line(props, edge, text, align)
 end
 
 ---@return nil | table[] # NuiLine[]
-local function calculate_buf_lines(props)
-  local char, size, text = props.char, props.size, defaults(props.text, {})
+local function calculate_buf_lines(internal)
+  local char, size, text = internal.char, internal.size, defaults(internal.text, {})
 
   if is_type("string", char) then
     return nil
@@ -194,7 +197,7 @@ local function calculate_buf_lines(props)
 
   local lines = {}
 
-  table.insert(lines, calculate_buf_edge_line(props, "top", text.top, text.top_align))
+  table.insert(lines, calculate_buf_edge_line(internal, "top", text.top, text.top_align))
   for _ = 1, size.height - 2 do
     table.insert(
       lines,
@@ -205,7 +208,7 @@ local function calculate_buf_lines(props)
       })
     )
   end
-  table.insert(lines, calculate_buf_edge_line(props, "bottom", text.bottom, text.bottom_align))
+  table.insert(lines, calculate_buf_edge_line(internal, "bottom", text.bottom, text.bottom_align))
 
   return lines
 end
@@ -219,10 +222,13 @@ local styles = {
   solid = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
 }
 
+---@param border NuiPopupBorder
+---@return nui_popup_border_internal_size
 local function calculate_size(border)
+  ---@type nui_popup_border_internal_size
   local size = vim.deepcopy(border.popup._.size)
 
-  local char = border.border_props.char
+  local char = border._.char
 
   if is_type("map", char) then
     if char.top ~= "" then
@@ -242,7 +248,7 @@ local function calculate_size(border)
     end
   end
 
-  local padding = border.border_props.padding
+  local padding = border._.padding
 
   if padding then
     if padding.top then
@@ -266,15 +272,16 @@ local function calculate_size(border)
 end
 
 ---@param border NuiPopupBorder
+---@return nui_popup_border_internal_position
 local function calculate_position(border)
   local position = vim.deepcopy(border.popup._.position)
   return position
 end
 
 local function adjust_popup_win_config(border)
-  local props = border.border_props
+  local internal = border._
 
-  if props.type ~= "complex" then
+  if internal.type ~= "complex" then
     return
   end
 
@@ -283,7 +290,7 @@ local function adjust_popup_win_config(border)
     col = 0,
   }
 
-  local char = props.char
+  local char = internal.char
 
   if is_type("map", char) then
     if char.top ~= "" then
@@ -295,7 +302,7 @@ local function adjust_popup_win_config(border)
     end
   end
 
-  local padding = props.padding
+  local padding = internal.padding
 
   if padding then
     if padding.top then
@@ -310,8 +317,8 @@ local function adjust_popup_win_config(border)
   local popup = border.popup
 
   if not has_nvim_0_5_1 then
-    popup.win_config.row = props.position.row + popup_position.row
-    popup.win_config.col = props.position.col + popup_position.col
+    popup.win_config.row = internal.position.row + popup_position.row
+    popup.win_config.col = internal.position.col + popup_position.col
     return
   end
 
@@ -330,49 +337,49 @@ local function init(class, popup, options)
 
   self.popup = popup
 
-  self.border_props = {
+  self._ = {
     type = "simple",
     style = defaults(options.style, "none"),
     -- @deprecated
     highlight = options.highlight,
     padding = parse_padding(options.padding),
     text = options.text,
-    _winhighlight = self.popup._.win_options.winhighlight,
+    winhighlight = self.popup._.win_options.winhighlight,
   }
 
-  local props = self.border_props
+  local internal = self._
 
-  local style = props.style
+  local style = internal.style
 
   if is_type("list", style) then
-    props.char = to_border_map(style)
+    internal.char = to_border_map(style)
   elseif is_type("string", style) then
     if not styles[style] then
       error("invalid border style name")
     end
 
-    props.char = vim.deepcopy(styles[style])
+    internal.char = vim.deepcopy(styles[style])
   else
-    props.char = props.style
+    internal.char = internal.style
   end
 
-  local is_borderless = is_type("string", props.char)
+  local is_borderless = is_type("string", internal.char)
 
   if is_borderless then
-    if props.text then
-      error("text not supported for style:" .. props.char)
+    if internal.text then
+      error("text not supported for style:" .. internal.char)
     end
   end
 
-  if props.text or props.padding then
-    props.type = "complex"
+  if internal.text or internal.padding then
+    internal.type = "complex"
   end
 
-  props.highlight = normalize_highlight(props)
+  internal.highlight = normalize_highlight(internal)
 
-  props.char = normalize_border_char(props)
+  internal.char = normalize_border_char(internal)
 
-  if props.type == "simple" then
+  if internal.type == "simple" then
     return self
   end
 
@@ -388,20 +395,35 @@ local function init(class, popup, options)
   self.win_config.win = position.relative == "win" and position.win or nil
   self.win_config.bufpos = position.bufpos
 
-  props.size = calculate_size(self)
-  self.win_config.width = props.size.width
-  self.win_config.height = props.size.height
+  internal.size = calculate_size(self)
+  self.win_config.width = internal.size.width
+  self.win_config.height = internal.size.height
 
-  props.position = calculate_position(self)
-  self.win_config.row = props.position.row
-  self.win_config.col = props.position.col
+  internal.position = calculate_position(self)
+  self.win_config.row = internal.position.row
+  self.win_config.col = internal.position.col
 
-  props._lines = calculate_buf_lines(props)
+  internal.lines = calculate_buf_lines(internal)
 
   return self
 end
 
+--luacheck: push no max line length
+
+---@alias nui_t_text_align "'left'" | "'center'" | "'right'"
+---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
+---@alias nui_popup_border_internal_position { row: number, col: number }
+---@alias nui_popup_border_internal_size { width: number, height: number }
+---@alias nui_popup_border_internal_text { top?: string, top_align?: nui_t_text_align, bottom?: string, bottom_align?: nui_t_text_align }
+---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
+
+--luacheck: pop
+
 ---@class NuiPopupBorder
+---@field bufnr number
+---@field private _ nui_popup_border_internal
+---@field private popup NuiPopup
+---@field winid number
 local Border = setmetatable({
   super = nil,
 }, {
@@ -421,8 +443,8 @@ function Border:_open_window()
   self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
   assert(self.winid, "failed to create border window")
 
-  if self.border_props._winhighlight then
-    vim.api.nvim_win_set_option(self.winid, "winhighlight", self.border_props._winhighlight)
+  if self._.winhighlight then
+    vim.api.nvim_win_set_option(self.winid, "winhighlight", self._.winhighlight)
   end
 
   adjust_popup_win_config(self)
@@ -449,17 +471,17 @@ function Border:mount()
     return
   end
 
-  local props = self.border_props
+  local internal = self._
 
-  if props.type == "simple" then
+  if internal.type == "simple" then
     return
   end
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create border buffer")
 
-  if props._lines then
-    _.render_lines(props._lines, self.bufnr, popup.ns_id, 1, #props._lines)
+  if internal.lines then
+    _.render_lines(internal.lines, self.bufnr, popup.ns_id, 1, #internal.lines)
   end
 
   self:_open_window()
@@ -472,9 +494,9 @@ function Border:unmount()
     return
   end
 
-  local props = self.border_props
+  local internal = self._
 
-  if props.type == "simple" then
+  if internal.type == "simple" then
     return
   end
 
@@ -489,25 +511,25 @@ function Border:unmount()
 end
 
 function Border:resize()
-  local props = self.border_props
+  local internal = self._
 
-  if props.type ~= "complex" then
+  if internal.type ~= "complex" then
     return
   end
 
-  props.size = calculate_size(self)
-  self.win_config.width = props.size.width
-  self.win_config.height = props.size.height
+  internal.size = calculate_size(self)
+  self.win_config.width = internal.size.width
+  self.win_config.height = internal.size.height
 
-  props._lines = calculate_buf_lines(props)
+  internal.lines = calculate_buf_lines(internal)
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
   end
 
   if self.bufnr then
-    if props._lines then
-      _.render_lines(props._lines, self.bufnr, self.popup.ns_id, 1, #props._lines)
+    if internal.lines then
+      _.render_lines(internal.lines, self.bufnr, self.popup.ns_id, 1, #internal.lines)
     end
   end
 
@@ -515,9 +537,9 @@ function Border:resize()
 end
 
 function Border:reposition()
-  local props = self.border_props
+  local internal = self._
 
-  if props.type ~= "complex" then
+  if internal.type ~= "complex" then
     return
   end
 
@@ -526,9 +548,9 @@ function Border:reposition()
   self.win_config.win = position.relative == "win" and position.win or nil
   self.win_config.bufpos = position.bufpos
 
-  props.position = calculate_position(self)
-  self.win_config.row = props.position.row
-  self.win_config.col = props.position.col
+  internal.position = calculate_position(self)
+  self.win_config.row = internal.position.row
+  self.win_config.col = internal.position.col
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
@@ -543,35 +565,35 @@ end
 ---@param text? nil | string | table # string or NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 function Border:set_text(edge, text, align)
-  local props = self.border_props
+  local internal = self._
 
-  if not props._lines or not props.text then
+  if not internal.lines or not internal.text then
     return
   end
 
-  props.text[edge] = text
-  props.text[edge .. "_align"] = defaults(align, props.text[edge .. "_align"])
+  internal.text[edge] = text
+  internal.text[edge .. "_align"] = defaults(align, internal.text[edge .. "_align"])
 
-  local line = calculate_buf_edge_line(props, edge, props.text[edge], props.text[edge .. "_align"])
+  local line = calculate_buf_edge_line(internal, edge, internal.text[edge], internal.text[edge .. "_align"])
 
-  local linenr = edge == "top" and 1 or #props._lines
+  local linenr = edge == "top" and 1 or #internal.lines
 
-  props._lines[linenr] = line
+  internal.lines[linenr] = line
   line:render(self.bufnr, self.popup.ns_id, linenr)
 end
 
 function Border:get()
-  local props = self.border_props
+  local internal = self._
 
-  if props.type ~= "simple" then
+  if internal.type ~= "simple" then
     return nil
   end
 
-  if is_type("string", props.char) then
-    return props.char
+  if is_type("string", internal.char) then
+    return internal.char
   end
 
-  return to_border_list(props.char)
+  return to_border_list(internal.char)
 end
 
 ---@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: table): NuiPopupBorder

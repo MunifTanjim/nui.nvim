@@ -180,8 +180,8 @@ local function init(class, options)
     self._.win_options.winblend = calculate_winblend(options.opacity)
   end
 
+  -- @deprecated
   if not self._.win_options.winhighlight and not is_type("nil", options.highlight) then
-    -- @deprecated
     self._.win_options.winhighlight = options.highlight
   end
 
