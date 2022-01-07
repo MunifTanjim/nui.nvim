@@ -157,9 +157,6 @@ local function init(class, options)
   self._ = {
     loading = false,
     mounted = false,
-  }
-
-  self.popup_props = {
     win_enter = options.enter,
   }
 
@@ -222,7 +219,7 @@ end
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_popup_internal_size { height: number, width: number }
----@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size }
+---@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean }
 ---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
 
 --luacheck: pop
@@ -246,7 +243,7 @@ function Popup:_open_window()
     return
   end
 
-  self.winid = vim.api.nvim_open_win(self.bufnr, self.popup_props.win_enter, self.win_config)
+  self.winid = vim.api.nvim_open_win(self.bufnr, self._.win_enter, self.win_config)
   assert(self.winid, "failed to create popup window")
 
   _.set_win_options(self.winid, self.win_options)
