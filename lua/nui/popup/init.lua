@@ -144,15 +144,18 @@ local function normalize_options(options)
   return options
 end
 
+---@param class NuiPopup
 local function init(class, options)
+  ---@type NuiPopup
   local self = setmetatable({}, { __index = class })
 
   options = normalize_options(options)
 
-  self.popup_state = {
+  self._ = {
     loading = false,
     mounted = false,
   }
+  self.popup_state = {}
 
   self.popup_props = {
     win_enter = options.enter,
@@ -210,7 +213,10 @@ local function init(class, options)
   return self
 end
 
+---@alias nui_popup_internal { loading: boolean, mounted: boolean }
+
 ---@class NuiPopup
+---@field _ nui_popup_internal
 local Popup = setmetatable({
   super = nil,
 }, {
@@ -246,11 +252,11 @@ function Popup:_close_window()
 end
 
 function Popup:mount()
-  if self.popup_state.loading or self.popup_state.mounted then
+  if self._.loading or self._.mounted then
     return
   end
 
-  self.popup_state.loading = true
+  self._.loading = true
 
   self.border:mount()
 
@@ -263,44 +269,44 @@ function Popup:mount()
 
   self:_open_window()
 
-  self.popup_state.loading = false
-  self.popup_state.mounted = true
+  self._.loading = false
+  self._.mounted = true
 end
 
 function Popup:hide()
-  if self.popup_state.loading or not self.popup_state.mounted then
+  if self._.loading or not self._.mounted then
     return
   end
 
-  self.popup_state.loading = true
+  self._.loading = true
 
   self.border:_close_window()
 
   self:_close_window()
 
-  self.popup_state.loading = false
+  self._.loading = false
 end
 
 function Popup:show()
-  if self.popup_state.loading or not self.popup_state.mounted then
+  if self._.loading or not self._.mounted then
     return
   end
 
-  self.popup_state.loading = true
+  self._.loading = true
 
   self.border:_open_window()
 
   self:_open_window()
 
-  self.popup_state.loading = false
+  self._.loading = false
 end
 
 function Popup:unmount()
-  if self.popup_state.loading or not self.popup_state.mounted then
+  if self._.loading or not self._.mounted then
     return
   end
 
-  self.popup_state.loading = true
+  self._.loading = true
 
   self.border:unmount()
 
@@ -315,8 +321,8 @@ function Popup:unmount()
 
   self:_close_window()
 
-  self.popup_state.loading = false
-  self.popup_state.mounted = false
+  self._.loading = false
+  self._.mounted = false
 end
 
 -- set keymap for this popup window. if keymap was already set and
@@ -328,7 +334,7 @@ end
 ---@param force boolean
 ---@return boolean ok
 function Popup:map(mode, key, handler, opts, force)
-  if not self.popup_state.mounted then
+  if not self._.mounted then
     error("popup window is not mounted yet. call popup:mount()")
   end
 
@@ -340,7 +346,7 @@ end
 ---@param force? boolean
 ---@return boolean ok
 function Popup:unmap(mode, key, force)
-  if not self.popup_state.mounted then
+  if not self._.mounted then
     error("popup window is not mounted yet. call popup:mount()")
   end
 
