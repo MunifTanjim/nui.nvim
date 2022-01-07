@@ -189,21 +189,20 @@ local function init(class, options)
     self.win_options.winhighlight = options.highlight
   end
 
-  local props = self.popup_props
   local win_config = self.win_config
 
   self._.position = parse_relative(options.relative, vim.api.nvim_get_current_win())
 
   local container_info = get_container_info(self._.position)
 
-  props.size = calculate_window_size(options.size, container_info.size)
-  win_config.width = props.size.width
-  win_config.height = props.size.height
+  self._.size = calculate_window_size(options.size, container_info.size)
+  win_config.width = self._.size.width
+  win_config.height = self._.size.height
 
   self._.position = vim.tbl_extend(
     "force",
     self._.position,
-    calculate_window_position(options.position, props.size, container_info)
+    calculate_window_position(options.position, self._.size, container_info)
   )
 
   win_config.relative = self._.position.relative
@@ -222,7 +221,8 @@ end
 --luacheck: push no max line length
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
----@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position }
+---@alias nui_popup_internal_size { height: number, width: number }
+---@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size }
 ---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
 
 --luacheck: pop
@@ -379,13 +379,11 @@ function Popup:off(event)
 end
 
 function Popup:set_size(size)
-  local props = self.popup_props
-
   local container_info = get_container_info(self._.position)
 
-  props.size = calculate_window_size(size, container_info.size)
-  self.win_config.width = props.size.width
-  self.win_config.height = props.size.height
+  self._.size = calculate_window_size(size, container_info.size)
+  self.win_config.width = self._.size.width
+  self.win_config.height = self._.size.height
 
   self.border:resize()
 
@@ -395,7 +393,6 @@ function Popup:set_size(size)
 end
 
 function Popup:set_position(position, relative)
-  local props = self.popup_props
   local win_config = self.win_config
 
   if relative then
@@ -410,7 +407,7 @@ function Popup:set_position(position, relative)
   self._.position = vim.tbl_extend(
     "force",
     self._.position,
-    calculate_window_position(position, props.size, container_info)
+    calculate_window_position(position, self._.size, container_info)
   )
   win_config.row = self._.position.row
   win_config.col = self._.position.col
