@@ -19,9 +19,8 @@ local split_direction_command_map = {
   },
 }
 
-local function get_container_info(split)
-  local relative = split.split_props.relative
-
+---@param relative nui_split_internal_relative
+local function get_container_info(relative)
   if relative == "editor" then
     return {
       size = utils.get_editor_size(),
@@ -37,14 +36,14 @@ local function get_container_info(split)
   end
 end
 
-local function calculate_window_size(split, size, container)
+---@param position nui_split_internal_position
+---@param size number
+local function calculate_window_size(position, size, container)
   if not size then
     return {}
   end
 
-  local props = split.split_props
-
-  if props.position == "left" or props.position == "right" then
+  if position == "left" or position == "right" then
     return {
       width = utils._.normalize_dimension(size, container.size.width),
     }
@@ -66,28 +65,26 @@ local function init(class, options)
     buf_options = defaults(options.buf_options, {}),
     loading = false,
     mounted = false,
+    position = defaults(options.position, vim.go.splitbelow and "bottom" or "top"),
+    relative = defaults(options.relative, "win"),
     win_options = vim.tbl_extend("force", {
       winfixwidth = true,
       winfixheight = true,
     }, defaults(options.win_options, {})),
   }
 
-  self.split_props = {
-    relative = defaults(options.relative, "win"),
-    position = defaults(options.position, vim.go.splitbelow and "bottom" or "top"),
-  }
-
-  local props = self.split_props
-
-  local container_info = get_container_info(self)
-  props.size = calculate_window_size(self, options.size, container_info)
+  local container_info = get_container_info(self._.relative)
+  self._.size = calculate_window_size(self._.position, options.size, container_info)
 
   return self
 end
 
 --luacheck: push no max line length
 
----@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any> }
+---@alias nui_split_internal_position "'top'"|"'right'"|"'bottom'"|"'left'"
+---@alias nui_split_internal_relative "'editor'"|"'win'"
+---@alias nui_split_internal_size { width?: number, height?: number }
+---@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any>, position: nui_split_internal_position, relative: nui_split_internal_relative, size: nui_split_internal_size }
 
 --luacheck: pop
 
@@ -111,22 +108,20 @@ function Split:_open_window()
     return
   end
 
-  local props = self.split_props
-
   vim.api.nvim_command(
     string.format(
       "silent noswapfile %s sbuffer %s",
-      split_direction_command_map[props.relative][props.position],
+      split_direction_command_map[self._.relative][self._.position],
       self.bufnr
     )
   )
 
   self.winid = vim.fn.win_getid()
 
-  if props.size.width then
-    vim.api.nvim_win_set_width(self.winid, props.size.width)
-  elseif props.size.height then
-    vim.api.nvim_win_set_height(self.winid, props.size.height)
+  if self._.size.width then
+    vim.api.nvim_win_set_width(self.winid, self._.size.width)
+  elseif self._.size.height then
+    vim.api.nvim_win_set_height(self.winid, self._.size.height)
   end
 
   utils._.set_win_options(self.winid, self._.win_options)
