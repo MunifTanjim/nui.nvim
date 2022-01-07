@@ -63,8 +63,13 @@ local function init(class, options)
   local self = setmetatable({}, { __index = class })
 
   self._ = {
-    mounted = false,
+    buf_options = defaults(options.buf_options, {}),
     loading = false,
+    mounted = false,
+    win_options = vim.tbl_extend("force", {
+      winfixwidth = true,
+      winfixheight = true,
+    }, defaults(options.win_options, {})),
   }
 
   self.split_props = {
@@ -77,17 +82,14 @@ local function init(class, options)
   local container_info = get_container_info(self)
   props.size = calculate_window_size(self, options.size, container_info)
 
-  self.buf_options = defaults(options.buf_options, {})
-
-  self.win_options = vim.tbl_extend("force", {
-    winfixwidth = true,
-    winfixheight = true,
-  }, defaults(options.win_options, {}))
-
   return self
 end
 
----@alias nui_split_internal { loading: boolean, mounted: boolean }
+--luacheck: push no max line length
+
+---@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any> }
+
+--luacheck: pop
 
 ---@class NuiSplit
 ---@field private _ nui_split_internal
@@ -127,9 +129,7 @@ function Split:_open_window()
     vim.api.nvim_win_set_height(self.winid, props.size.height)
   end
 
-  for name, value in pairs(self.win_options) do
-    vim.api.nvim_win_set_option(self.winid, name, value)
-  end
+  utils._.set_win_options(self.winid, self._.win_options)
 end
 
 function Split:_close_window()
@@ -154,9 +154,7 @@ function Split:mount()
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
 
-  for name, value in pairs(self.buf_options) do
-    vim.api.nvim_buf_set_option(self.bufnr, name, value)
-  end
+  utils._.set_buf_options(self.bufnr, self._.buf_options)
 
   self:_open_window()
 
