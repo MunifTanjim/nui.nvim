@@ -265,8 +265,9 @@ local function calculate_size(border)
   return size
 end
 
+---@param border NuiPopupBorder
 local function calculate_position(border)
-  local position = vim.deepcopy(border.popup.popup_state.position)
+  local position = vim.deepcopy(border.popup._.position)
   return position
 end
 

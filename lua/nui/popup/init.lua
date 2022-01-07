@@ -49,6 +49,7 @@ local function calculate_window_size(size, container_size)
   }
 end
 
+---@return nui_popup_internal_position
 local function calculate_window_position(position, size, container)
   local row
   local col
@@ -157,7 +158,6 @@ local function init(class, options)
     loading = false,
     mounted = false,
   }
-  self.popup_state = {}
 
   self.popup_props = {
     win_enter = options.enter,
@@ -190,7 +190,6 @@ local function init(class, options)
   end
 
   local props = self.popup_props
-  local state = self.popup_state
   local win_config = self.win_config
 
   self._.position_meta = parse_relative(options.relative, vim.api.nvim_get_current_win())
@@ -204,9 +203,9 @@ local function init(class, options)
   win_config.width = props.size.width
   win_config.height = props.size.height
 
-  state.position = calculate_window_position(options.position, props.size, container_info)
-  win_config.row = state.position.row
-  win_config.col = state.position.col
+  self._.position = calculate_window_position(options.position, props.size, container_info)
+  win_config.row = self._.position.row
+  win_config.col = self._.position.col
 
   self.border = Border(self, options.border)
 
@@ -215,8 +214,13 @@ local function init(class, options)
   return self
 end
 
+--luacheck: push no max line length
+
 ---@alias nui_popup_internal_position_meta { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[] }
----@alias nui_popup_internal { loading: boolean, mounted: boolean, position_meta: nui_popup_internal_position_meta }
+---@alias nui_popup_internal_position { row: number, col: number }
+---@alias nui_popup_internal { loading: boolean, mounted: boolean, position_meta: nui_popup_internal_position_meta, position: nui_popup_internal_position }
+
+--luacheck: pop
 
 ---@class NuiPopup
 ---@field private _ nui_popup_internal
@@ -386,7 +390,6 @@ end
 
 function Popup:set_position(position, relative)
   local props = self.popup_props
-  local state = self.popup_state
   local win_config = self.win_config
 
   if relative then
@@ -398,9 +401,9 @@ function Popup:set_position(position, relative)
 
   local container_info = get_container_info(self._.position_meta)
 
-  state.position = calculate_window_position(position, props.size, container_info)
-  win_config.row = state.position.row
-  win_config.col = state.position.col
+  self._.position = calculate_window_position(position, props.size, container_info)
+  win_config.row = self._.position.row
+  win_config.col = self._.position.col
 
   self.border:reposition()
 
