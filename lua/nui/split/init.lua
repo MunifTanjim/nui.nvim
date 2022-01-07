@@ -56,7 +56,7 @@ local function calculate_window_size(split, size, container)
 end
 
 local function init(class, options)
-  local self = setmetatable({}, class)
+  local self = setmetatable({}, { __index = class })
 
   self.split_state = {
     mounted = false,
@@ -83,10 +83,13 @@ local function init(class, options)
   return self
 end
 
-local Split = {
-  name = "Split",
+---@class NuiSplit
+local Split = setmetatable({
   super = nil,
-}
+}, {
+  __call = init,
+  __name = "NuiSplit",
+})
 
 function Split:init(options)
   return init(self, options)
@@ -234,11 +237,8 @@ function Split:off(event)
   autocmd.buf.remove(self.bufnr, nil, event)
 end
 
-local SplitClass = setmetatable({
-  __index = Split,
-}, {
-  __call = init,
-  __index = Split,
-})
+---@alias NuiSplit.constructor fun(options: table): NuiSplit
+---@type NuiSplit|NuiSplit.constructor
+local NuiSplit = Split
 
-return SplitClass
+return NuiSplit
