@@ -55,10 +55,14 @@ local function calculate_window_size(split, size, container)
   }
 end
 
+---@param class NuiSplit
+---@param options table
+---@return NuiSplit
 local function init(class, options)
+  ---@type NuiSplit
   local self = setmetatable({}, { __index = class })
 
-  self.split_state = {
+  self._ = {
     mounted = false,
     loading = false,
   }
@@ -83,7 +87,12 @@ local function init(class, options)
   return self
 end
 
+---@alias nui_split_internal { loading: boolean, mounted: boolean }
+
 ---@class NuiSplit
+---@field private _ nui_split_internal
+---@field bufnr number
+---@field winid number
 local Split = setmetatable({
   super = nil,
 }, {
@@ -136,11 +145,11 @@ function Split:_close_window()
 end
 
 function Split:mount()
-  if self.split_state.loading or self.split_state.mounted then
+  if self._.loading or self._.mounted then
     return
   end
 
-  self.split_state.loading = true
+  self._.loading = true
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
   assert(self.bufnr, "failed to create buffer")
@@ -151,40 +160,40 @@ function Split:mount()
 
   self:_open_window()
 
-  self.split_state.loading = false
-  self.split_state.mounted = true
+  self._.loading = false
+  self._.mounted = true
 end
 
 function Split:hide()
-  if self.split_state.loading or not self.split_state.mounted then
+  if self._.loading or not self._.mounted then
     return
   end
 
-  self.split_state.loading = true
+  self._.loading = true
 
   self:_close_window()
 
-  self.split_state.loading = false
+  self._.loading = false
 end
 
 function Split:show()
-  if self.split_state.loading or not self.split_state.mounted then
+  if self._.loading or not self._.mounted then
     return
   end
 
-  self.split_state.loading = true
+  self._.loading = true
 
   self:_open_window()
 
-  self.split_state.loading = false
+  self._.loading = false
 end
 
 function Split:unmount()
-  if self.split_state.loading or not self.split_state.mounted then
+  if self._.loading or not self._.mounted then
     return
   end
 
-  self.split_state.loading = true
+  self._.loading = true
 
   buf_storage.cleanup(self.bufnr)
 
@@ -197,8 +206,8 @@ function Split:unmount()
 
   self:_close_window()
 
-  self.split_state.loading = false
-  self.split_state.mounted = false
+  self._.loading = false
+  self._.mounted = false
 end
 
 -- set keymap for this split. if keymap was already set and
@@ -210,7 +219,7 @@ end
 ---@param force boolean
 ---@return boolean ok
 function Split:map(mode, key, handler, opts, force)
-  if not self.split_state.mounted then
+  if not self._.mounted then
     error("split is not mounted yet. call split:mount()")
   end
 
@@ -221,7 +230,7 @@ end
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function Split:on(event, handler, options)
-  if not self.split_state.mounted then
+  if not self._.mounted then
     error("split is not mounted yet. call split:mount()")
   end
 
@@ -230,7 +239,7 @@ end
 
 ---@param event nil | string | string[]
 function Split:off(event)
-  if not self.split_state.mounted then
+  if not self._.mounted then
     error("split is not mounted yet. call split:mount()")
   end
 
