@@ -9,7 +9,7 @@ if test -n "${luacov_dir}"; then
   export LUA_PATH=";;${luacov_dir}/?.lua"
 fi
 
-nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory tests/${test_dir}/ { minimal_init = 'tests/minimal_init.vim' }"
+nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory tests/${test_dir}/ { minimal_init = 'tests/minimal_init.vim'; sequential = true }"
 
 if test -n "${luacov_dir}"; then
   luacov
