@@ -54,11 +54,11 @@ end
 
 local function make_default_prepare_node(menu)
   local props = menu.menu_props
-  local border_props = menu.border.border_props
+  local border = menu.border
 
   local fallback_sep = {
-    char = Text(is_type("table", border_props.char) and border_props.char.top or " "),
-    text_align = is_type("table", border_props.text) and border_props.text.top_align or "left",
+    char = Text(is_type("table", border._.char) and border._.char.top or " "),
+    text_align = is_type("table", border._.text) and border._.text.top_align or "left",
   }
 
   if props._sep then
