@@ -337,7 +337,7 @@ local function init(class, popup, options)
     highlight = options.highlight,
     padding = parse_padding(options.padding),
     text = options.text,
-    _winhighlight = self.popup.win_options.winhighlight,
+    _winhighlight = self.popup._.win_options.winhighlight,
   }
 
   local props = self.border_props
