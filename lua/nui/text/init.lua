@@ -1,19 +1,16 @@
 local _ = require("nui.utils")._
 local is_type = require("nui.utils").is_type
 
-local Text = {
-  name = "NuiText",
-  super = nil,
-}
-
----@param content string|table text content or NuiText object
+---@param class NuiText
+---@param content string|NuiText text content or NuiText object
 ---@param extmark? string|table highlight group name or extmark options
+---@return NuiText
 local function init(class, content, extmark)
-  local self = setmetatable({}, class)
+  ---@type NuiText
+  local self = setmetatable({}, { __index = class })
 
   if is_type("table", content) then
     -- cloning
-    ---@diagnostic disable-next-line: undefined-field
     self:set(content._content, content.extmark)
   else
     self:set(content, extmark)
@@ -22,8 +19,18 @@ local function init(class, content, extmark)
   return self
 end
 
+---@class NuiText
+---@field protected extmark? table|{ id?: number, hl_group: string }
+local Text = setmetatable({
+  super = nil,
+}, {
+  __call = init,
+  __name = "NuiText",
+})
+
 ---@param content string text content
 ---@param extmark? string|table highlight group name or extmark options
+---@return NuiText
 function Text:set(content, extmark)
   if self._content ~= content then
     self._content = content
@@ -109,11 +116,8 @@ function Text:render_char(bufnr, ns_id, linenr_start, char_start, linenr_end, ch
   self:render(bufnr, ns_id, linenr_start, byte_range[1], linenr_end, byte_range[2])
 end
 
-local TextClass = setmetatable({
-  __index = Text,
-}, {
-  __call = init,
-  __index = Text,
-})
+---@alias NuiText.constructor fun(content: string|NuiText, extmark?: string|table): NuiText
+---@type NuiText|NuiText.constructor
+local NuiText = Text
 
-return TextClass
+return NuiText
