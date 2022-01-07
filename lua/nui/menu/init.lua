@@ -230,11 +230,13 @@ local function init(class, popup_options, options)
   return self
 end
 
+---@class NuiMenu: NuiPopup
 local Menu = setmetatable({
-  name = "Menu",
   super = Popup,
 }, {
-  __index = Popup.__index,
+  __call = init,
+  __index = Popup,
+  __name = "NuiMenu",
 })
 
 ---@param text? string|table # text content or NuiText object
@@ -317,11 +319,8 @@ function Menu:mount()
   end
 end
 
-local MenuClass = setmetatable({
-  __index = Menu,
-}, {
-  __call = init,
-  __index = Menu,
-})
+---@alias NuiMenu.constructor fun(popup_options: table, options: table): NuiMenu
+---@type NuiMenu|NuiMenu.constructor
+local NuiMenu = Menu
 
-return MenuClass
+return NuiMenu
