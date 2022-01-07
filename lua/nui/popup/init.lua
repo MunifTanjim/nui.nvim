@@ -8,6 +8,7 @@ local _ = utils._
 local defaults = utils.defaults
 local is_type = utils.is_type
 
+---@param position_meta nui_popup_internal_position_meta
 local function get_container_info(position_meta)
   local relative = position_meta.relative
 
@@ -100,6 +101,7 @@ local function calculate_winblend(opacity)
   return 100 - (opacity * 100)
 end
 
+---@return nui_popup_internal_position_meta
 local function parse_relative(relative, fallback_winid)
   local winid = defaults(relative.winid, fallback_winid)
 
@@ -191,12 +193,12 @@ local function init(class, options)
   local state = self.popup_state
   local win_config = self.win_config
 
-  state.position_meta = parse_relative(options.relative, vim.api.nvim_get_current_win())
-  win_config.relative = state.position_meta.relative
-  win_config.win = state.position_meta.relative == "win" and state.position_meta.win or nil
-  win_config.bufpos = state.position_meta.bufpos
+  self._.position_meta = parse_relative(options.relative, vim.api.nvim_get_current_win())
+  win_config.relative = self._.position_meta.relative
+  win_config.win = self._.position_meta.relative == "win" and self._.position_meta.win or nil
+  win_config.bufpos = self._.position_meta.bufpos
 
-  local container_info = get_container_info(state.position_meta)
+  local container_info = get_container_info(self._.position_meta)
 
   props.size = calculate_window_size(options.size, container_info.size)
   win_config.width = props.size.width
@@ -213,10 +215,11 @@ local function init(class, options)
   return self
 end
 
----@alias nui_popup_internal { loading: boolean, mounted: boolean }
+---@alias nui_popup_internal_position_meta { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[] }
+---@alias nui_popup_internal { loading: boolean, mounted: boolean, position_meta: nui_popup_internal_position_meta }
 
 ---@class NuiPopup
----@field _ nui_popup_internal
+---@field private _ nui_popup_internal
 local Popup = setmetatable({
   super = nil,
 }, {
@@ -368,7 +371,7 @@ end
 function Popup:set_size(size)
   local props = self.popup_props
 
-  local container_info = get_container_info(self.popup_state.position_meta)
+  local container_info = get_container_info(self._.position_meta)
 
   props.size = calculate_window_size(size, container_info.size)
   self.win_config.width = props.size.width
@@ -387,13 +390,13 @@ function Popup:set_position(position, relative)
   local win_config = self.win_config
 
   if relative then
-    state.position_meta = parse_relative(relative, state.position_meta.win)
-    win_config.relative = state.position_meta.relative
-    win_config.win = state.position_meta.relative == "win" and state.position_meta.win or nil
-    win_config.bufpos = state.position_meta.bufpos
+    self._.position_meta = parse_relative(relative, self._.position_meta.win)
+    win_config.relative = self._.position_meta.relative
+    win_config.win = self._.position_meta.relative == "win" and self._.position_meta.win or nil
+    win_config.bufpos = self._.position_meta.bufpos
   end
 
-  local container_info = get_container_info(state.position_meta)
+  local container_info = get_container_info(self._.position_meta)
 
   state.position = calculate_window_position(position, props.size, container_info)
   win_config.row = state.position.row
