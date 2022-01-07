@@ -2,19 +2,25 @@ local NuiText = require("nui.text")
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
-local Line = {
-  name = "NuiLine",
-  super = nil,
-}
-
+---@param class NuiLine
 ---@param texts? table[] NuiText objects
+---@return NuiLine
 local function init(class, texts)
-  local self = setmetatable({}, class)
+  ---@type NuiLine
+  local self = setmetatable({}, { __index = class })
 
   self._texts = defaults(texts, {})
 
   return self
 end
+
+---@class NuiLine
+local Line = setmetatable({
+  super = nil,
+}, {
+  __call = init,
+  __name = "NuiLine",
+})
 
 ---@param text string|table text content or NuiText object
 ---@param highlight? string|table data for highlight
@@ -57,11 +63,8 @@ function Line:render(bufnr, ns_id, linenr_start, linenr_end)
   self:highlight(bufnr, ns_id, linenr_start)
 end
 
-local LineClass = setmetatable({
-  __index = Line,
-}, {
-  __call = init,
-  __index = Line,
-})
+---@alias NuiLine.constructor fun(texts?: NuiText[]): NuiLine
+---@type NuiLine|NuiLine.constructor
+local NuiLine = Line
 
-return LineClass
+return NuiLine
