@@ -4,6 +4,10 @@ local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 local event = require("nui.utils.autocmd").event
 
+---@param class NuiInput
+---@param popup_options table
+---@param options table
+---@return NuiInput
 local function init(class, popup_options, options)
   popup_options.enter = true
 
@@ -18,12 +22,13 @@ local function init(class, popup_options, options)
 
   popup_options.size.height = 1
 
+  ---@type NuiInput
   local self = class.super.init(class, popup_options)
 
-  local props = {
-    default_value = defaults(options.default_value, ""),
-    prompt = Text(defaults(options.prompt, "")),
-  }
+  self._.default_value = defaults(options.default_value, "")
+  self._.prompt = Text(defaults(options.prompt, ""))
+
+  local props = {}
 
   self.input_props = props
 
@@ -62,7 +67,7 @@ local function init(class, popup_options, options)
   if options.on_change then
     props.on_change = function()
       local value_with_prompt = vim.api.nvim_buf_get_lines(self.bufnr, 0, 1, false)[1]
-      local value = string.sub(value_with_prompt, props.prompt:length() + 1)
+      local value = string.sub(value_with_prompt, self._.prompt:length() + 1)
       options.on_change(value)
     end
   end
@@ -70,7 +75,11 @@ local function init(class, popup_options, options)
   return self
 end
 
+---@alias nui_input_internal nui_popup_internal|{ default_value: string, prompt: NuiText }
+
 ---@class NuiInput: NuiPopup
+---@field private super NuiPopup
+---@field private _ nui_input_internal
 local Input = setmetatable({
   super = Popup,
 }, {
@@ -94,16 +103,16 @@ function Input:mount()
     })
   end
 
-  if #props.default_value then
+  if #self._.default_value then
     self:on(event.InsertEnter, function()
-      vim.api.nvim_feedkeys(props.default_value, "n", false)
+      vim.api.nvim_feedkeys(self._.default_value, "n", false)
     end, { once = true })
   end
 
-  vim.fn.prompt_setprompt(self.bufnr, props.prompt:content())
-  if props.prompt:length() > 0 then
+  vim.fn.prompt_setprompt(self.bufnr, self._.prompt:content())
+  if self._.prompt:length() > 0 then
     vim.schedule(function()
-      props.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
+      self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
     end)
   end
 
