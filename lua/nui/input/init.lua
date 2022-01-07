@@ -70,11 +70,13 @@ local function init(class, popup_options, options)
   return self
 end
 
+---@class NuiInput: NuiPopup
 local Input = setmetatable({
-  name = "Input",
   super = Popup,
 }, {
-  __index = Popup.__index,
+  __call = init,
+  __index = Popup,
+  __name = "NuiInput",
 })
 
 function Input:init(popup_options, options)
@@ -111,11 +113,8 @@ function Input:mount()
   vim.api.nvim_command("startinsert!")
 end
 
-local InputClass = setmetatable({
-  __index = Input,
-}, {
-  __call = init,
-  __index = Input,
-})
+---@alias NuiInput.constructor fun(popup_options: table, options: table): NuiInput
+---@type NuiInput|NuiInput.constructor
+local NuiInput = Input
 
-return InputClass
+return NuiInput
