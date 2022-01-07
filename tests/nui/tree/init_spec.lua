@@ -1,3 +1,5 @@
+pcall(require, "luacov")
+
 local Tree = require("nui.tree")
 local h = require("tests.nui")
 
