@@ -173,7 +173,7 @@ local function init(class, options)
 
   if options.bufnr then
     self.bufnr = options.bufnr
-    self._unmanaged_bufnr = true
+    self._.unmanaged_bufnr = true
   end
 
   if not self.win_options.winblend and is_type("number", options.opacity) then
@@ -219,14 +219,18 @@ end
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_popup_internal_size { height: number, width: number }
----@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean }
+---@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean }
 ---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
 
 --luacheck: pop
 
 ---@class NuiPopup
+---@field border NuiPopupBorder
+---@field bufnr number
+---@field ns_id number
 ---@field private _ nui_popup_internal
 ---@field win_config nui_popup_win_config
+---@field winid number
 local Popup = setmetatable({
   super = nil,
 }, {
@@ -322,7 +326,7 @@ function Popup:unmount()
 
   buf_storage.cleanup(self.bufnr)
 
-  if self.bufnr and not self._unmanaged_bufnr then
+  if self.bufnr and not self._.unmanaged_bufnr then
     if vim.api.nvim_buf_is_valid(self.bufnr) then
       vim.api.nvim_buf_delete(self.bufnr, { force = true })
     end
