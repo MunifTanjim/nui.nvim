@@ -321,7 +321,10 @@ local function adjust_popup_win_config(border)
   popup.win_config.col = popup_position.col
 end
 
+---@param class NuiPopupBorder
+---@param popup NuiPopup
 local function init(class, popup, options)
+  ---@type NuiPopupBorder
   local self = setmetatable({}, { __index = class })
 
   self.popup = popup
@@ -379,7 +382,7 @@ local function init(class, popup, options)
     zindex = self.popup.win_config.zindex - 1,
   }
 
-  local position_meta = popup.popup_state.position_meta
+  local position_meta = popup._.position_meta
   self.win_config.relative = position_meta.relative
   self.win_config.win = position_meta.relative == "win" and position_meta.win or nil
   self.win_config.bufpos = position_meta.bufpos
@@ -517,7 +520,7 @@ function Border:reposition()
     return
   end
 
-  local position_meta = self.popup.popup_state.position_meta
+  local position_meta = self.popup._.position_meta
   self.win_config.relative = position_meta.relative
   self.win_config.win = position_meta.relative == "win" and position_meta.win or nil
   self.win_config.bufpos = position_meta.bufpos
