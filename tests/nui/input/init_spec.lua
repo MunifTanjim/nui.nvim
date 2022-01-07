@@ -1,3 +1,5 @@
+pcall(require, "luacov")
+
 local Input = require("nui.input")
 local Text = require("nui.text")
 local helper = require("tests.nui")

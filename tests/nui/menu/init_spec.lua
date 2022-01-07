@@ -1,3 +1,5 @@
+pcall(require, "luacov")
+
 local Menu = require("nui.menu")
 local Text = require("nui.text")
 local h = require("tests.nui")

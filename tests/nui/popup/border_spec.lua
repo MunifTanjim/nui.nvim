@@ -1,3 +1,5 @@
+pcall(require, "luacov")
+
 local Popup = require("nui.popup")
 local Text = require("nui.text")
 local h = require("tests.nui")

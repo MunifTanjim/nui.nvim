@@ -1,3 +1,5 @@
+pcall(require, "luacov")
+
 local Text = require("nui.text")
 local h = require("tests.nui")
 local spy = require("luassert.spy")
