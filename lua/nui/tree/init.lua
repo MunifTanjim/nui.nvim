@@ -128,9 +128,6 @@ local function init(class, options)
     error("invalid winid " .. winid)
   end
 
-  self.get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id)
-  self.prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node)
-
   self.winid = winid
   self.bufnr = vim.api.nvim_win_get_buf(self.winid)
 
@@ -153,6 +150,8 @@ local function init(class, options)
       foldmethod = "manual",
       wrap = false,
     }, defaults(options.win_options, {})),
+    get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id),
+    prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node),
   }
 
   _.set_buf_options(self.bufnr, self._.buf_options)
@@ -164,16 +163,18 @@ local function init(class, options)
   return self
 end
 
+--luacheck: push no max line length
+
 ---@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
 ---@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): string | NuiLine
----@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any> }
+---@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node }
+
+--luacheck: pop
 
 ---@class NuiTree
 ---@field bufnr number
----@field get_node_id nui_tree_get_node_id
 ---@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
 ---@field ns_id number
----@field prepare_node nui_tree_prepare_node
 ---@field private _ nui_tree_internal
 ---@field winid number
 local Tree = setmetatable({
@@ -241,7 +242,7 @@ end
 ---@param nodes NuiTreeNode[]
 ---@param parent_node? NuiTreeNode
 function Tree:_add_nodes(nodes, parent_node)
-  local new_nodes = initialize_nodes(nodes, parent_node, self.get_node_id)
+  local new_nodes = initialize_nodes(nodes, parent_node, self._.get_node_id)
 
   self.nodes.by_id = vim.tbl_extend("force", self.nodes.by_id, new_nodes.by_id)
 
@@ -326,7 +327,7 @@ function Tree:_prepare_content()
       return
     end
 
-    local line = self.prepare_node(node, parent_node)
+    local line = self._.prepare_node(node, parent_node)
     self._content.lines[current_linenr] = line
     self._content.node_id_by_linenr[current_linenr] = node:get_id()
     current_linenr = current_linenr + 1
