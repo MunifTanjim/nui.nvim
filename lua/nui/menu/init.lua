@@ -34,6 +34,8 @@ local default_keymap = {
   submit = { "<CR>" },
 }
 
+---@param keymap table<string, string|string[]>
+---@return table<string, string[]>
 local function parse_keymap(keymap)
   local result = defaults(keymap, {})
 
@@ -48,12 +50,14 @@ local function parse_keymap(keymap)
   return result
 end
 
+---@type nui_menu_should_skip_item
 local function default_should_skip_item(node)
   return node._type == "separator"
 end
 
+---@param menu NuiMenu
+---@return nui_menu_prepare_item
 local function make_default_prepare_node(menu)
-  local props = menu.menu_props
   local border = menu.border
 
   local fallback_sep = {
@@ -61,21 +65,22 @@ local function make_default_prepare_node(menu)
     text_align = is_type("table", border._.text) and border._.text.top_align or "left",
   }
 
-  if props._sep then
+  if menu._.sep then
     -- @deprecated
 
-    if props._sep.char then
-      fallback_sep.char = Text(props._sep.char)
+    if menu._.sep.char then
+      fallback_sep.char = Text(menu._.sep.char)
     end
 
-    if props._sep.text_align then
-      fallback_sep.text_align = props._sep.text_align
+    if menu._.sep.text_align then
+      fallback_sep.text_align = menu._.sep.text_align
     end
   end
 
   local max_width = menu._.size.width
 
-  return function(node)
+  ---@type nui_menu_prepare_item
+  local function default_prepare_node(node)
     local text = is_type("string", node.text) and Text(node.text) or node.text
 
     if node._type == "item" then
@@ -121,6 +126,8 @@ local function make_default_prepare_node(menu)
       return line
     end
   end
+
+  return default_prepare_node
 end
 
 ---@param menu NuiMenu
@@ -151,23 +158,21 @@ local function focus_item(menu, direction, current_linenr)
 
   local next_node = menu._tree:get_node(next_linenr)
 
-  if menu._should_skip_item(next_node) then
+  if menu._.should_skip_item(next_node) then
     return focus_item(menu, direction, next_linenr)
   end
 
   if next_linenr then
     vim.api.nvim_win_set_cursor(menu.winid, { next_linenr, 0 })
-    menu.menu_props._on_change(next_node, menu)
+    menu._.on_change(next_node)
   end
 end
 
+---@param class NuiMenu
+---@param popup_options table
+---@param options table
+---@return NuiMenu
 local function init(class, popup_options, options)
-  local props = {
-    -- @deprecated
-    _sep = options.separator,
-    keymap = parse_keymap(options.keymap),
-  }
-
   local items, max_width = prepare_items(options.lines)
 
   local width = math.max(math.min(max_width, defaults(options.max_width, 256)), defaults(options.min_width, 4))
@@ -186,20 +191,28 @@ local function init(class, popup_options, options)
     },
   }, popup_options)
 
+  ---@type NuiMenu
   local self = class.super.init(class, popup_options)
 
-  self._items = items
+  self._.items = items
+  self._.keymap = parse_keymap(options.keymap)
 
-  self.menu_props = props
-
-  self._should_skip_item = defaults(options.should_skip_item, default_should_skip_item)
-  self._prepare_item = defaults(options.prepare_item, make_default_prepare_node(self))
-
-  props._on_change = function(node)
+  ---@param node NuiTreeNode
+  self._.on_change = function(node)
     if options.on_change then
       options.on_change(node, self)
     end
   end
+
+  -- @deprecated
+  self._.sep = options.separator
+
+  self._.should_skip_item = defaults(options.should_skip_item, default_should_skip_item)
+  self._.prepare_item = defaults(options.prepare_item, make_default_prepare_node(self))
+
+  self.menu_props = {}
+
+  local props = self.menu_props
 
   props.on_submit = function()
     local item = self._tree:get_node()
@@ -230,7 +243,17 @@ local function init(class, popup_options, options)
   return self
 end
 
+--luacheck: push no max line length
+
+---@alias nui_menu_prepare_item nui_tree_prepare_node
+---@alias nui_menu_should_skip_item fun(node: NuiTreeNode): boolean
+---@alias nui_menu_internal nui_popup_internal|{ items: NuiTreeNode[], keymap: table<string,string[]>, sep: { char?: string|NuiText, text_align?: nui_t_text_align }, prepare_item: nui_menu_prepare_item, should_skip_item: nui_menu_should_skip_item }
+
+--luacheck: pop
+
 ---@class NuiMenu: NuiPopup
+---@field private super NuiPopup
+---@field private _ nui_menu_internal
 local Menu = setmetatable({
   super = Popup,
 }, {
@@ -239,7 +262,7 @@ local Menu = setmetatable({
   __name = "NuiMenu",
 })
 
----@param text? string|table # text content or NuiText object
+---@param text? string|NuiText
 ---@returns table NuiTreeNode
 function Menu.separator(text, options)
   options = options or {}
@@ -251,7 +274,7 @@ function Menu.separator(text, options)
   })
 end
 
----@param text string|table # text content or NuiText object
+---@param text string|NuiText
 ---@param data? table
 ---@returns table NuiTreeNode
 function Menu.item(text, data)
@@ -280,30 +303,30 @@ function Menu:mount()
 
   local props = self.menu_props
 
-  for _, key in pairs(props.keymap.focus_next) do
+  for _, key in pairs(self._.keymap.focus_next) do
     self:map("n", key, props.on_focus_next, { noremap = true, nowait = true })
   end
 
-  for _, key in pairs(props.keymap.focus_prev) do
+  for _, key in pairs(self._.keymap.focus_prev) do
     self:map("n", key, props.on_focus_prev, { noremap = true, nowait = true })
   end
 
-  for _, key in pairs(props.keymap.close) do
+  for _, key in pairs(self._.keymap.close) do
     self:map("n", key, props.on_close, { noremap = true, nowait = true })
   end
 
-  for _, key in pairs(props.keymap.submit) do
+  for _, key in pairs(self._.keymap.submit) do
     self:map("n", key, props.on_submit, { noremap = true, nowait = true })
   end
 
   self._tree = Tree({
     winid = self.winid,
     ns_id = self.ns_id,
-    nodes = self._items,
+    nodes = self._.items,
     get_node_id = function(node)
       return node._index
     end,
-    prepare_node = self._prepare_item,
+    prepare_node = self._.prepare_item,
   })
 
   self._tree:render()
@@ -311,9 +334,9 @@ function Menu:mount()
   -- focus first item
   for _, node_id in ipairs(self._tree.nodes.root_ids) do
     local node = self._tree:get_node(node_id)
-    if not self._should_skip_item(node) then
+    if not self._.should_skip_item(node) then
       vim.api.nvim_win_set_cursor(self.winid, { node_id, 0 })
-      props._on_change(node, self)
+      self._.on_change(node)
       break
     end
   end
