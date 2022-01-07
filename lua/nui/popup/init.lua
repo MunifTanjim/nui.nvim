@@ -223,12 +223,13 @@ end
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position }
----@alias nui_popup_win_config { focusable: boolean, style: string, zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], width: number, height: number, row: number, col: number, border?: table }
+---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
 
 --luacheck: pop
 
 ---@class NuiPopup
 ---@field private _ nui_popup_internal
+---@field win_config nui_popup_win_config
 local Popup = setmetatable({
   super = nil,
 }, {
