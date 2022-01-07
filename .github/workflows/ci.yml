@@ -88,3 +88,5 @@ jobs:
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run Tests
         run: ./scripts/test.sh
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
