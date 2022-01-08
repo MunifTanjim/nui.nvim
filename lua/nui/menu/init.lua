@@ -294,7 +294,7 @@ function Menu.item(text, data)
   return Tree.Node(data)
 end
 
-function Menu:init(popup_options, options)
+function Menu:new(popup_options, options)
   return init(self, popup_options, options)
 end
 

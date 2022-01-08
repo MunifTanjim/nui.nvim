@@ -22,6 +22,40 @@ describe("nui.menu", function()
     }
   end)
 
+  describe("method :new", function()
+    it("works with menu", function()
+      local menu = Menu:new(popup_options, {
+        lines = {
+          Menu.item("a"),
+        },
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "a",
+      })
+    end)
+
+    it("works with menu object", function()
+      local menu = Menu
+        :new(popup_options, {
+          lines = {},
+        })
+        :new(popup_options, {
+          lines = {
+            Menu.item("a"),
+          },
+        })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "a",
+      })
+    end)
+  end)
+
   describe("size", function()
     it("respects o.min_width", function()
       local min_width = 3
