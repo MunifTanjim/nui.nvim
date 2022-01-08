@@ -311,6 +311,10 @@ function Tree:remove_node(node_id)
     parent_node._child_ids = vim.tbl_filter(function(id)
       return id ~= node_id
     end, parent_node._child_ids)
+  else
+    self.nodes.root_ids = vim.tbl_filter(function(id)
+      return id ~= node_id
+    end, self.nodes.root_ids)
   end
   return node
 end
