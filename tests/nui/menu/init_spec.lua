@@ -14,6 +14,7 @@ describe("nui.menu", function()
   before_each(function()
     callbacks = {
       on_change = function() end,
+      on_submit = function() end,
     }
 
     popup_options = {
@@ -53,6 +54,74 @@ describe("nui.menu", function()
       h.assert_buf_lines(menu.bufnr, {
         "a",
       })
+    end)
+  end)
+
+  describe("o.keymap", function()
+    it("supports multiple keys as table", function()
+      local on_change = spy.on(callbacks, "on_change")
+
+      local lines = {
+        Menu.item("Item 1", { id = 1 }),
+        Menu.item("Item 2", { id = 2 }),
+        Menu.item("Item 3", { id = 3 }),
+      }
+
+      local menu = Menu(popup_options, {
+        keymap = {
+          focus_next = { "j", "s" },
+          focus_prev = { "k", "w" },
+        },
+        lines = lines,
+        on_change = on_change,
+      })
+
+      menu:mount()
+
+      feedkeys("j", "x")
+      assert.spy(on_change).called_with(lines[2], menu)
+      on_change:clear()
+
+      feedkeys("s", "x")
+      assert.spy(on_change).called_with(lines[3], menu)
+      on_change:clear()
+
+      feedkeys("w", "x")
+      assert.spy(on_change).called_with(lines[2], menu)
+      on_change:clear()
+
+      feedkeys("k", "x")
+      assert.spy(on_change).called_with(lines[1], menu)
+      on_change:clear()
+    end)
+
+    it("supports single key as string", function()
+      local on_change = spy.on(callbacks, "on_change")
+
+      local lines = {
+        Menu.item("Item 1", { id = 1 }),
+        Menu.item("Item 2", { id = 2 }),
+        Menu.item("Item 3", { id = 3 }),
+      }
+
+      local menu = Menu(popup_options, {
+        keymap = {
+          focus_next = "s",
+          focus_prev = "w",
+        },
+        lines = lines,
+        on_change = on_change,
+      })
+
+      menu:mount()
+
+      feedkeys("s", "x")
+      assert.spy(on_change).called_with(lines[2], menu)
+      on_change:clear()
+
+      feedkeys("w", "x")
+      assert.spy(on_change).called_with(lines[1], menu)
+      on_change:clear()
     end)
   end)
 
@@ -178,6 +247,47 @@ describe("nui.menu", function()
     on_change:clear()
   end)
 
+  it("calls o.on_submit when item is submitted", function()
+    local on_submit = spy.on(callbacks, "on_submit")
+
+    local lines = {
+      Menu.item("Item 1", { id = 1 }),
+      Menu.item("Item 2", { id = 2 }),
+    }
+
+    local menu = Menu(popup_options, {
+      lines = lines,
+      on_submit = on_submit,
+    })
+
+    menu:mount()
+
+    feedkeys("j", "x")
+    feedkeys("<CR>", "x")
+
+    assert.spy(on_submit).called_with(lines[2])
+  end)
+
+  it("calls o.on_close when menu is closed", function()
+    local on_close = spy.on(callbacks, "on_close")
+
+    local lines = {
+      Menu.item("Item 1", { id = 1 }),
+      Menu.item("Item 2", { id = 2 }),
+    }
+
+    local menu = Menu(popup_options, {
+      lines = lines,
+      on_close = on_close,
+    })
+
+    menu:mount()
+
+    feedkeys("<Esc>", "x")
+
+    assert.spy(on_close).called_with()
+  end)
+
   describe("item", function()
     it("is prepared using o.prepare_item if provided", function()
       local items = {
@@ -255,6 +365,24 @@ describe("nui.menu", function()
       on_change:clear()
     end)
 
+    it("supports table with key .text", function()
+      local text = "text"
+
+      local items = {
+        Menu.item({ text = text }),
+      }
+
+      local menu = Menu(popup_options, {
+        lines = items,
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        text,
+      })
+    end)
+
     it("supports NuiText", function()
       local hl_group = "NuiMenuTest"
       local text = "text"
@@ -302,6 +430,23 @@ describe("nui.menu", function()
       h.assert_buf_lines(menu.bufnr, {
         "A",
         " Group    ",
+      })
+    end)
+
+    it("text longer than max_width is truncated", function()
+      local menu = Menu(popup_options, {
+        lines = {
+          Menu.item("A"),
+          Menu.separator("Long Long Group"),
+        },
+        max_width = 10,
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "A",
+        " Long Lo… ",
       })
     end)
 

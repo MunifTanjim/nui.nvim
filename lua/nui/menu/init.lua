@@ -65,6 +65,7 @@ local function make_default_prepare_node(menu)
     text_align = is_type("table", border._.text) and border._.text.top_align or "left",
   }
 
+  -- luacov: disable
   if menu._.sep then
     -- @deprecated
 
@@ -76,6 +77,7 @@ local function make_default_prepare_node(menu)
       fallback_sep.text_align = menu._.sep.text_align
     end
   end
+  -- luacov: enable
 
   local max_width = menu._.size.width
 
@@ -134,10 +136,6 @@ end
 ---@param direction "'next'" | "'prev'"
 ---@param current_linenr nil | number
 local function focus_item(menu, direction, current_linenr)
-  if not menu._.mounted then
-    return
-  end
-
   local curr_linenr = current_linenr or vim.api.nvim_win_get_cursor(menu.winid)[1]
 
   local next_linenr = nil
