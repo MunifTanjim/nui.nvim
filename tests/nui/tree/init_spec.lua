@@ -15,6 +15,30 @@ describe("nui.tree", function()
     vim.api.nvim_win_set_buf(winid, bufnr)
   end)
 
+  it("throws if no winid", function()
+    local ok, err = pcall(Tree, {})
+    eq(ok, false)
+    eq(type(err), "string")
+  end)
+
+  it("throws if invalid winid", function()
+    local ok, err = pcall(Tree, { winid = 999 })
+    eq(ok, false)
+    eq(type(err), "string")
+  end)
+
+  it("throws on duplicated node id", function()
+    local ok, err = pcall(Tree, {
+      winid = winid,
+      nodes = {
+        Tree.Node({ id = "id", text = "text" }),
+        Tree.Node({ id = "id", text = "text" }),
+      },
+    })
+    eq(ok, false)
+    eq(type(err), "string")
+  end)
+
   it("sets t.winid and t.bufnr properly", function()
     local tree = Tree({ winid = winid })
 
@@ -142,6 +166,23 @@ describe("nui.tree", function()
   end)
 
   describe("default prepare_node", function()
+    it("throws if missing n.text", function()
+      local nodes = {
+        Tree.Node({ txt = "a" }),
+        Tree.Node({ txt = "b" }),
+        Tree.Node({ txt = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+      })
+
+      local ok, err = pcall(tree.render, tree)
+      eq(ok, false)
+      eq(type(err), "string")
+    end)
+
     it("uses n.text", function()
       local nodes = {
         Tree.Node({ text = "a" }),
@@ -295,7 +336,100 @@ describe("nui.tree", function()
     end)
   end)
 
+  describe("method :add_node", function()
+    it("throw if invalid parent_id", function()
+      local tree = Tree({
+        winid = winid,
+        nodes = {
+          Tree.Node({ text = "x" }),
+        },
+      })
+
+      local ok, err = pcall(tree.add_node, tree, Tree.Node({ text = "y" }), "invalid_parent_id")
+      eq(ok, false)
+      eq(type(err), "string")
+    end)
+
+    it("can add node at root", function()
+      local tree = Tree({
+        winid = winid,
+        nodes = {
+          Tree.Node({ text = "x" }),
+        },
+      })
+
+      tree:add_node(Tree.Node({ text = "y" }))
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  x",
+        "  y",
+      })
+
+      tree:add_node(Tree.Node({ text = "z" }))
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  x",
+        "  y",
+        "  z",
+      })
+    end)
+
+    it("can add node under parent node", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }, {
+          Tree.Node({ text = "b-1" }),
+        }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:add_node(Tree.Node({ text = "b-2" }), "b")
+
+      tree:get_node("b"):expand()
+
+      tree:add_node(Tree.Node({ text = "c-1" }), "c")
+
+      tree:get_node("c"):expand()
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  a",
+        " b",
+        "    b-1",
+        "    b-2",
+        " c",
+        "    c-1",
+      })
+    end)
+  end)
+
   describe("method :set_nodes", function()
+    it("throw if invalid parent_id", function()
+      local tree = Tree({
+        winid = winid,
+        nodes = {
+          Tree.Node({ text = "x" }),
+        },
+      })
+
+      local ok, err = pcall(tree.set_nodes, tree, {}, "invalid_parent_id")
+      eq(ok, false)
+      eq(type(err), "string")
+    end)
+
     it("can set nodes at root", function()
       local tree = Tree({
         winid = winid,
@@ -369,6 +503,103 @@ describe("nui.tree", function()
       })
     end)
   end)
+
+  describe("method :remove_node", function()
+    it("can remove node w/o parent", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }, {
+          Tree.Node({ text = "b-1" }),
+        }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:remove_node("a")
+
+      tree:get_node("b"):expand()
+
+      tree:render()
+
+      eq(
+        vim.tbl_map(function(node)
+          return node:get_id()
+        end, tree:get_nodes()),
+        { "b", "c" }
+      )
+
+      h.assert_buf_lines(tree.bufnr, {
+        " b",
+        "    b-1",
+        "  c",
+      })
+    end)
+
+    it("can remove node w/ parent", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }, {
+          Tree.Node({ text = "b-1" }),
+        }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:remove_node("b-1")
+
+      tree:render()
+
+      eq(tree:get_node("b"):get_child_ids(), {})
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  a",
+        "  b",
+        "  c",
+      })
+    end)
+  end)
+
+  describe("method :render", function()
+    it("handles unexpected case of missing node", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      -- this should not happen normally
+      tree.nodes.by_id["a"] = nil
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  b",
+        "  c",
+      })
+    end)
+  end)
 end)
 
 describe("nui.tree.Node", function()
@@ -400,6 +631,54 @@ describe("nui.tree.Node", function()
       eq(node_w_children._initialized, true)
       eq(type(node_w_children.__children), "nil")
       eq(node_w_children:has_children(), true)
+    end)
+  end)
+
+  describe("method :expand", function()
+    it("returns true if not already expanded", function()
+      local node = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
+      eq(node:is_expanded(), false)
+      eq(node:expand(), true)
+      eq(node:is_expanded(), true)
+    end)
+
+    it("returns false if already expanded", function()
+      local node = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
+      node:expand()
+      eq(node:is_expanded(), true)
+      eq(node:expand(), false)
+      eq(node:is_expanded(), true)
+    end)
+
+    it("does not work w/o children", function()
+      local node = Tree.Node({ text = "a" })
+      eq(node:is_expanded(), false)
+      eq(node:expand(), false)
+      eq(node:is_expanded(), false)
+    end)
+  end)
+
+  describe("method :collapse", function()
+    it("returns true if not already collapsed", function()
+      local node = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
+      node:expand()
+      eq(node:is_expanded(), true)
+      eq(node:collapse(), true)
+      eq(node:is_expanded(), false)
+    end)
+
+    it("returns false if already collapsed", function()
+      local node = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
+      eq(node:is_expanded(), false)
+      eq(node:collapse(), false)
+      eq(node:is_expanded(), false)
+    end)
+
+    it("does not work w/o children", function()
+      local node = Tree.Node({ text = "a" })
+      eq(node:is_expanded(), false)
+      eq(node:collapse(), false)
+      eq(node:is_expanded(), false)
     end)
   end)
 end)
