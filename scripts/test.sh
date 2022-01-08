@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -eu
+
 test_dir="${1:-"nui"}"
 
 luacov_dir="$(dirname $(luarocks which luacov 2>/dev/null | head -1))"
