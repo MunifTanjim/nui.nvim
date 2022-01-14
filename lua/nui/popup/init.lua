@@ -338,14 +338,12 @@ function Popup:unmount()
   self._.mounted = false
 end
 
--- set keymap for this popup window. if keymap was already set and
--- `force` is not `true` returns `false`, otherwise returns `true`
----@param mode "'i'" | "'n'"
----@param key string
----@param handler any
----@param opts table<"'expr'" | "'noremap'" | "'nowait'" | "'script'" | "'silent'" | "'unique'", boolean>
----@param force boolean
----@return boolean ok
+-- set keymap for this popup window
+---@param mode string check `:h :map-modes`
+---@param key string key for the mapping
+---@param handler string | fun(): nil handler for the mapping
+---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
+---@return nil
 function Popup:map(mode, key, handler, opts, force)
   if not self._.mounted then
     error("popup window is not mounted yet. call popup:mount()")
@@ -354,10 +352,9 @@ function Popup:map(mode, key, handler, opts, force)
   return keymap.set(self.bufnr, mode, key, handler, opts, force)
 end
 
----@param mode "'i'" | "'n'"
----@param key string
----@param force? boolean
----@return boolean ok
+---@param mode string check `:h :map-modes`
+---@param key string key for the mapping
+---@return nil
 function Popup:unmap(mode, key, force)
   if not self._.mounted then
     error("popup window is not mounted yet. call popup:mount()")
