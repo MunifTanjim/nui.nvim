@@ -2,8 +2,9 @@ pcall(require, "luacov")
 
 local Popup = require("nui.popup")
 local h = require("tests.nui")
+local spy = require("luassert.spy")
 
-local eq = h.eq
+local eq, feedkeys = h.eq, h.feedkeys
 
 describe("nui.popup", function()
   it("supports o.bufnr (unmanaed buffer)", function()
@@ -77,5 +78,124 @@ describe("nui.popup", function()
 
     eq(type(popup.ns_id), "number")
     eq(popup.ns_id > 0, true)
+  end)
+
+  describe("method :map", function()
+    it("supports function", function()
+      local callback = spy.new(function() end)
+
+      local popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "c", function()
+        callback()
+      end)
+
+      feedkeys("c", "x")
+
+      assert.spy(callback).called()
+    end)
+
+    it("supports string", function()
+      local popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "c", "<cmd>read !echo 42<CR>")
+
+      feedkeys("c", "x")
+
+      h.assert_buf_lines(popup.bufnr, {
+        "",
+        "42",
+      })
+    end)
+
+    it("supports o.remap=true", function()
+      local popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "n", "o<Esc>")
+      popup:map("n", "l", "n", { remap = true })
+
+      feedkeys("n", "x")
+      feedkeys("l", "x")
+
+      h.assert_buf_lines(popup.bufnr, {
+        "",
+        "",
+        "",
+      })
+    end)
+
+    it("supports o.remap=false", function()
+      local popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "n", "o<Esc>")
+      popup:map("n", "l", "n", { remap = false })
+
+      feedkeys("n", "x")
+      feedkeys("l", "x")
+
+      h.assert_buf_lines(popup.bufnr, {
+        "",
+        "",
+      })
+    end)
+  end)
+
+  describe("method :unmap", function()
+    it("works", function()
+      local popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "c", "<cmd>read !echo 42<CR>")
+
+      popup:unmap("n", "c")
+
+      feedkeys("c", "x")
+
+      h.assert_buf_lines(popup.bufnr, { "" })
+    end)
   end)
 end)
