@@ -445,21 +445,18 @@ Shows the hidden popup window.
 
 ### `popup:map`
 
-_Signature:_ `popup:map(mode, key, handler, opts, force)`
+_Signature:_ `popup:map(mode, key, handler, opts) -> nil`
 
 Sets keymap for the popup.
 
-If keymap was already set and `force` is not `true` it returns `false`, otherwise returns `true`.
-
 **Parameters**
 
-| Name      | Type          | Description                                                         |
-| --------- | ------------- | ------------------------------------------------------------------- |
-| `mode`    | `"n"` / `"i"` | check `:h :map-modes`                                               |
-| `key`     | `string`      | key for the mapping                                                 |
-| `handler` | `function`    | handler function for the mapping                                    |
-| `opts`    | `table`       | check `:h :map-arguments` (including `noremap`, excluding `buffer`) |
-| `force`   | `boolean`     | for overriding existing mapping                                     |
+| Name      | Type                  | Description                                                                 |
+| --------- | --------------------- | --------------------------------------------------------------------------- |
+| `mode`    | `string`              | check `:h :map-modes`                                                       |
+| `key`     | `string`              | key for the mapping                                                         |
+| `handler` | `string` / `function` | handler for the mapping                                                     |
+| `opts`    | `table`               | check `:h :map-arguments` (including `remap`/`noremap`, excluding `buffer`) |
 
 **Examples**
 
@@ -473,7 +470,7 @@ end, { noremap = true })
 
 ### `popup:unmap`
 
-_Signature:_ `popup:unmap(mode, key, force?) -> boolean`
+_Signature:_ `popup:unmap(mode, key) -> nil`
 
 Deletes keymap for the popup.
 

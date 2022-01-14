@@ -203,14 +203,13 @@ function Split:unmount()
   self._.mounted = false
 end
 
--- set keymap for this split. if keymap was already set and
+-- set keymap for this split
 -- `force` is not `true` returns `false`, otherwise returns `true`
----@param mode "'i'" | "'n'"
----@param key string
----@param handler any
----@param opts table<"'expr'" | "'noremap'" | "'nowait'" | "'script'" | "'silent'" | "'unique'", boolean>
----@param force boolean
----@return boolean ok
+---@param mode string check `:h :map-modes`
+---@param key string key for the mapping
+---@param handler string | fun(): nil handler for the mapping
+---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
+---@return nil
 function Split:map(mode, key, handler, opts, force)
   if not self._.mounted then
     error("split is not mounted yet. call split:mount()")
