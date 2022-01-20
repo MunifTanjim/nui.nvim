@@ -206,7 +206,7 @@ end
 -- set keymap for this split
 -- `force` is not `true` returns `false`, otherwise returns `true`
 ---@param mode string check `:h :map-modes`
----@param key string key for the mapping
+---@param key string|string[] key for the mapping
 ---@param handler string | fun(): nil handler for the mapping
 ---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil

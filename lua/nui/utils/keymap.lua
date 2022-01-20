@@ -77,51 +77,72 @@ end
 
 ---@param bufnr number
 ---@param mode string
----@param key string
+---@param lhs string|string[]
 ---@param handler string|fun(): nil
 ---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
-function keymap.set(bufnr, mode, key, handler, opts, force)
-  opts = opts or {}
-
-  local keymap_info = get_keymap_info(bufnr, mode, key, handler, force)
+function keymap.set(bufnr, mode, lhs, handler, opts, force)
   -- luacov: disable
-  if not keymap_info then
-    return false
+  if has_vim_keymap and not is_type("boolean", force) then
+    force = true
   end
   -- luacov: enable
+
+  local keys = is_type("table", lhs) and lhs or { lhs }
+
+  opts = opts or {}
 
   if not is_type("nil", opts.remap) then
     opts.noremap = not opts.remap
     opts.remap = nil
   end
 
-  opts.callback = keymap_info.callback
+  for _, key in ipairs(keys) do
+    local keymap_info = get_keymap_info(bufnr, mode, key, handler, force)
+    -- luacov: disable
+    if not keymap_info then
+      return false
+    end
+    -- luacov: enable
 
-  vim.api.nvim_buf_set_keymap(bufnr, mode, key, keymap_info.rhs, opts)
+    local options = vim.deepcopy(opts)
+    options.callback = keymap_info.callback
+
+    vim.api.nvim_buf_set_keymap(bufnr, mode, key, keymap_info.rhs, options)
+  end
 
   return true
 end
 
 ---@param bufnr number
 ---@param mode string
----@param key string
+---@param lhs string|string[]
 ---@return nil
-function keymap._del(bufnr, mode, key, force)
-  local key_id = get_key_id(mode, key)
-
-  local handler_id = get_handler_id(bufnr, key_id)
-
+function keymap._del(bufnr, mode, lhs, force)
   -- luacov: disable
-  if not handler_id and not force then
-    return false
+  if has_vim_keymap and not is_type("boolean", force) then
+    force = true
   end
   -- luacov: enable
 
-  keymap.storage[bufnr].keys[key_id] = nil
-  keymap.storage[bufnr].handlers[handler_id] = nil
+  local keys = is_type("table", lhs) and lhs or { lhs }
 
-  vim.api.nvim_buf_del_keymap(bufnr, mode, key)
+  for _, key in ipairs(keys) do
+    local key_id = get_key_id(mode, key)
+
+    local handler_id = get_handler_id(bufnr, key_id)
+
+    -- luacov: disable
+    if not handler_id and not force then
+      return false
+    end
+    -- luacov: enable
+
+    keymap.storage[bufnr].keys[key_id] = nil
+    keymap.storage[bufnr].handlers[handler_id] = nil
+
+    vim.api.nvim_buf_del_keymap(bufnr, mode, key)
+  end
 
   return true
 end
