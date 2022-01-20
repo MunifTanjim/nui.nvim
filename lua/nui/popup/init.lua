@@ -340,7 +340,7 @@ end
 
 -- set keymap for this popup window
 ---@param mode string check `:h :map-modes`
----@param key string key for the mapping
+---@param key string|string[] key for the mapping
 ---@param handler string | fun(): nil handler for the mapping
 ---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
@@ -353,7 +353,7 @@ function Popup:map(mode, key, handler, opts, force)
 end
 
 ---@param mode string check `:h :map-modes`
----@param key string key for the mapping
+---@param key string|string[] key for the mapping
 ---@return nil
 function Popup:unmap(mode, key, force)
   if not self._.mounted then
