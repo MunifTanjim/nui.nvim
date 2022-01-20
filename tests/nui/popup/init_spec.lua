@@ -7,6 +7,12 @@ local spy = require("luassert.spy")
 local eq, feedkeys = h.eq, h.feedkeys
 
 describe("nui.popup", function()
+  local popup
+
+  after_each(function()
+    popup:unmount()
+  end)
+
   it("supports o.bufnr (unmanaed buffer)", function()
     local bufnr = vim.api.nvim_create_buf(false, true)
 
@@ -18,7 +24,7 @@ describe("nui.popup", function()
 
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 
-    local popup = Popup({
+    popup = Popup({
       bufnr = bufnr,
       position = "50%",
       size = {
@@ -40,7 +46,7 @@ describe("nui.popup", function()
     local ns = "NuiPopupTest"
     local ns_id = vim.api.nvim_create_namespace(ns)
 
-    local popup = Popup({
+    popup = Popup({
       ns_id = ns_id,
       position = "50%",
       size = {
@@ -55,7 +61,7 @@ describe("nui.popup", function()
   it("accepts string as o.ns_id", function()
     local ns = "NuiPopupTest"
 
-    local popup = Popup({
+    popup = Popup({
       ns_id = ns,
       position = "50%",
       size = {
@@ -68,7 +74,7 @@ describe("nui.popup", function()
   end)
 
   it("uses fallback ns_id if o.ns_id=nil", function()
-    local popup = Popup({
+    popup = Popup({
       position = "50%",
       size = {
         height = "60%",
@@ -81,10 +87,8 @@ describe("nui.popup", function()
   end)
 
   describe("method :map", function()
-    it("supports function", function()
-      local callback = spy.new(function() end)
-
-      local popup = Popup({
+    it("supports lhs table", function()
+      popup = Popup({
         enter = true,
         position = "50%",
         size = {
@@ -95,17 +99,43 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      popup:map("n", "c", function()
+      popup:map("n", { "k", "l" }, "o42<esc>")
+
+      feedkeys("k", "x")
+      feedkeys("l", "x")
+
+      h.assert_buf_lines(popup.bufnr, {
+        "",
+        "42",
+        "42",
+      })
+    end)
+
+    it("supports rhs function", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "l", function()
         callback()
       end)
 
-      feedkeys("c", "x")
+      feedkeys("l", "x")
 
       assert.spy(callback).called()
     end)
 
-    it("supports string", function()
-      local popup = Popup({
+    it("supports rhs string", function()
+      popup = Popup({
         enter = true,
         position = "50%",
         size = {
@@ -116,9 +146,9 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      popup:map("n", "c", "<cmd>read !echo 42<CR>")
+      popup:map("n", "l", "o42<esc>")
 
-      feedkeys("c", "x")
+      feedkeys("l", "x")
 
       h.assert_buf_lines(popup.bufnr, {
         "",
@@ -127,7 +157,7 @@ describe("nui.popup", function()
     end)
 
     it("supports o.remap=true", function()
-      local popup = Popup({
+      popup = Popup({
         enter = true,
         position = "50%",
         size = {
@@ -138,21 +168,21 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      popup:map("n", "n", "o<Esc>")
-      popup:map("n", "l", "n", { remap = true })
+      popup:map("n", "k", "o42<Esc>")
+      popup:map("n", "l", "k", { remap = true })
 
-      feedkeys("n", "x")
+      feedkeys("k", "x")
       feedkeys("l", "x")
 
       h.assert_buf_lines(popup.bufnr, {
         "",
-        "",
-        "",
+        "42",
+        "42",
       })
     end)
 
     it("supports o.remap=false", function()
-      local popup = Popup({
+      popup = Popup({
         enter = true,
         position = "50%",
         size = {
@@ -163,22 +193,22 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      popup:map("n", "n", "o<Esc>")
-      popup:map("n", "l", "n", { remap = false })
+      popup:map("n", "k", "o42<Esc>")
+      popup:map("n", "l", "k", { remap = false })
 
-      feedkeys("n", "x")
+      feedkeys("k", "x")
       feedkeys("l", "x")
 
       h.assert_buf_lines(popup.bufnr, {
         "",
-        "",
+        "42",
       })
     end)
   end)
 
   describe("method :unmap", function()
-    it("works", function()
-      local popup = Popup({
+    it("supports lhs string", function()
+      popup = Popup({
         enter = true,
         position = "50%",
         size = {
@@ -189,13 +219,40 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      popup:map("n", "c", "<cmd>read !echo 42<CR>")
+      popup:map("n", "l", "o42<esc>")
 
-      popup:unmap("n", "c")
+      popup:unmap("n", "l")
 
-      feedkeys("c", "x")
+      feedkeys("l", "x")
 
-      h.assert_buf_lines(popup.bufnr, { "" })
+      h.assert_buf_lines(popup.bufnr, {
+        "",
+      })
+    end)
+
+    it("supports lhs table", function()
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "k", "o42<esc>")
+      popup:map("n", "l", "o42<esc>")
+
+      popup:unmap("n", { "k", "l" })
+
+      feedkeys("k", "x")
+      feedkeys("l", "x")
+
+      h.assert_buf_lines(popup.bufnr, {
+        "",
+      })
     end)
   end)
 end)
