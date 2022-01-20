@@ -209,15 +209,16 @@ function Tree.Node(data, children)
 end
 
 ---@param node_id_or_linenr? string | number
----@return NuiTreeNode|nil
+---@return NuiTreeNode|nil node
+---@return number|nil linenr
 function Tree:get_node(node_id_or_linenr)
   if is_type("string", node_id_or_linenr) then
-    return self.nodes.by_id[node_id_or_linenr]
+    return self.nodes.by_id[node_id_or_linenr], self._content.linenr_by_node_id[node_id_or_linenr]
   end
 
   local linenr = node_id_or_linenr or vim.api.nvim_win_get_cursor(self.winid)[1]
   local node_id = self._content.node_id_by_linenr[linenr]
-  return self.nodes.by_id[node_id]
+  return self.nodes.by_id[node_id], linenr
 end
 
 ---@param parent_id? string parent node's id
@@ -264,8 +265,12 @@ end
 ---@param nodes NuiTreeNode[]
 ---@param parent_id? string parent node's id
 function Tree:set_nodes(nodes, parent_id)
-  ---@type { lines: string[]|NuiLine[], node_id_by_linenr: table<number,string> }
-  self._content = { lines = {}, node_id_by_linenr = {} }
+  --luacheck: push no max line length
+
+  ---@type { lines: string[]|NuiLine[], node_id_by_linenr: table<number,string>, linenr_by_node_id: table<string,number> }
+  self._content = { lines = {}, node_id_by_linenr = {}, linenr_by_node_id = {} }
+
+  --luacheck: pop
 
   if not parent_id then
     self.nodes = { by_id = {}, root_ids = {} }
@@ -322,6 +327,7 @@ end
 function Tree:_prepare_content()
   self._content.lines = {}
   self._content.node_id_by_linenr = {}
+  self._content.linenr_by_node_id = {}
 
   local current_linenr = 1
 
@@ -334,6 +340,7 @@ function Tree:_prepare_content()
     local line = self._.prepare_node(node, parent_node)
     self._content.lines[current_linenr] = line
     self._content.node_id_by_linenr[current_linenr] = node:get_id()
+    self._content.linenr_by_node_id[node:get_id()] = current_linenr
     current_linenr = current_linenr + 1
 
     if not node:has_children() or not node:is_expanded() then
