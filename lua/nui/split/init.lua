@@ -218,6 +218,17 @@ function Split:map(mode, key, handler, opts, force)
   return keymap.set(self.bufnr, mode, key, handler, opts, force)
 end
 
+---@param mode string check `:h :map-modes`
+---@param key string|string[] key for the mapping
+---@return nil
+function Split:unmap(mode, key)
+  if not self._.mounted then
+    error("split is not mounted yet. call split:mount()")
+  end
+
+  return keymap._del(self.bufnr, mode, key)
+end
+
 ---@param event string | string[]
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
