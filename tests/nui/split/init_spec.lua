@@ -230,4 +230,27 @@ describe("nui.split", function()
       assert.spy(callback).called()
     end)
   end)
+
+  describe("method :off", function()
+    it("works", function()
+      local callback = spy.new(function() end)
+
+      split = Split({
+        size = 20,
+      })
+
+      split:mount()
+
+      split:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      split:off(event.InsertEnter)
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).not_called()
+    end)
+  end)
 end)
