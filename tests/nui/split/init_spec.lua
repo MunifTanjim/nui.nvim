@@ -4,13 +4,32 @@ local Split = require("nui.split")
 local h = require("tests.nui")
 local spy = require("luassert.spy")
 
-local feedkeys = h.feedkeys
+local eq, feedkeys = h.eq, h.feedkeys
 
 describe("nui.split", function()
   local split
 
   after_each(function()
     split:unmount()
+  end)
+
+  describe("sets o.size as", function()
+    for position, dimension in pairs({ top = "height", right = "width", bottom = "height", left = "width" }) do
+      it(string.format("%s if o.position=%s", dimension, position), function()
+        local size = 20
+
+        split = Split({
+          size = size,
+          position = position,
+        })
+
+        split:mount()
+
+        local nvim_method = string.format("nvim_win_get_%s", dimension)
+
+        eq(vim.api[nvim_method](split.winid), size)
+      end)
+    end
   end)
 
   describe("method :map", function()
