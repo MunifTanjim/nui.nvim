@@ -32,6 +32,48 @@ describe("nui.split", function()
     end
   end)
 
+  it("supports o.relative=win", function()
+    local left_half_split = Split({
+      size = "50%",
+      position = "left",
+    })
+
+    left_half_split:mount()
+
+    split = Split({
+      size = 20,
+      position = "bottom",
+      relative = "win",
+    })
+
+    split:mount()
+
+    eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns / 2)
+
+    left_half_split:unmount()
+  end)
+
+  it("supports o.relative=editor", function()
+    local left_half_split = Split({
+      size = "50%",
+      position = "left",
+    })
+
+    left_half_split:mount()
+
+    split = Split({
+      size = 20,
+      position = "bottom",
+      relative = "editor",
+    })
+
+    split:mount()
+
+    eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns)
+
+    left_half_split:unmount()
+  end)
+
   describe("method :map", function()
     it("supports lhs table", function()
       split = Split({
