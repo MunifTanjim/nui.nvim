@@ -75,6 +75,63 @@ describe("nui.split", function()
     left_half_split:unmount()
   end)
 
+  describe("method :hide", function()
+    it("works", function()
+      local winid = vim.api.nvim_get_current_win()
+
+      local win_height = vim.api.nvim_win_get_height(winid)
+
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      vim.api.nvim_buf_set_lines(split.bufnr, 0, -1, false, {
+        "42",
+      })
+
+      eq(vim.api.nvim_win_get_height(winid) < win_height, true)
+
+      split:hide()
+
+      h.assert_buf_lines(split.bufnr, {
+        "42",
+      })
+
+      eq(vim.api.nvim_win_get_height(winid) == win_height, true)
+    end)
+  end)
+
+  describe("method :show", function()
+    it("works", function()
+      local winid = vim.api.nvim_get_current_win()
+
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      vim.api.nvim_buf_set_lines(split.bufnr, 0, -1, false, {
+        "42",
+      })
+
+      local win_height = vim.api.nvim_win_get_height(winid)
+
+      split:hide()
+      split:show()
+
+      h.assert_buf_lines(split.bufnr, {
+        "42",
+      })
+
+      eq(vim.api.nvim_win_get_height(winid) == win_height, true)
+    end)
+  end)
+
   describe("method :map", function()
     it("supports lhs table", function()
       split = Split({
