@@ -1,6 +1,7 @@
 pcall(require, "luacov")
 
 local Split = require("nui.split")
+local event = require("nui.utils.autocmd").event
 local h = require("tests.nui")
 local spy = require("luassert.spy")
 
@@ -206,6 +207,27 @@ describe("nui.split", function()
       h.assert_buf_lines(split.bufnr, {
         "",
       })
+    end)
+  end)
+
+  describe("method :on", function()
+    it("works", function()
+      local callback = spy.new(function() end)
+
+      split = Split({
+        size = 20,
+      })
+
+      split:mount()
+
+      split:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).called()
     end)
   end)
 end)
