@@ -85,6 +85,12 @@ Callback function, called when input value is submitted.
 
 Callback function, called when input value is changed.
 
+### `disable_cursor_position_patch`
+
+By default, `nui.input` will try to make sure the cursor on parent window is not
+moved after input is submitted/closed. If you want to disable this behavior
+for some reason, you can set `disable_cursor_position_patch` to `true`.
+
 ## Methods
 
 Methods from `nui.popup` are also available for `nui.input`.
