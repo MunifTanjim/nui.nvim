@@ -136,6 +136,9 @@ function ImageBorder:_draw()
   local cw = cell_pixels.width
   local ch = cell_pixels.height
 
+  local padding = 4
+  local shadow  = 10
+
   local width  = cw * (popup.win_config.width  + 4)
   local height = ch * (popup.win_config.height + 2)
 
@@ -153,34 +156,46 @@ function ImageBorder:_draw()
   local window_width  = width  - 4 * cw
   local window_height = height - 2 * ch
 
-  -- Border
-  local line_width = 2
-  cr:line_width(line_width)
-  cr:rgba(border_color[1], border_color[2], border_color[3], 1.0)
-  cr:rectangle(
-    window_x - line_width,
-    window_y - line_width,
-    window_width  + 2 * line_width,
-    window_height + 2 * line_width
-  )
-  cr:stroke()
+  local line_width = 1
 
   -- Shadow
-  cr:rgba(0.0, 0.0, 0.0, 0.2)
-  cr:rectangle(
-    window_x,
-    window_y + window_height + line_width,
-    window_width + line_width,
-    ch / 2
+  for i = 1, shadow do
+    local current_shadow = i
+    cr:rounded_rectangle(
+      window_x - line_width - padding - current_shadow,
+      window_y - line_width - padding,
+      window_width  + 2 * line_width + 2 * padding + 2 * current_shadow,
+      window_height + 2 * line_width + 2 * padding + 1 * current_shadow,
+      4
+    )
+    cr:rgba(0.0, 0.0, 0.0, 0.03)
+    cr:fill()
+  end
+
+  -- Path for padding & border
+  cr:rounded_rectangle(
+    window_x - line_width - padding,
+    window_y - line_width - padding,
+    window_width  + 2 * line_width + 2 * padding,
+    window_height + 2 * line_width + 2 * padding,
+    4
   )
+
+  -- Padding
+  cr:rgba(background_color[1], background_color[2], background_color[3], 1.0)
+  cr:fill_preserve()
+
+  -- Border
+  cr:line_width(line_width)
+  cr:rgba(border_color[1], border_color[2], border_color[3], 1.0)
+  cr:stroke()
+
+  -- Clear window region
+  cr:operator('source')
+  cr:rgba(0, 0, 0, 0)
+  cr:rectangle(window_x, window_y, window_width, window_height)
   cr:fill()
-  cr:rectangle(
-    window_x + window_width + line_width,
-    window_y,
-    ch / 2,
-    window_height + ch / 2 + line_width
-  )
-  cr:fill()
+  cr:operator('over')
 
   surface:flush()
 
