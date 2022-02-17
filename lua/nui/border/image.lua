@@ -11,17 +11,6 @@ local is_type = require("nui.utils").is_type
 
 local has_nvim_0_5_1 = vim.fn.has("nvim-0.5.1") == 1
 
-local index_name = {
-  "top_left",
-  "top",
-  "top_right",
-  "right",
-  "bottom_right",
-  "bottom",
-  "bottom_left",
-  "left",
-}
-
 local function parse_winhl(winhl)
   winhl = defaults(winhl, '')
   local parts = vim.split(winhl, ',')
@@ -38,51 +27,6 @@ local function color_to_rgb(value)
   local green = bit.rshift(bit.band(value, 0x000ff00),  8) / 255
   local blue  = bit.rshift(bit.band(value, 0x00000ff),  0) / 255
   return { red, green, blue }
-end
-
-local function to_border_map(ImageBorder)
-  if not is_type("list", ImageBorder) then
-    error("invalid data")
-  end
-
-  -- fillup all 8 characters
-  local count = vim.tbl_count(ImageBorder)
-  if count < 8 then
-    for i = count + 1, 8 do
-      local fallback_index = i % count
-      local char = ImageBorder[fallback_index == 0 and count or fallback_index]
-      if is_type("table", char) then
-        char = char.content and Text(char) or vim.deepcopy(char)
-      end
-      ImageBorder[i] = char
-    end
-  end
-
-  local named_border = {}
-
-  for index, name in ipairs(index_name) do
-    named_border[name] = ImageBorder[index]
-  end
-
-  return named_border
-end
-
-local function to_border_list(named_border)
-  if not is_type("map", named_border) then
-    error("invalid data")
-  end
-
-  local ImageBorder = {}
-
-  for index, name in ipairs(index_name) do
-    if is_type(named_border[name], "nil") then
-      error(string.format("missing named ImageBorder: %s", name))
-    end
-
-    ImageBorder[index] = named_border[name]
-  end
-
-  return ImageBorder
 end
 
 ---@param internal nui_popup_border_internal
@@ -116,89 +60,6 @@ local function parse_padding(padding)
   map.bottom = defaults(padding[3], map.top)
   map.left = defaults(padding[4], map.right)
   return map
-end
-
----@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
----@param align? nil | "'left'" | "'center'" | "'right'"
----@return table NuiLine
-local function calculate_buf_edge_line(internal, edge, text, align)
-  local char, size = internal.char, internal.size
-
-  local left_char = char[edge .. "_left"]
-  local mid_char = char[edge]
-  local right_char = char[edge .. "_right"]
-
-  if left_char:content() == "" then
-    left_char = Text(mid_char:content() == "" and char["left"] or mid_char)
-  end
-
-  if right_char:content() == "" then
-    right_char = Text(mid_char:content() == "" and char["right"] or mid_char)
-  end
-
-  local max_width = size.width - left_char:width() - right_char:width()
-
-  local content_text = Text(defaults(text, ""))
-  if mid_char:width() == 0 then
-    content_text:set(string.rep(" ", max_width))
-  else
-    content_text:set(_.truncate_text(content_text:content(), max_width))
-  end
-
-  local left_gap_width, right_gap_width = _.calculate_gap_width(
-    defaults(align, "center"),
-    max_width,
-    content_text:width()
-  )
-
-  local line = Line()
-
-  line:append(left_char)
-
-  if left_gap_width > 0 then
-    line:append(Text(mid_char):set(string.rep(mid_char:content(), left_gap_width)))
-  end
-
-  line:append(content_text)
-
-  if right_gap_width > 0 then
-    line:append(Text(mid_char):set(string.rep(mid_char:content(), right_gap_width)))
-  end
-
-  line:append(right_char)
-
-  return line
-end
-
----@return nil | table[] # NuiLine[]
-local function calculate_buf_lines(internal)
-  local char, size, text = internal.char, internal.size, defaults(internal.text, {})
-
-  if is_type("string", char) then
-    return nil
-  end
-
-  local left_char, right_char = char.left, char.right
-
-  local gap_length = size.width - left_char:width() - right_char:width()
-
-  local lines = {}
-
-  table.insert(lines, calculate_buf_edge_line(internal, "top", text.top, text.top_align))
-  for _ = 1, size.height - 2 do
-    table.insert(
-      lines,
-      Line({
-        Text(left_char),
-        Text(string.rep(" ", gap_length)),
-        Text(right_char),
-      })
-    )
-  end
-  table.insert(lines, calculate_buf_edge_line(internal, "bottom", text.bottom, text.bottom_align))
-
-  return lines
 end
 
 local styles = {
@@ -471,75 +332,21 @@ function ImageBorder:unmount()
 end
 
 function ImageBorder:resize()
-  local internal = self._
-
-  if internal.type ~= "complex" then
-    return
-  end
-
-  internal.size = calculate_size(self)
-  self.win_config.width = internal.size.width
-  self.win_config.height = internal.size.height
-
-  internal.lines = calculate_buf_lines(internal)
-
-  if self.winid then
-    vim.api.nvim_win_set_config(self.winid, self.win_config)
-  end
-
-  if self.bufnr then
-    if internal.lines then
-      _.render_lines(internal.lines, self.bufnr, self.popup.ns_id, 1, #internal.lines)
-    end
-  end
-
-  vim.api.nvim_command("redraw")
+  -- FIXME: implement this
+  return nil
 end
 
 function ImageBorder:reposition()
-  local internal = self._
-
-  if internal.type ~= "complex" then
-    return
-  end
-
-  local position = self.popup._.position
-  self.win_config.relative = position.relative
-  self.win_config.win = position.relative == "win" and position.win or nil
-  self.win_config.bufpos = position.bufpos
-
-  internal.position = calculate_position(self)
-  self.win_config.row = internal.position.row
-  self.win_config.col = internal.position.col
-
-  if self.winid then
-    vim.api.nvim_win_set_config(self.winid, self.win_config)
-  end
-
-  adjust_popup_win_config(self)
-
-  vim.api.nvim_command("redraw")
+  -- FIXME: implement this
+  return nil
 end
 
 ---@param edge "'top'" | "'bottom'"
 ---@param text? nil | string | table # string or NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 function ImageBorder:set_text(edge, text, align)
-  local internal = self._
-
-  if not internal.lines or not internal.text then
-    return
-  end
-
-  internal.text[edge] = text
-  internal.text[edge .. "_align"] = defaults(align, internal.text[edge .. "_align"])
-
-  local line = calculate_buf_edge_line(internal, edge, internal.text[edge], internal.text[edge .. "_align"])
-
-  local linenr = edge == "top" and 1 or #internal.lines
-
-  internal.lines[linenr] = line
-  line:render(self.bufnr, self.popup.ns_id, linenr)
+  -- FIXME: implement this
+  return nil
 end
 
 function ImageBorder:get()
