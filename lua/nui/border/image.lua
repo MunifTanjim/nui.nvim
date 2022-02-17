@@ -209,9 +209,7 @@ function ImageBorder:mount()
     return
   end
 
-  vim.defer_fn(function()
-    self:_draw()
-  end, 100)
+  self:_draw()
 end
 
 function ImageBorder:unmount()
