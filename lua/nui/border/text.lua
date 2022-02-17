@@ -17,28 +17,28 @@ local index_name = {
   "left",
 }
 
-local function to_border_map(border)
-  if not is_type("list", border) then
+local function to_border_map(TextBorder)
+  if not is_type("list", TextBorder) then
     error("invalid data")
   end
 
   -- fillup all 8 characters
-  local count = vim.tbl_count(border)
+  local count = vim.tbl_count(TextBorder)
   if count < 8 then
     for i = count + 1, 8 do
       local fallback_index = i % count
-      local char = border[fallback_index == 0 and count or fallback_index]
+      local char = TextBorder[fallback_index == 0 and count or fallback_index]
       if is_type("table", char) then
         char = char.content and Text(char) or vim.deepcopy(char)
       end
-      border[i] = char
+      TextBorder[i] = char
     end
   end
 
   local named_border = {}
 
   for index, name in ipairs(index_name) do
-    named_border[name] = border[index]
+    named_border[name] = TextBorder[index]
   end
 
   return named_border
@@ -49,17 +49,17 @@ local function to_border_list(named_border)
     error("invalid data")
   end
 
-  local border = {}
+  local TextBorder = {}
 
   for index, name in ipairs(index_name) do
     if is_type(named_border[name], "nil") then
-      error(string.format("missing named border: %s", name))
+      error(string.format("missing named TextBorder: %s", name))
     end
 
-    border[index] = named_border[name]
+    TextBorder[index] = named_border[name]
   end
 
-  return border
+  return TextBorder
 end
 
 ---@param internal nui_popup_border_internal
@@ -222,13 +222,13 @@ local styles = {
   solid = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
 }
 
----@param border NuiPopupBorder
+---@param TextBorder NuiPopupTextBorder
 ---@return nui_popup_border_internal_size
-local function calculate_size(border)
+local function calculate_size(TextBorder)
   ---@type nui_popup_border_internal_size
-  local size = vim.deepcopy(border.popup._.size)
+  local size = vim.deepcopy(TextBorder.popup._.size)
 
-  local char = border._.char
+  local char = TextBorder._.char
 
   if is_type("map", char) then
     if char.top ~= "" then
@@ -248,7 +248,7 @@ local function calculate_size(border)
     end
   end
 
-  local padding = border._.padding
+  local padding = TextBorder._.padding
 
   if padding then
     if padding.top then
@@ -271,15 +271,15 @@ local function calculate_size(border)
   return size
 end
 
----@param border NuiPopupBorder
+---@param TextBorder NuiPopupTextBorder
 ---@return nui_popup_border_internal_position
-local function calculate_position(border)
-  local position = vim.deepcopy(border.popup._.position)
+local function calculate_position(TextBorder)
+  local position = vim.deepcopy(TextBorder.popup._.position)
   return position
 end
 
-local function adjust_popup_win_config(border)
-  local internal = border._
+local function adjust_popup_win_config(TextBorder)
+  local internal = TextBorder._
 
   if internal.type ~= "complex" then
     return
@@ -314,7 +314,7 @@ local function adjust_popup_win_config(border)
     end
   end
 
-  local popup = border.popup
+  local popup = TextBorder.popup
 
   if not has_nvim_0_5_1 then
     popup.win_config.row = internal.position.row + popup_position.row
@@ -323,22 +323,22 @@ local function adjust_popup_win_config(border)
   end
 
   popup.win_config.relative = "win"
-  popup.win_config.win = border.winid
+  popup.win_config.win = TextBorder.winid
   popup.win_config.bufpos = nil
   popup.win_config.row = popup_position.row
   popup.win_config.col = popup_position.col
 end
 
----@param class NuiPopupBorder
+---@param class NuiPopupTextBorder
 ---@param popup NuiPopup
 local function init(class, popup, options)
-  ---@type NuiPopupBorder
+  ---@type NuiPopupTextBorder
   local self = setmetatable({}, { __index = class })
 
   self.popup = popup
 
   self._ = {
-    type = "simple",
+    type = options.type or "simple",
     style = defaults(options.style, "none"),
     -- @deprecated
     highlight = options.highlight,
@@ -355,7 +355,7 @@ local function init(class, popup, options)
     internal.char = to_border_map(style)
   elseif is_type("string", style) then
     if not styles[style] then
-      error("invalid border style name")
+      error("invalid TextBorder style name")
     end
 
     internal.char = vim.deepcopy(styles[style])
@@ -385,7 +385,7 @@ local function init(class, popup, options)
 
   self.win_config = {
     style = "minimal",
-    border = "none",
+    TextBorder = "none",
     focusable = false,
     zindex = self.popup.win_config.zindex - 1,
   }
@@ -408,40 +408,29 @@ local function init(class, popup, options)
   return self
 end
 
---luacheck: push no max line length
-
----@alias nui_t_text_align "'left'" | "'center'" | "'right'"
----@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
----@alias nui_popup_border_internal_position { row: number, col: number }
----@alias nui_popup_border_internal_size { width: number, height: number }
----@alias nui_popup_border_internal_text { top?: string, top_align?: nui_t_text_align, bottom?: string, bottom_align?: nui_t_text_align }
----@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
-
---luacheck: pop
-
----@class NuiPopupBorder
+---@class NuiPopupTextBorder
 ---@field bufnr number
 ---@field private _ nui_popup_border_internal
 ---@field private popup NuiPopup
 ---@field winid number
-local Border = setmetatable({
+local TextBorder = setmetatable({
   super = nil,
 }, {
   __call = init,
-  __name = "NuiPopupBorder",
+  __name = "NuiPopupTextBorder",
 })
 
-function Border:init(popup, options)
+function TextBorder:init(popup, options)
   return init(self, popup, options)
 end
 
-function Border:_open_window()
+function TextBorder:_open_window()
   if self.winid or not self.bufnr then
     return
   end
 
   self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
-  assert(self.winid, "failed to create border window")
+  assert(self.winid, "failed to create TextBorder window")
 
   if self._.winhighlight then
     vim.api.nvim_win_set_option(self.winid, "winhighlight", self._.winhighlight)
@@ -452,7 +441,7 @@ function Border:_open_window()
   vim.api.nvim_command("redraw")
 end
 
-function Border:_close_window()
+function TextBorder:_close_window()
   if not self.winid then
     return
   end
@@ -464,7 +453,7 @@ function Border:_close_window()
   self.winid = nil
 end
 
-function Border:mount()
+function TextBorder:mount()
   local popup = self.popup
 
   if not popup._.loading or popup._.mounted then
@@ -478,7 +467,7 @@ function Border:mount()
   end
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
-  assert(self.bufnr, "failed to create border buffer")
+  assert(self.bufnr, "failed to create TextBorder buffer")
 
   if internal.lines then
     _.render_lines(internal.lines, self.bufnr, popup.ns_id, 1, #internal.lines)
@@ -487,7 +476,7 @@ function Border:mount()
   self:_open_window()
 end
 
-function Border:unmount()
+function TextBorder:unmount()
   local popup = self.popup
 
   if not popup._.loading or not popup._.mounted then
@@ -510,7 +499,7 @@ function Border:unmount()
   self:_close_window()
 end
 
-function Border:resize()
+function TextBorder:resize()
   local internal = self._
 
   if internal.type ~= "complex" then
@@ -536,7 +525,7 @@ function Border:resize()
   vim.api.nvim_command("redraw")
 end
 
-function Border:reposition()
+function TextBorder:reposition()
   local internal = self._
 
   if internal.type ~= "complex" then
@@ -564,7 +553,7 @@ end
 ---@param edge "'top'" | "'bottom'"
 ---@param text? nil | string | table # string or NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
-function Border:set_text(edge, text, align)
+function TextBorder:set_text(edge, text, align)
   local internal = self._
 
   if not internal.lines or not internal.text then
@@ -582,7 +571,7 @@ function Border:set_text(edge, text, align)
   line:render(self.bufnr, self.popup.ns_id, linenr)
 end
 
-function Border:get()
+function TextBorder:get()
   local internal = self._
 
   if internal.type ~= "simple" then
@@ -596,8 +585,8 @@ function Border:get()
   return to_border_list(internal.char)
 end
 
----@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: table): NuiPopupBorder
----@type NuiPopupBorder|NuiPopupBorder.constructor
-local NuiPopupBorder = Border
+---@alias NuiPopupTextBorder.constructor fun(popup: NuiPopup, options: table): NuiPopupTextBorder
+---@type NuiPopupTextBorder|NuiPopupTextBorder.constructor
+local NuiPopupTextBorder = TextBorder
 
-return NuiPopupBorder
+return NuiPopupTextBorder

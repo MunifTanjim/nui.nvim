@@ -1,4 +1,4 @@
-local Border = require("nui.popup.border")
+local Border = require("nui.border")
 local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
