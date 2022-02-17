@@ -136,7 +136,7 @@ function ImageBorder:_draw()
   local cw = cell_pixels.width
   local ch = cell_pixels.height
 
-  local padding = 4
+  local padding = 8
   local shadow  = 10
 
   local width  = cw * (popup.win_config.width  + 4)
