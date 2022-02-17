@@ -17,28 +17,28 @@ local index_name = {
   "left",
 }
 
-local function to_border_map(TextBorder)
-  if not is_type("list", TextBorder) then
+local function to_border_map(border)
+  if not is_type("list", border) then
     error("invalid data")
   end
 
   -- fillup all 8 characters
-  local count = vim.tbl_count(TextBorder)
+  local count = vim.tbl_count(border)
   if count < 8 then
     for i = count + 1, 8 do
       local fallback_index = i % count
-      local char = TextBorder[fallback_index == 0 and count or fallback_index]
+      local char = border[fallback_index == 0 and count or fallback_index]
       if is_type("table", char) then
         char = char.content and Text(char) or vim.deepcopy(char)
       end
-      TextBorder[i] = char
+      border[i] = char
     end
   end
 
   local named_border = {}
 
   for index, name in ipairs(index_name) do
-    named_border[name] = TextBorder[index]
+    named_border[name] = border[index]
   end
 
   return named_border
@@ -49,17 +49,17 @@ local function to_border_list(named_border)
     error("invalid data")
   end
 
-  local TextBorder = {}
+  local border = {}
 
   for index, name in ipairs(index_name) do
     if is_type(named_border[name], "nil") then
-      error(string.format("missing named TextBorder: %s", name))
+      error(string.format("missing named border: %s", name))
     end
 
-    TextBorder[index] = named_border[name]
+    border[index] = named_border[name]
   end
 
-  return TextBorder
+  return border
 end
 
 ---@param internal nui_popup_border_internal
@@ -222,13 +222,13 @@ local styles = {
   solid = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
 }
 
----@param TextBorder NuiPopupTextBorder
+---@param border NuiPopupTextBorder
 ---@return nui_popup_border_internal_size
-local function calculate_size(TextBorder)
+local function calculate_size(border)
   ---@type nui_popup_border_internal_size
-  local size = vim.deepcopy(TextBorder.popup._.size)
+  local size = vim.deepcopy(border.popup._.size)
 
-  local char = TextBorder._.char
+  local char = border._.char
 
   if is_type("map", char) then
     if char.top ~= "" then
@@ -248,7 +248,7 @@ local function calculate_size(TextBorder)
     end
   end
 
-  local padding = TextBorder._.padding
+  local padding = border._.padding
 
   if padding then
     if padding.top then
@@ -271,15 +271,15 @@ local function calculate_size(TextBorder)
   return size
 end
 
----@param TextBorder NuiPopupTextBorder
+---@param border NuiPopupTextBorder
 ---@return nui_popup_border_internal_position
-local function calculate_position(TextBorder)
-  local position = vim.deepcopy(TextBorder.popup._.position)
+local function calculate_position(border)
+  local position = vim.deepcopy(border.popup._.position)
   return position
 end
 
-local function adjust_popup_win_config(TextBorder)
-  local internal = TextBorder._
+local function adjust_popup_win_config(border)
+  local internal = border._
 
   if internal.type ~= "complex" then
     return
@@ -314,7 +314,7 @@ local function adjust_popup_win_config(TextBorder)
     end
   end
 
-  local popup = TextBorder.popup
+  local popup = border.popup
 
   if not has_nvim_0_5_1 then
     popup.win_config.row = internal.position.row + popup_position.row
@@ -323,7 +323,7 @@ local function adjust_popup_win_config(TextBorder)
   end
 
   popup.win_config.relative = "win"
-  popup.win_config.win = TextBorder.winid
+  popup.win_config.win = border.winid
   popup.win_config.bufpos = nil
   popup.win_config.row = popup_position.row
   popup.win_config.col = popup_position.col
@@ -355,7 +355,7 @@ local function init(class, popup, options)
     internal.char = to_border_map(style)
   elseif is_type("string", style) then
     if not styles[style] then
-      error("invalid TextBorder style name")
+      error("invalid border style name")
     end
 
     internal.char = vim.deepcopy(styles[style])
@@ -385,7 +385,7 @@ local function init(class, popup, options)
 
   self.win_config = {
     style = "minimal",
-    TextBorder = "none",
+    border = "none",
     focusable = false,
     zindex = self.popup.win_config.zindex - 1,
   }
