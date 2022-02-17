@@ -430,7 +430,7 @@ function TextBorder:_open_window()
   end
 
   self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
-  assert(self.winid, "failed to create TextBorder window")
+  assert(self.winid, "failed to create border window")
 
   if self._.winhighlight then
     vim.api.nvim_win_set_option(self.winid, "winhighlight", self._.winhighlight)
@@ -467,7 +467,7 @@ function TextBorder:mount()
   end
 
   self.bufnr = vim.api.nvim_create_buf(false, true)
-  assert(self.bufnr, "failed to create TextBorder buffer")
+  assert(self.bufnr, "failed to create border buffer")
 
   if internal.lines then
     _.render_lines(internal.lines, self.bufnr, popup.ns_id, 1, #internal.lines)
