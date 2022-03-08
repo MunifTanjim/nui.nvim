@@ -10,7 +10,7 @@ read_globals = { "vim" }
 std = "luajit"
 
 files["lua/tests/**/*.lua"] = {
-  read_globals = { "assert" },
+  read_globals = { "assert", "describe" },
 }
 
 -- vim: set filetype=lua :

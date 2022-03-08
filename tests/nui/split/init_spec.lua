@@ -132,7 +132,7 @@ describe("nui.split", function()
     end)
   end)
 
-  describe("method :map", function()
+  h.describe_flipping_feature("lua_keymap", "method :map", function()
     it("supports lhs table", function()
       split = Split({
         size = 20,

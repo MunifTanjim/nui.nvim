@@ -86,7 +86,7 @@ describe("nui.popup", function()
     eq(popup.ns_id > 0, true)
   end)
 
-  describe("method :map", function()
+  h.describe_flipping_feature("lua_keymap", "method :map", function()
     it("supports lhs table", function()
       popup = Popup({
         enter = true,
@@ -206,7 +206,7 @@ describe("nui.popup", function()
     end)
   end)
 
-  describe("method :unmap", function()
+  h.describe_flipping_feature("lua_keymap", "method :unmap", function()
     it("supports lhs string", function()
       popup = Popup({
         enter = true,
