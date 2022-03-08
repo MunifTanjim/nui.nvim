@@ -81,11 +81,9 @@ end
 ---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
 function keymap.set(bufnr, mode, lhs, handler, opts, force)
-  -- luacov: disable
   if feature.lua_keymap and not is_type("boolean", force) then
     force = true
   end
-  -- luacov: enable
 
   local keys = is_type("table", lhs) and lhs or { lhs }
 
@@ -118,11 +116,9 @@ end
 ---@param lhs string|string[]
 ---@return nil
 function keymap._del(bufnr, mode, lhs, force)
-  -- luacov: disable
   if feature.lua_keymap and not is_type("boolean", force) then
     force = true
   end
-  -- luacov: enable
 
   local keys = is_type("table", lhs) and lhs or { lhs }
 

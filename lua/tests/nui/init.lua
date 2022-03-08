@@ -92,4 +92,18 @@ function mod.assert_extmark(extmark, linenr, text, hl_group)
   })
 end
 
+function mod.describe_flipping_feature(feature_name, desc, func)
+  describe(string.format("(w/ %s) %s", feature_name, desc), function()
+    require("nui.utils")._.feature[feature_name] = true
+    func()
+    require("nui.utils")._.feature[feature_name] = true
+  end)
+
+  describe(string.format("(w/o %s) %s", feature_name, desc), function()
+    require("nui.utils")._.feature[feature_name] = false
+    func()
+    require("nui.utils")._.feature[feature_name] = true
+  end)
+end
+
 return mod
