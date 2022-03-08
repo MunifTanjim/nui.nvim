@@ -1,6 +1,10 @@
 local utils = {
   -- internal utils
-  _ = {},
+  _ = {
+    feature = {
+      lua_keymap = type(vim.keymap) ~= "nil",
+    },
+  },
 }
 
 function utils.get_editor_size()

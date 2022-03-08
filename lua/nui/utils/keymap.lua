@@ -1,7 +1,6 @@
 local buf_storage = require("nui.utils.buf_storage")
 local is_type = require("nui.utils").is_type
-
-local has_vim_keymap = not is_type("nil", vim.keymap)
+local feature = require("nui.utils")._.feature
 
 local keymap = {
   storage = buf_storage.create("nui.utils.keymap", { _next_handler_id = 1, keys = {}, handlers = {} }),
@@ -50,7 +49,7 @@ local function get_keymap_info(bufnr, mode, key, handler, overwrite)
   local rhs, callback = "", nil
 
   if is_type("function", handler) then
-    if has_vim_keymap then
+    if feature.lua_keymap then
       callback = handler
     else
       keymap.storage[bufnr].handlers[handler_id] = handler
@@ -83,7 +82,7 @@ end
 ---@return nil
 function keymap.set(bufnr, mode, lhs, handler, opts, force)
   -- luacov: disable
-  if has_vim_keymap and not is_type("boolean", force) then
+  if feature.lua_keymap and not is_type("boolean", force) then
     force = true
   end
   -- luacov: enable
@@ -120,7 +119,7 @@ end
 ---@return nil
 function keymap._del(bufnr, mode, lhs, force)
   -- luacov: disable
-  if has_vim_keymap and not is_type("boolean", force) then
+  if feature.lua_keymap and not is_type("boolean", force) then
     force = true
   end
   -- luacov: enable
