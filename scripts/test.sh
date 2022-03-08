@@ -15,4 +15,7 @@ nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory 
 
 if test -n "${luacov_dir}"; then
   luacov
+
+  echo
+  tail -n +$(($(cat luacov.report.out | grep -n "^Summary$" | cut -d":" -f1) - 1)) luacov.report.out
 fi
