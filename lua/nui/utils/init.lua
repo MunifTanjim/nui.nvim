@@ -3,6 +3,7 @@ local utils = {
   _ = {
     feature = {
       lua_keymap = type(vim.keymap) ~= "nil",
+      lua_autocmd = type(vim.api.nvim_create_autocmd) ~= "nil",
     },
   },
 }

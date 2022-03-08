@@ -267,7 +267,7 @@ describe("nui.split", function()
     end)
   end)
 
-  describe("method :on", function()
+  h.describe_flipping_feature("lua_autocmd", "method :on", function()
     it("works", function()
       local callback = spy.new(function() end)
 
@@ -288,7 +288,7 @@ describe("nui.split", function()
     end)
   end)
 
-  describe("method :off", function()
+  h.describe_flipping_feature("lua_autocmd", "method :off", function()
     it("works", function()
       local callback = spy.new(function() end)
 
