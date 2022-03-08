@@ -1,6 +1,7 @@
 local buf_storage = require("nui.utils.buf_storage")
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
+local feature = require("nui.utils")._.feature
 
 local autocmd = {
   event = {
@@ -383,16 +384,44 @@ end
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function autocmd.buf.define(bufnr, event, handler, options)
-  vim.api.nvim_exec(autocmd.buf.statement(bufnr, event, handler, options), false)
+  if not feature.lua_autocmd then
+    vim.api.nvim_exec(autocmd.buf.statement(bufnr, event, handler, options), false)
+    return
+  end
+
+  local opts = options or {}
+
+  opts.buffer = bufnr
+
+  if is_type("function", handler) then
+    opts.callback = handler
+  else
+    opts.command = handler
+  end
+
+  vim.api.nvim_create_autocmd(event, opts)
 end
 
 ---@param bufnr number
 ---@param group_name nil | string
 ---@param event nil | string | string[]
 function autocmd.buf.remove(bufnr, group_name, event)
-  event = defaults(event, "*")
-  local pattern = string.format("<buffer=%s>", bufnr)
-  autocmd.remove(group_name, event, pattern)
+  if not feature.lua_autocmd then
+    event = defaults(event, "*")
+    local pattern = string.format("<buffer=%s>", bufnr)
+    autocmd.remove(group_name, event, pattern)
+    return
+  end
+
+  for _, item in ipairs(vim.api.nvim_get_autocmds({
+    buffer = bufnr,
+    event = event,
+    group = group_name,
+  })) do
+    if item.id then
+      vim.api.nvim_del_autocmd(item.id)
+    end
+  end
 end
 
 ---@param bufnr number
