@@ -99,9 +99,11 @@ local Split = setmetatable({
   __name = "NuiSplit",
 })
 
+-- luacov: disable
 function Split:init(options)
   return init(self, options)
 end
+-- luacov: enable
 
 function Split:_open_window()
   if self.winid or not self.bufnr then
