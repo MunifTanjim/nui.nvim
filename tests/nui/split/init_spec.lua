@@ -14,9 +14,9 @@ describe("nui.split", function()
     split:unmount()
   end)
 
-  describe("sets o.size as", function()
+  describe("o.size", function()
     for position, dimension in pairs({ top = "height", right = "width", bottom = "height", left = "width" }) do
-      it(string.format("%s if o.position=%s", dimension, position), function()
+      it(string.format("is set as %s if o.position=%s", dimension, position), function()
         local size = 20
 
         split = Split({
@@ -31,6 +31,16 @@ describe("nui.split", function()
         eq(vim.api[nvim_method](split.winid), size)
       end)
     end
+
+    it("is optional", function()
+      split = Split({
+        position = "bottom",
+      })
+
+      split:mount()
+
+      eq(type(vim.api.nvim_win_get_height(split.winid)), "number")
+    end)
   end)
 
   it("supports o.relative=win", function()
@@ -75,6 +85,87 @@ describe("nui.split", function()
     left_half_split:unmount()
   end)
 
+  describe("method :mount", function()
+    it("opens win if not mounted", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:mount()
+
+      local new_winids = vim.tbl_filter(function(winid)
+        return not vim.tbl_contains(prev_winids, winid)
+      end, vim.api.nvim_list_wins())
+
+      eq(#new_winids, 1)
+    end)
+
+    it("does nothing if already mounted", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:mount()
+
+      local new_winids = vim.tbl_filter(function(winid)
+        return not vim.tbl_contains(prev_winids, winid)
+      end, vim.api.nvim_list_wins())
+
+      eq(#new_winids, 0)
+    end)
+  end)
+
+  describe("method :unmount", function()
+    it("closes win if mounted", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      local split_winid = split.winid
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:unmount()
+
+      local curr_winids = vim.api.nvim_list_wins()
+      local closed_winids = vim.tbl_filter(function(winid)
+        return not vim.tbl_contains(curr_winids, winid)
+      end, prev_winids)
+
+      eq(#closed_winids, 1)
+      eq(closed_winids[1], split_winid)
+    end)
+
+    it("does nothing if already unmounted", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:unmount()
+
+      local curr_winids = vim.api.nvim_list_wins()
+      local closed_winids = vim.tbl_filter(function(winid)
+        return not vim.tbl_contains(curr_winids, winid)
+      end, prev_winids)
+
+      eq(#closed_winids, 0)
+    end)
+  end)
+
   describe("method :hide", function()
     it("works", function()
       local winid = vim.api.nvim_get_current_win()
@@ -101,6 +192,42 @@ describe("nui.split", function()
       })
 
       eq(vim.api.nvim_win_get_height(winid) == win_height, true)
+    end)
+
+    it("is idempotent", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:hide()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids + 1)
+
+      split:hide()
+
+      eq(#curr_winids, #vim.api.nvim_list_wins())
+    end)
+
+    it("does nothing if not mounted", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:hide()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids)
     end)
   end)
 
@@ -129,6 +256,61 @@ describe("nui.split", function()
       })
 
       eq(vim.api.nvim_win_get_height(winid) == win_height, true)
+    end)
+
+    it("is idempotent", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      split:hide()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:show()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids + 1, #curr_winids)
+
+      split:show()
+
+      eq(#curr_winids, #vim.api.nvim_list_wins())
+    end)
+
+    it("does nothing if not mounted", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:show()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids)
+    end)
+
+    it("does nothing if not hidden", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:mount()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      split:show()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids)
     end)
   end)
 
@@ -225,6 +407,19 @@ describe("nui.split", function()
         "42",
       })
     end)
+
+    it("throws if not mounted", function()
+      split = Split({
+        size = 20,
+      })
+
+      local ok, result = pcall(function()
+        split:map("n", "k", "o42<Esc>")
+      end)
+
+      eq(ok, false)
+      eq(type(result), "string")
+    end)
   end)
 
   describe("method :unmap", function()
@@ -265,6 +460,19 @@ describe("nui.split", function()
         "",
       })
     end)
+
+    it("throws if not mounted", function()
+      split = Split({
+        size = 20,
+      })
+
+      local ok, result = pcall(function()
+        split:unmap("n", "l")
+      end)
+
+      eq(ok, false)
+      eq(type(result), "string")
+    end)
   end)
 
   h.describe_flipping_feature("lua_autocmd", "method :on", function()
@@ -285,6 +493,19 @@ describe("nui.split", function()
       feedkeys("<esc>", "x")
 
       assert.spy(callback).called()
+    end)
+
+    it("throws if not mounted", function()
+      split = Split({
+        size = 20,
+      })
+
+      local ok, result = pcall(function()
+        split:on(event.InsertEnter, function() end)
+      end)
+
+      eq(ok, false)
+      eq(type(result), "string")
     end)
   end)
 
@@ -308,6 +529,19 @@ describe("nui.split", function()
       feedkeys("<esc>", "x")
 
       assert.spy(callback).not_called()
+    end)
+
+    it("throws if not mounted", function()
+      split = Split({
+        size = 20,
+      })
+
+      local ok, result = pcall(function()
+        split:off()
+      end)
+
+      eq(ok, false)
+      eq(type(result), "string")
     end)
   end)
 end)
