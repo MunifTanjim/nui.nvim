@@ -144,6 +144,7 @@ local function init(class, options)
       modifiable = false,
       readonly = true,
       swapfile = false,
+      undolevels = 0,
     }, defaults(options.buf_options, {})),
     win_options = vim.tbl_extend("force", {
       foldcolumn = "0",
