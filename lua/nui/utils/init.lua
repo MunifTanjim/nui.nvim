@@ -1,11 +1,13 @@
-local utils = {
-  -- internal utils
-  _ = {
-    feature = {
-      lua_keymap = type(vim.keymap) ~= "nil",
-      lua_autocmd = type(vim.api.nvim_create_autocmd) ~= "nil",
-    },
+-- internal utils
+local _ = {
+  feature = {
+    lua_keymap = type(vim.keymap) ~= "nil",
+    lua_autocmd = type(vim.api.nvim_create_autocmd) ~= "nil",
   },
+}
+
+local utils = {
+  _ = _,
 }
 
 function utils.get_editor_size()
@@ -175,6 +177,31 @@ function utils._.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end)
   for linenr, line in ipairs(lines) do
     line:highlight(bufnr, ns_id, linenr)
   end
+end
+
+function _.normalize_layout_options(options)
+  options.relative = utils.defaults(options.relative, "win")
+  if utils.is_type("string", options.relative) then
+    options.relative = {
+      type = options.relative,
+    }
+  end
+
+  if not utils.is_type("table", options.position) then
+    options.position = {
+      row = options.position,
+      col = options.position,
+    }
+  end
+
+  if not utils.is_type("table", options.size) then
+    options.size = {
+      width = options.size,
+      height = options.size,
+    }
+  end
+
+  return options
 end
 
 return utils
