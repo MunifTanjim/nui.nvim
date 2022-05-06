@@ -65,7 +65,7 @@ end
 ---@param char_start number start character position (0-indexed)
 ---@param char_end number end character position (0-indexed)
 ---@return number[] byte_range
-function utils._.char_to_byte_range(bufnr, linenr, char_start, char_end)
+function _.char_to_byte_range(bufnr, linenr, char_start, char_end)
   local line = vim.api.nvim_buf_get_lines(bufnr, linenr - 1, linenr, false)[1]
   local skipped_part = vim.fn.strcharpart(line, 0, char_start)
   local target_part = vim.fn.strcharpart(line, char_start, char_end - char_start)
@@ -80,14 +80,14 @@ local fallback_namespace_id = vim.api.nvim_create_namespace("nui.nvim")
 ---@private
 ---@param ns_id number
 ---@return number
-function utils._.ensure_namespace_id(ns_id)
+function _.ensure_namespace_id(ns_id)
   return ns_id == -1 and fallback_namespace_id or ns_id
 end
 
 ---@private
 ---@param ns_id? number
 ---@return number ns_id namespace id
-function utils._.normalize_namespace_id(ns_id)
+function _.normalize_namespace_id(ns_id)
   if utils.is_type("string", ns_id) then
     return vim.api.nvim_create_namespace(ns_id)
   end
@@ -97,7 +97,7 @@ end
 ---@private
 ---@param bufnr number
 ---@param buf_options table<string, any>
-function utils._.set_buf_options(bufnr, buf_options)
+function _.set_buf_options(bufnr, buf_options)
   for name, value in pairs(buf_options) do
     vim.api.nvim_buf_set_option(bufnr, name, value)
   end
@@ -106,7 +106,7 @@ end
 ---@private
 ---@param winid number
 ---@param win_options table<string, any>
-function utils._.set_win_options(winid, win_options)
+function _.set_win_options(winid, win_options)
   for name, value in pairs(win_options) do
     vim.api.nvim_win_set_option(winid, name, value)
   end
@@ -116,7 +116,7 @@ end
 ---@param dimension number | string
 ---@param container_dimension number
 ---@return nil | number
-function utils._.normalize_dimension(dimension, container_dimension)
+function _.normalize_dimension(dimension, container_dimension)
   local number = utils.parse_number_input(dimension)
 
   if not number.value then
@@ -133,7 +133,7 @@ end
 ---@param text string
 ---@param max_length number
 ---@return string
-function utils._.truncate_text(text, max_length)
+function _.truncate_text(text, max_length)
   if vim.api.nvim_strwidth(text) > max_length then
     return string.sub(text, 1, max_length - 1) .. "…"
   end
@@ -145,7 +145,7 @@ end
 ---@param total_width number
 ---@param text_width number
 ---@return number left_gap_width, number right_gap_width
-function utils._.calculate_gap_width(align, total_width, text_width)
+function _.calculate_gap_width(align, total_width, text_width)
   local gap_width = total_width - text_width
   if align == "left" then
     return 0, gap_width
@@ -163,7 +163,7 @@ end
 ---@param ns_id number
 ---@param linenr_start number
 ---@param linenr_end number
-function utils._.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end)
+function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end)
   vim.api.nvim_buf_set_lines(
     bufnr,
     linenr_start - 1,
