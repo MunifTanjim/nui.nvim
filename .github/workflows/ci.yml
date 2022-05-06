@@ -86,7 +86,11 @@ jobs:
       - name: Prepare Neovim
         run: |
           nvim --version
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+
+          git clone https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+          # this commit broke luacov
+          git -C ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim revert --no-commit 9069d14a120cadb4f6825f76821533f2babcab92
+
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run Tests
         run: ./scripts/test.sh
