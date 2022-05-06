@@ -30,13 +30,6 @@ local function get_container_info(position)
 end
 
 local function calculate_window_size(size, container_size)
-  if not is_type("table", size) then
-    size = {
-      width = size,
-      height = size,
-    }
-  end
-
   local width = _.normalize_dimension(size.width, container_size.width)
   assert(width, "invalid size.width")
 
@@ -57,35 +50,22 @@ local function calculate_window_position(position, size, container)
   local is_percentage_allowed = not vim.tbl_contains({ "buf", "cursor" }, container.relative)
   local percentage_error = string.format("position %% can not be used relative to %s", container.relative)
 
-  if is_type("table", position) then
-    local r = utils.parse_number_input(position.row)
-    assert(r.value ~= nil, "invalid position.row")
-    if r.is_percentage then
-      assert(is_percentage_allowed, percentage_error)
-      row = math.floor((container.size.height - size.height) * r.value)
-    else
-      row = r.value
-    end
-
-    local c = utils.parse_number_input(position.col)
-    assert(c.value ~= nil, "invalid position.col")
-    if c.is_percentage then
-      assert(is_percentage_allowed, percentage_error)
-      col = math.floor((container.size.width - size.width) * c.value)
-    else
-      col = c.value
-    end
+  local r = utils.parse_number_input(position.row)
+  assert(r.value ~= nil, "invalid position.row")
+  if r.is_percentage then
+    assert(is_percentage_allowed, percentage_error)
+    row = math.floor((container.size.height - size.height) * r.value)
   else
-    local n = utils.parse_number_input(position)
-    assert(n.value ~= nil, "invalid position")
-    if n.is_percentage then
-      assert(is_percentage_allowed, percentage_error)
-      row = math.floor((container.size.height - size.height) * n.value)
-      col = math.floor((container.size.width - size.width) * n.value)
-    else
-      row = n.value
-      col = n.value
-    end
+    row = r.value
+  end
+
+  local c = utils.parse_number_input(position.col)
+  assert(c.value ~= nil, "invalid position.col")
+  if c.is_percentage then
+    assert(is_percentage_allowed, percentage_error)
+    col = math.floor((container.size.width - size.width) * c.value)
+  else
+    col = c.value
   end
 
   return {
@@ -124,15 +104,10 @@ local function parse_relative(relative, fallback_winid)
 end
 
 local function normalize_options(options)
+  options = _.normalize_layout_options(options)
+
   options.enter = defaults(options.enter, false)
   options.zindex = defaults(options.zindex, 50)
-
-  options.relative = defaults(options.relative, "win")
-  if is_type("string", options.relative) then
-    options.relative = {
-      type = options.relative,
-    }
-  end
 
   options.buf_options = defaults(options.buf_options, {})
   options.win_options = defaults(options.win_options, {})
