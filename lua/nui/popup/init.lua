@@ -148,6 +148,8 @@ local function init(class, options)
   if options.bufnr then
     self.bufnr = options.bufnr
     self._.unmanaged_bufnr = true
+  else
+    self:_buf_create()
   end
 
   if not self._.win_options.winblend and is_type("number", options.opacity) then
@@ -239,6 +241,13 @@ function Popup:_close_window()
   self.winid = nil
 end
 
+function Popup:_buf_create()
+  if not self.bufnr then
+    self.bufnr = vim.api.nvim_create_buf(false, true)
+    assert(self.bufnr, "failed to create buffer")
+  end
+end
+
 function Popup:mount()
   if self._.loading or self._.mounted then
     return
@@ -248,10 +257,7 @@ function Popup:mount()
 
   self.border:mount()
 
-  if not self.bufnr then
-    self.bufnr = vim.api.nvim_create_buf(false, true)
-    assert(self.bufnr, "failed to create buffer")
-  end
+  self:_buf_create()
 
   _.set_buf_options(self.bufnr, self._.buf_options)
 
@@ -289,6 +295,20 @@ function Popup:show()
   self._.loading = false
 end
 
+function Popup:_buf_destory()
+  buf_storage.cleanup(self.bufnr)
+
+  if self._.unmanaged_bufnr or not self.bufnr then
+    return
+  end
+
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  end
+
+  self.bufnr = nil
+end
+
 function Popup:unmount()
   if self._.loading or not self._.mounted then
     return
@@ -298,14 +318,7 @@ function Popup:unmount()
 
   self.border:unmount()
 
-  buf_storage.cleanup(self.bufnr)
-
-  if self.bufnr and not self._.unmanaged_bufnr then
-    if vim.api.nvim_buf_is_valid(self.bufnr) then
-      vim.api.nvim_buf_delete(self.bufnr, { force = true })
-    end
-    self.bufnr = nil
-  end
+  self:_buf_destory()
 
   self:_close_window()
 
@@ -320,8 +333,8 @@ end
 ---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
 function Popup:map(mode, key, handler, opts, force)
-  if not self._.mounted then
-    error("popup window is not mounted yet. call popup:mount()")
+  if not self.bufnr then
+    error("popup buffer not found.")
   end
 
   return keymap.set(self.bufnr, mode, key, handler, opts, force)
@@ -331,8 +344,8 @@ end
 ---@param key string|string[] key for the mapping
 ---@return nil
 function Popup:unmap(mode, key, force)
-  if not self._.mounted then
-    error("popup window is not mounted yet. call popup:mount()")
+  if not self.bufnr then
+    error("popup buffer not found.")
   end
 
   return keymap._del(self.bufnr, mode, key, force)
@@ -342,11 +355,19 @@ end
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function Popup:on(event, handler, options)
+  if not self.bufnr then
+    error("popup buffer not found.")
+  end
+
   autocmd.buf.define(self.bufnr, event, handler, options)
 end
 
 ---@param event nil | string | string[]
 function Popup:off(event)
+  if not self.bufnr then
+    error("popup buffer not found.")
+  end
+
   autocmd.buf.remove(self.bufnr, nil, event)
 end
 
