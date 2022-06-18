@@ -87,6 +87,52 @@ describe("nui.popup", function()
   end)
 
   h.describe_flipping_feature("lua_keymap", "method :map", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:map("n", "l", function()
+        callback()
+      end)
+
+      popup:mount()
+
+      feedkeys("l", "x")
+
+      assert.spy(callback).called()
+    end)
+
+    it("works after :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "l", function()
+        callback()
+      end)
+
+      feedkeys("l", "x")
+
+      assert.spy(callback).called()
+    end)
+
     it("supports lhs table", function()
       popup = Popup({
         enter = true,
@@ -204,9 +250,79 @@ describe("nui.popup", function()
         "42",
       })
     end)
+
+    it("throws if .bufnr is nil", function()
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup.bufnr = nil
+
+      local ok, result = pcall(function()
+        popup:map("n", "l", function() end)
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "buffer not found")), "string")
+    end)
   end)
 
   h.describe_flipping_feature("lua_keymap", "method :unmap", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:map("n", "l", function()
+        callback()
+      end)
+
+      popup:unmap("n", "l")
+
+      popup:mount()
+
+      feedkeys("l", "x")
+
+      assert.spy(callback).not_called()
+    end)
+
+    it("works after :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:map("n", "l", function()
+        callback()
+      end)
+
+      popup:unmap("n", "l")
+
+      feedkeys("l", "x")
+
+      assert.spy(callback).not_called()
+    end)
+
     it("supports lhs string", function()
       popup = Popup({
         enter = true,
@@ -253,6 +369,26 @@ describe("nui.popup", function()
       h.assert_buf_lines(popup.bufnr, {
         "",
       })
+    end)
+
+    it("throws if .bufnr is nil", function()
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup.bufnr = nil
+
+      local ok, result = pcall(function()
+        popup:unmap("n", "l")
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "buffer not found")), "string")
     end)
   end)
 end)
