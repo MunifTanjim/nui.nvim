@@ -1,6 +1,7 @@
 pcall(require, "luacov")
 
 local Popup = require("nui.popup")
+local event = require("nui.utils.autocmd").event
 local h = require("tests.nui")
 local spy = require("luassert.spy")
 
@@ -385,6 +386,150 @@ describe("nui.popup", function()
 
       local ok, result = pcall(function()
         popup:unmap("n", "l")
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "buffer not found")), "string")
+    end)
+  end)
+
+  h.describe_flipping_feature("lua_autocmd", "method :on", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      popup:mount()
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).called()
+    end)
+
+    it("works after :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).called()
+    end)
+
+    it("throws if .bufnr is nil", function()
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup.bufnr = nil
+
+      local ok, result = pcall(function()
+        popup:on(event.InsertEnter, function() end)
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "buffer not found")), "string")
+    end)
+  end)
+
+  h.describe_flipping_feature("lua_autocmd", "method :off", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      popup:off(event.InsertEnter)
+
+      popup:mount()
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).not_called()
+    end)
+
+    it("works after :mount", function()
+      local callback = spy.new(function() end)
+
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      popup:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      popup:off(event.InsertEnter)
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).not_called()
+    end)
+
+    it("throws if .bufnr is nil", function()
+      popup = Popup({
+        enter = true,
+        position = "50%",
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup.bufnr = nil
+
+      local ok, result = pcall(function()
+        popup:off()
       end)
 
       eq(ok, false)
