@@ -408,21 +408,23 @@ describe("nui.split", function()
       })
     end)
 
-    it("throws if not mounted", function()
+    it("throws if .bufnr is nil", function()
       split = Split({
         size = 20,
       })
+
+      split.bufnr = nil
 
       local ok, result = pcall(function()
         split:map("n", "k", "o42<Esc>")
       end)
 
       eq(ok, false)
-      eq(type(result), "string")
+      eq(type(string.match(result, "buffer not found")), "string")
     end)
   end)
 
-  describe("method :unmap", function()
+  h.describe_flipping_feature("lua_keymap", "method :unmap", function()
     it("supports lhs string", function()
       split = Split({
         size = 20,
@@ -461,17 +463,19 @@ describe("nui.split", function()
       })
     end)
 
-    it("throws if not mounted", function()
+    it("throws if .bufnr is nil", function()
       split = Split({
         size = 20,
       })
+
+      split.bufnr = nil
 
       local ok, result = pcall(function()
         split:unmap("n", "l")
       end)
 
       eq(ok, false)
-      eq(type(result), "string")
+      eq(type(string.match(result, "buffer not found")), "string")
     end)
   end)
 
@@ -495,17 +499,19 @@ describe("nui.split", function()
       assert.spy(callback).called()
     end)
 
-    it("throws if not mounted", function()
+    it("throws if .bufnr is nil", function()
       split = Split({
         size = 20,
       })
+
+      split.bufnr = nil
 
       local ok, result = pcall(function()
         split:on(event.InsertEnter, function() end)
       end)
 
       eq(ok, false)
-      eq(type(result), "string")
+      eq(type(string.match(result, "buffer not found")), "string")
     end)
   end)
 
@@ -531,17 +537,19 @@ describe("nui.split", function()
       assert.spy(callback).not_called()
     end)
 
-    it("throws if not mounted", function()
+    it("throws if .bufnr is nil", function()
       split = Split({
         size = 20,
       })
+
+      split.bufnr = nil
 
       local ok, result = pcall(function()
         split:off()
       end)
 
       eq(ok, false)
-      eq(type(result), "string")
+      eq(type(string.match(result, "buffer not found")), "string")
     end)
   end)
 end)
