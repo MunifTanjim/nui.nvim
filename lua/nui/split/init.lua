@@ -73,6 +73,8 @@ local function init(class, options)
     }, defaults(options.win_options, {})),
   }
 
+  self:_buf_create()
+
   local container_info = get_container_info(self._.relative)
   self._.size = calculate_window_size(self._.position, options.size, container_info)
 
@@ -141,6 +143,13 @@ function Split:_close_window()
   self.winid = nil
 end
 
+function Split:_buf_create()
+  if not self.bufnr then
+    self.bufnr = vim.api.nvim_create_buf(false, true)
+    assert(self.bufnr, "failed to create buffer")
+  end
+end
+
 function Split:mount()
   if self._.loading or self._.mounted then
     return
@@ -148,8 +157,7 @@ function Split:mount()
 
   self._.loading = true
 
-  self.bufnr = vim.api.nvim_create_buf(false, true)
-  assert(self.bufnr, "failed to create buffer")
+  self:_buf_create()
 
   utils._.set_buf_options(self.bufnr, self._.buf_options)
 
@@ -183,6 +191,18 @@ function Split:show()
   self._.loading = false
 end
 
+function Split:_buf_destroy()
+  buf_storage.cleanup(self.bufnr)
+
+  if self.bufnr then
+    if vim.api.nvim_buf_is_valid(self.bufnr) then
+      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
+
+    self.bufnr = nil
+  end
+end
+
 function Split:unmount()
   if self._.loading or not self._.mounted then
     return
@@ -190,14 +210,7 @@ function Split:unmount()
 
   self._.loading = true
 
-  buf_storage.cleanup(self.bufnr)
-
-  if self.bufnr then
-    if vim.api.nvim_buf_is_valid(self.bufnr) then
-      vim.api.nvim_buf_delete(self.bufnr, { force = true })
-    end
-    self.bufnr = nil
-  end
+  self:_buf_destroy()
 
   self:_close_window()
 
@@ -213,8 +226,8 @@ end
 ---@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
 function Split:map(mode, key, handler, opts, force)
-  if not self._.mounted then
-    error("split is not mounted yet. call split:mount()")
+  if not self.bufnr then
+    error("split buffer not found.")
   end
 
   return keymap.set(self.bufnr, mode, key, handler, opts, force)
@@ -224,8 +237,8 @@ end
 ---@param key string|string[] key for the mapping
 ---@return nil
 function Split:unmap(mode, key)
-  if not self._.mounted then
-    error("split is not mounted yet. call split:mount()")
+  if not self.bufnr then
+    error("split buffer not found.")
   end
 
   return keymap._del(self.bufnr, mode, key)
@@ -235,8 +248,8 @@ end
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function Split:on(event, handler, options)
-  if not self._.mounted then
-    error("split is not mounted yet. call split:mount()")
+  if not self.bufnr then
+    error("split buffer not found.")
   end
 
   autocmd.buf.define(self.bufnr, event, handler, options)
@@ -244,8 +257,8 @@ end
 
 ---@param event nil | string | string[]
 function Split:off(event)
-  if not self._.mounted then
-    error("split is not mounted yet. call split:mount()")
+  if not self.bufnr then
+    error("split buffer not found.")
   end
 
   autocmd.buf.remove(self.bufnr, nil, event)
