@@ -315,6 +315,42 @@ describe("nui.split", function()
   end)
 
   h.describe_flipping_feature("lua_keymap", "method :map", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      split = Split({
+        size = 20,
+      })
+
+      split:map("n", "l", function()
+        callback()
+      end)
+
+      split:mount()
+
+      feedkeys("l", "x")
+
+      assert.spy(callback).called()
+    end)
+
+    it("works after :mount", function()
+      local callback = spy.new(function() end)
+
+      split = Split({
+        size = 20,
+      })
+
+      split:mount()
+
+      split:map("n", "l", function()
+        callback()
+      end)
+
+      feedkeys("l", "x")
+
+      assert.spy(callback).called()
+    end)
+
     it("supports lhs table", function()
       split = Split({
         size = 20,
@@ -425,6 +461,42 @@ describe("nui.split", function()
   end)
 
   h.describe_flipping_feature("lua_keymap", "method :unmap", function()
+    it("works before :mount", function()
+      split = Split({
+        size = 20,
+      })
+
+      split:map("n", "l", "o42<esc>")
+
+      split:unmap("n", "l")
+
+      split:mount()
+
+      feedkeys("l", "x")
+
+      h.assert_buf_lines(split.bufnr, {
+        "",
+      })
+    end)
+
+    it("works after :mount", function()
+      split = Split({
+        size = 20,
+      })
+
+      split:mount()
+
+      split:map("n", "l", "o42<esc>")
+
+      split:unmap("n", "l")
+
+      feedkeys("l", "x")
+
+      h.assert_buf_lines(split.bufnr, {
+        "",
+      })
+    end)
+
     it("supports lhs string", function()
       split = Split({
         size = 20,
@@ -480,7 +552,26 @@ describe("nui.split", function()
   end)
 
   h.describe_flipping_feature("lua_autocmd", "method :on", function()
-    it("works", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      split = Split({
+        size = 20,
+      })
+
+      split:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      split:mount()
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).called()
+    end)
+
+    it("works after :mount", function()
       local callback = spy.new(function() end)
 
       split = Split({
@@ -516,7 +607,28 @@ describe("nui.split", function()
   end)
 
   h.describe_flipping_feature("lua_autocmd", "method :off", function()
-    it("works", function()
+    it("works before :mount", function()
+      local callback = spy.new(function() end)
+
+      split = Split({
+        size = 20,
+      })
+
+      split:on(event.InsertEnter, function()
+        callback()
+      end)
+
+      split:off(event.InsertEnter)
+
+      split:mount()
+
+      feedkeys("i", "x")
+      feedkeys("<esc>", "x")
+
+      assert.spy(callback).not_called()
+    end)
+
+    it("works after :mount", function()
       local callback = spy.new(function() end)
 
       split = Split({
