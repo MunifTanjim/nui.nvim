@@ -761,4 +761,17 @@ describe("nui.popup", function()
       eq(type(string.match(result, "missing layout config: position")), "string")
     end)
   end)
+
+  describe("method :mount", function()
+    it("throws if layout is not ready", function()
+      popup = Popup({})
+
+      local ok, result = pcall(function()
+        popup:mount()
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "layout is not ready")), "string")
+    end)
+  end)
 end)
