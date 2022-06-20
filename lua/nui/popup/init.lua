@@ -103,8 +103,8 @@ local function parse_relative(relative, fallback_winid)
   }
 end
 
-local function normalize_options(options)
-  options = _.normalize_layout_options(options)
+local function merge_default_options(options)
+  options.relative = defaults(options.relative, "win")
 
   options.enter = defaults(options.enter, false)
   options.zindex = defaults(options.zindex, 50)
@@ -113,6 +113,13 @@ local function normalize_options(options)
   options.win_options = defaults(options.win_options, {})
 
   options.border = defaults(options.border, "none")
+
+  return options
+end
+
+local function normalize_options(options)
+  options = _.normalize_layout_options(options)
+
   if is_type("string", options.border) then
     options.border = {
       style = options.border,
@@ -127,6 +134,7 @@ local function init(class, options)
   ---@type NuiPopup
   local self = setmetatable({}, { __index = class })
 
+  options = merge_default_options(options)
   options = normalize_options(options)
 
   self._ = {

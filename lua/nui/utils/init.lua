@@ -180,21 +180,20 @@ function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end)
 end
 
 function _.normalize_layout_options(options)
-  options.relative = utils.defaults(options.relative, "win")
   if utils.is_type("string", options.relative) then
     options.relative = {
       type = options.relative,
     }
   end
 
-  if not utils.is_type("table", options.position) then
+  if options.position and not utils.is_type("table", options.position) then
     options.position = {
       row = options.position,
       col = options.position,
     }
   end
 
-  if not utils.is_type("table", options.size) then
+  if options.size and not utils.is_type("table", options.size) then
     options.size = {
       width = options.size,
       height = options.size,
