@@ -222,51 +222,64 @@ local styles = {
   solid = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
 }
 
+---@param internal nui_popup_border_internal
+---@return nui_popup_border_internal_size
+local function calculate_size_delta(internal)
+  ---@type nui_popup_border_internal_size
+  local delta = {
+    width = 0,
+    height = 0,
+  }
+
+  local char = internal.char
+  if is_type("map", char) then
+    if char.top ~= "" then
+      delta.height = delta.height + 1
+    end
+
+    if char.bottom ~= "" then
+      delta.height = delta.height + 1
+    end
+
+    if char.left ~= "" then
+      delta.width = delta.width + 1
+    end
+
+    if char.right ~= "" then
+      delta.width = delta.width + 1
+    end
+  end
+
+  local padding = internal.padding
+  if padding then
+    if padding.top then
+      delta.height = delta.height + padding.top
+    end
+
+    if padding.bottom then
+      delta.height = delta.height + padding.bottom
+    end
+
+    if padding.left then
+      delta.width = delta.width + padding.left
+    end
+
+    if padding.right then
+      delta.width = delta.width + padding.right
+    end
+  end
+
+  return delta
+end
+
 ---@param border NuiPopupBorder
 ---@return nui_popup_border_internal_size
 local function calculate_size(border)
   ---@type nui_popup_border_internal_size
   local size = vim.deepcopy(border.popup._.size)
 
-  local char = border._.char
-
-  if is_type("map", char) then
-    if char.top ~= "" then
-      size.height = size.height + 1
-    end
-
-    if char.bottom ~= "" then
-      size.height = size.height + 1
-    end
-
-    if char.left ~= "" then
-      size.width = size.width + 1
-    end
-
-    if char.right ~= "" then
-      size.width = size.width + 1
-    end
-  end
-
-  local padding = border._.padding
-
-  if padding then
-    if padding.top then
-      size.height = size.height + padding.top
-    end
-
-    if padding.bottom then
-      size.height = size.height + padding.bottom
-    end
-
-    if padding.left then
-      size.width = size.width + padding.left
-    end
-
-    if padding.right then
-      size.width = size.width + padding.right
-    end
-  end
+  size.width = size.width + border._.size_delta.width
+  size.height = size.height + border._.size_delta.height
 
   return size
 end
@@ -379,6 +392,8 @@ local function init(class, popup, options)
 
   internal.char = normalize_border_char(internal)
 
+  internal.size_delta = calculate_size_delta(internal)
+
   if internal.type == "simple" then
     return self
   end
@@ -400,7 +415,7 @@ end
 ---@alias nui_popup_border_internal_position { row: number, col: number }
 ---@alias nui_popup_border_internal_size { width: number, height: number }
 ---@alias nui_popup_border_internal_text { top?: string, top_align?: nui_t_text_align, bottom?: string, bottom_align?: nui_t_text_align }
----@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
+---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
 
 --luacheck: pop
 
