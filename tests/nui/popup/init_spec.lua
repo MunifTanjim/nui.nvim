@@ -536,4 +536,229 @@ describe("nui.popup", function()
       eq(type(string.match(result, "buffer not found")), "string")
     end)
   end)
+
+  describe("method :set_layout", function()
+    local function assert_size(size, border_size)
+      if border_size and type(border_size) ~= "table" then
+        border_size = {
+          width = size.width + 2,
+          height = size.height + 2,
+        }
+      end
+
+      local win_config = vim.api.nvim_win_get_config(popup.winid)
+      eq(win_config.width, size.width)
+      eq(win_config.height, size.height)
+
+      if popup.border.winid then
+        local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
+        eq(border_win_config.width, border_size.width)
+        eq(border_win_config.height, border_size.height)
+      end
+    end
+
+    local function assert_position(position)
+      local win_config = vim.api.nvim_win_get_config(popup.winid)
+      eq(win_config.win, popup.border.winid or vim.api.nvim_get_current_win())
+
+      local row, col = unpack(vim.api.nvim_win_get_position(popup.winid))
+
+      if popup.border.winid then
+        eq(row, position.row + 1)
+        eq(col, position.col + 1)
+
+        local border_row, border_col = unpack(vim.api.nvim_win_get_position(popup.border.winid))
+
+        eq(border_row, position.row)
+        eq(border_col, position.col)
+      else
+        eq(row, position.row)
+        eq(col, position.col)
+      end
+    end
+
+    it("can change size (w/ simple border)", function()
+      local size = {
+        width = 2,
+        height = 1,
+      }
+
+      popup = Popup({
+        position = "50%",
+        size = size,
+      })
+
+      popup:mount()
+
+      eq(type(popup.border.winid), "nil")
+
+      assert_size(size)
+
+      local new_size = {
+        width = size.width + 2,
+        height = size.height + 2,
+      }
+
+      popup:set_layout({ size = new_size })
+
+      assert_size(new_size)
+    end)
+
+    it("can change size (w/ complex border)", function()
+      local hl_group = "NuiPopupTest"
+      local style = h.popup.create_border_style_map_with_tuple(hl_group)
+
+      local size = {
+        width = 2,
+        height = 1,
+      }
+
+      popup = Popup({
+        ns_id = vim.api.nvim_create_namespace("NuiTest"),
+        border = {
+          style = style,
+          padding = { 0 },
+        },
+        position = "50%",
+        size = size,
+      })
+
+      popup:mount()
+
+      eq(type(popup.border.winid), "number")
+
+      assert_size(size, true)
+      h.popup.assert_border_lines({
+        size = size,
+        border = { style = style },
+      }, popup.border.bufnr)
+      h.popup.assert_border_highlight({
+        size = size,
+        ns_id = popup.ns_id,
+      }, popup.border.bufnr, hl_group)
+
+      local new_size = {
+        width = size.width + 2,
+        height = size.height + 2,
+      }
+
+      popup:set_layout({ size = new_size })
+
+      assert_size(new_size, true)
+      h.popup.assert_border_lines({
+        size = new_size,
+        border = { style = style },
+      }, popup.border.bufnr)
+      h.popup.assert_border_highlight({
+        size = new_size,
+        ns_id = popup.ns_id,
+      }, popup.border.bufnr, hl_group)
+    end)
+
+    it("can change position (w/ simple border)", function()
+      local position = {
+        row = 0,
+        col = 0,
+      }
+
+      popup = Popup({
+        position = position,
+        size = {
+          width = 4,
+          height = 2,
+        },
+      })
+
+      popup:mount()
+
+      eq(type(popup.border.winid), "nil")
+
+      assert_position(position)
+
+      local new_position = {
+        row = position.row + 2,
+        col = position.col + 2,
+      }
+
+      popup:set_layout({ position = new_position })
+
+      assert_position(new_position)
+    end)
+
+    it("can change position (w/ complex border)", function()
+      local hl_group = "NuiPopupTest"
+      local style = h.popup.create_border_style_map_with_tuple(hl_group)
+
+      local position = {
+        row = 0,
+        col = 0,
+      }
+
+      popup = Popup({
+        ns_id = vim.api.nvim_create_namespace("NuiTest"),
+        border = {
+          style = style,
+          padding = { 0 },
+        },
+        position = position,
+        size = {
+          width = 4,
+          height = 2,
+        },
+      })
+
+      popup:mount()
+
+      eq(type(popup.border.winid), "number")
+
+      assert_position(position)
+
+      local new_position = {
+        row = position.row + 2,
+        col = position.col + 2,
+      }
+
+      popup:set_layout({ position = new_position })
+
+      assert_position(new_position)
+    end)
+
+    it("throws if missing config 'relative'", function()
+      popup = Popup({})
+
+      local ok, result = pcall(function()
+        popup:set_layout({})
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "missing layout config: relative")), "string")
+    end)
+
+    it("throws if missing config 'size'", function()
+      popup = Popup({})
+
+      local ok, result = pcall(function()
+        popup:set_layout({
+          relative = "win",
+        })
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "missing layout config: size")), "string")
+    end)
+
+    it("throws if missing config 'position'", function()
+      popup = Popup({})
+
+      local ok, result = pcall(function()
+        popup:set_layout({
+          relative = "win",
+          size = "50%",
+        })
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "missing layout config: position")), "string")
+    end)
+  end)
 end)
