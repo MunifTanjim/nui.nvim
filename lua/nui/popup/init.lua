@@ -139,6 +139,7 @@ local function init(class, options)
 
   self._ = {
     buf_options = options.buf_options,
+    layout_ready = false,
     loading = false,
     mounted = false,
     win_enter = options.enter,
@@ -170,31 +171,12 @@ local function init(class, options)
     self._.win_options.winhighlight = options.highlight
   end
 
-  local win_config = self.win_config
-
-  self._.position = parse_relative(options.relative, vim.api.nvim_get_current_win())
-
-  local container_info = get_container_info(self._.position)
-
-  self._.size = calculate_window_size(options.size, container_info.size)
-  win_config.width = self._.size.width
-  win_config.height = self._.size.height
-
-  self._.position = vim.tbl_extend(
-    "force",
-    self._.position,
-    calculate_window_position(options.position, self._.size, container_info)
-  )
-
-  win_config.relative = self._.position.relative
-  win_config.win = self._.position.relative == "win" and self._.position.win or nil
-  win_config.bufpos = self._.position.bufpos
-  win_config.row = self._.position.row
-  win_config.col = self._.position.col
-
   self.border = Border(self, options.border)
+  self.win_config.border = self.border:get()
 
-  win_config.border = self.border:get()
+  if options.position and options.size then
+    self:set_layout(options)
+  end
 
   return self
 end
@@ -203,7 +185,7 @@ end
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_popup_internal_size { height: number, width: number }
----@alias nui_popup_internal { loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean, buf_options: table<string,any>, win_options: table<string,any> }
+---@alias nui_popup_internal { layout_ready: boolean, loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean, buf_options: table<string,any>, win_options: table<string,any> }
 ---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
 
 --luacheck: pop
@@ -257,6 +239,10 @@ function Popup:_buf_create()
 end
 
 function Popup:mount()
+  if not self._.layout_ready then
+    return error("layout is not ready")
+  end
+
   if self._.loading or self._.mounted then
     return
   end
@@ -379,46 +365,78 @@ function Popup:off(event)
   autocmd.buf.remove(self.bufnr, nil, event)
 end
 
-function Popup:set_size(size)
-  local container_info = get_container_info(self._.position)
+---@param config table
+function Popup:set_layout(config)
+  local options = _.normalize_layout_options({
+    relative = config.relative,
+    size = config.size,
+    position = config.position,
+  })
 
-  self._.size = calculate_window_size(size, container_info.size)
-  self.win_config.width = self._.size.width
-  self.win_config.height = self._.size.height
-
-  self.border:resize()
-
-  if self.winid then
-    vim.api.nvim_win_set_config(self.winid, self.win_config)
-  end
-end
-
-function Popup:set_position(position, relative)
   local win_config = self.win_config
 
-  if relative then
-    self._.position = vim.tbl_extend("force", self._.position, parse_relative(relative, self._.position.win))
+  if options.relative then
+    local fallback_winid = self._.position and self._.position.win or vim.api.nvim_get_current_win()
+    self._.position = vim.tbl_extend("force", self._.position or {}, parse_relative(options.relative, fallback_winid))
     win_config.relative = self._.position.relative
     win_config.win = self._.position.relative == "win" and self._.position.win or nil
     win_config.bufpos = self._.position.bufpos
   end
 
+  if not win_config.relative then
+    return error("missing layout config: relative")
+  end
+
   local container_info = get_container_info(self._.position)
 
-  self._.position = vim.tbl_extend(
-    "force",
-    self._.position,
-    calculate_window_position(position, self._.size, container_info)
-  )
-  win_config.row = self._.position.row
-  win_config.col = self._.position.col
+  if options.size then
+    self._.size = calculate_window_size(options.size, container_info.size)
+    win_config.width = self._.size.width
+    win_config.height = self._.size.height
+  end
 
-  self.border:reposition()
+  if not win_config.width or not win_config.height then
+    return error("missing layout config: size")
+  end
+
+  if options.position then
+    self._.position = vim.tbl_extend(
+      "force",
+      self._.position,
+      calculate_window_position(options.position, self._.size, container_info)
+    )
+    win_config.row = self._.position.row
+    win_config.col = self._.position.col
+  end
+
+  if not win_config.row or not win_config.col then
+    return error("missing layout config: position")
+  end
+
+  self.border:_relayout()
+
+  self._.layout_ready = true
 
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
   end
 end
+
+-- luacov: disable
+-- Use `popup:set_layout`.
+-- @deprecated
+function Popup:set_size(size)
+  self:set_layout({ size = size })
+end
+-- luacov: enable
+
+-- luacov: disable
+-- Use `popup:set_layout`.
+-- @deprecated
+function Popup:set_position(position, relative)
+  self:set_layout({ position = position, relative = relative })
+end
+-- luacov: enable
 
 ---@alias NuiPopup.constructor fun(options: table): NuiPopup
 ---@type NuiPopup|NuiPopup.constructor

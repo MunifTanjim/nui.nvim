@@ -390,21 +390,6 @@ local function init(class, popup, options)
     zindex = self.popup.win_config.zindex - 1,
   }
 
-  local position = popup._.position
-  self.win_config.relative = position.relative
-  self.win_config.win = position.relative == "win" and position.win or nil
-  self.win_config.bufpos = position.bufpos
-
-  internal.size = calculate_size(self)
-  self.win_config.width = internal.size.width
-  self.win_config.height = internal.size.height
-
-  internal.position = calculate_position(self)
-  self.win_config.row = internal.position.row
-  self.win_config.col = internal.position.col
-
-  internal.lines = calculate_buf_lines(internal)
-
   return self
 end
 
@@ -423,6 +408,7 @@ end
 ---@field bufnr number
 ---@field private _ nui_popup_border_internal
 ---@field private popup NuiPopup
+---@field win_config nui_popup_win_config
 ---@field winid number
 local Border = setmetatable({
   super = nil,
@@ -508,6 +494,43 @@ function Border:unmount()
   end
 
   self:_close_window()
+end
+
+function Border:_relayout()
+  local internal = self._
+
+  if internal.type ~= "complex" then
+    return
+  end
+
+  local position = self.popup._.position
+  self.win_config.relative = position.relative
+  self.win_config.win = position.relative == "win" and position.win or nil
+  self.win_config.bufpos = position.bufpos
+
+  internal.size = calculate_size(self)
+  self.win_config.width = internal.size.width
+  self.win_config.height = internal.size.height
+
+  internal.position = calculate_position(self)
+  self.win_config.row = internal.position.row
+  self.win_config.col = internal.position.col
+
+  internal.lines = calculate_buf_lines(internal)
+
+  if self.winid then
+    vim.api.nvim_win_set_config(self.winid, self.win_config)
+  end
+
+  if self.bufnr then
+    if internal.lines then
+      _.render_lines(internal.lines, self.bufnr, self.popup.ns_id, 1, #internal.lines)
+    end
+  end
+
+  adjust_popup_win_config(self)
+
+  vim.api.nvim_command("redraw")
 end
 
 function Border:resize()

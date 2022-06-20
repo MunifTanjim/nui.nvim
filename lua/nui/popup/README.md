@@ -549,23 +549,39 @@ popup:off("*")
 
 ---
 
-### `popup:set_size`
+### `popup:set_layout`
 
-_Signature:_ `popup:set_size(size)`
+_Signature:_ `popup:set_layout(config)`
 
-Sets the size of the popup.
+Sets the layout of the popup. You can use this method to change popup's
+size or position after it's mounted.
 
 **Parameters**
 
-| Name     | Type                           |
-| -------- | ------------------------------ |
-| `width`  | `number` / `percentage string` |
-| `height` | `number` / `percentage string` |
+`config` is a `table` having the following keys:
+
+| Key        | Type               |
+| ---------- | ------------------ |
+| `relative` | `string` / `table` |
+| `position` | `string` / `table` |
+| `size`     | `string` / `table` |
+
+They are the same options used for popup initialization.
 
 **Examples**
 
 ```lua
-popup:set_size({ width = 80, height = 40 })
+popup:set_layout({
+  relative = "win",
+  size = {
+    width = 80,
+    height = 40,
+  },
+  position = {
+    row = 30,
+    col = 20,
+  },
+})
 ```
 
 ---
