@@ -1,6 +1,21 @@
+local function to_string(text)
+  if type(text) == "string" then
+    return text
+  end
+
+  if type(text) == "table" and text.content then
+    return text:content()
+  end
+
+  error("unsupported text")
+end
+
+local popup = {}
+
 local mod = {}
 
 mod.eq = assert.are.same
+mod.popup = popup
 
 ---@param keys string
 ---@param mode string
@@ -104,6 +119,120 @@ function mod.describe_flipping_feature(feature_name, desc, func)
     func()
     require("nui.utils")._.feature[feature_name] = true
   end)
+end
+
+function popup.create_border_style_list()
+  return { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
+end
+
+function popup.create_border_style_map()
+  return {
+    top_left = "╭",
+    top = "─",
+    top_right = "╮",
+    left = "│",
+    right = "│",
+    bottom_left = "╰",
+    bottom = "─",
+    bottom_right = "╯",
+  }
+end
+
+function popup.create_border_style_map_with_tuple(hl_group)
+  local style = popup.create_border_style_map()
+  for k, v in pairs(style) do
+    style[k] = { v, hl_group .. "_" .. k }
+  end
+  return style
+end
+
+function popup.create_border_style_map_with_nui_text(hl_group)
+  local Text = require("nui.text")
+
+  local style = popup.create_border_style_map()
+  for k, v in pairs(style) do
+    style[k] = Text(v, hl_group .. "_" .. k)
+  end
+
+  return style
+end
+
+function popup.assert_border_lines(options, border_bufnr)
+  local size = { width = options.size.width, height = options.size.height }
+
+  local style = vim.deepcopy(options.border.style)
+  if vim.tbl_islist(style) then
+    style = {
+      top_left = style[1],
+      top = style[2],
+      top_right = style[3],
+      left = style[8],
+      right = style[4],
+      bottom_left = style[7],
+      bottom = style[6],
+      bottom_right = style[5],
+    }
+  end
+
+  local expected_lines = {}
+  table.insert(
+    expected_lines,
+    string.format(
+      "%s%s%s",
+      to_string(style.top_left),
+      string.rep(to_string(style.top), size.width),
+      to_string(style.top_right)
+    )
+  )
+  for _ = 1, size.height do
+    table.insert(
+      expected_lines,
+      string.format("%s%s%s", to_string(style.left), string.rep(" ", size.width), to_string(style.right))
+    )
+  end
+  table.insert(
+    expected_lines,
+    string.format(
+      "%s%s%s",
+      to_string(style.bottom_left),
+      string.rep(to_string(style.bottom), size.width),
+      to_string(style.bottom_right)
+    )
+  )
+
+  mod.assert_buf_lines(border_bufnr, expected_lines)
+end
+
+function popup.assert_border_highlight(options, border_bufnr, hl_group)
+  local size = { width = options.size.width, height = options.size.height }
+
+  for linenr = 1, size.height + 2 do
+    local is_top_line = linenr == 1
+    local is_bottom_line = linenr == size.height + 2
+
+    local extmarks = mod.get_line_extmarks(border_bufnr, options.ns_id, linenr)
+
+    mod.eq(#extmarks, (is_top_line or is_bottom_line) and 4 or 2)
+
+    mod.assert_extmark(
+      extmarks[1],
+      linenr,
+      nil,
+      hl_group .. (is_top_line and "_top_left" or is_bottom_line and "_bottom_left" or "_left")
+    )
+
+    if is_top_line or is_bottom_line then
+      mod.assert_extmark(extmarks[2], linenr, nil, hl_group .. (is_top_line and "_top" or "_bottom"))
+      mod.assert_extmark(extmarks[3], linenr, nil, hl_group .. (is_top_line and "_top" or "_bottom"))
+    end
+
+    mod.assert_extmark(
+      extmarks[#extmarks],
+      linenr,
+      nil,
+      hl_group .. (is_top_line and "_top_right" or is_bottom_line and "_bottom_right" or "_right")
+    )
+  end
 end
 
 return mod
