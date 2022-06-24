@@ -84,5 +84,59 @@ describe("nui.layout", function()
         })
       end)
     end)
+
+    describe("get_container_info", function()
+      it("works for relative=win", function()
+        local result = utils.get_container_info({
+          relative = "editor",
+        })
+
+        eq(result, {
+          relative = "editor",
+          size = {
+            width = vim.o.columns,
+            height = vim.o.lines,
+          },
+          type = "editor",
+        })
+      end)
+
+      it("works for relative=cursor", function()
+        local winid = vim.api.nvim_get_current_win()
+
+        local result = utils.get_container_info({
+          relative = "cursor",
+          win = winid,
+        })
+
+        eq(result, {
+          relative = "cursor",
+          size = {
+            width = vim.api.nvim_win_get_width(winid),
+            height = vim.api.nvim_win_get_height(winid),
+          },
+          type = "window",
+        })
+      end)
+
+      it("works for relative=win w/ bufpos", function()
+        local winid = vim.api.nvim_get_current_win()
+
+        local result = utils.get_container_info({
+          relative = "win",
+          win = winid,
+          bufpos = { 2, 4 },
+        })
+
+        eq(result, {
+          relative = "buf",
+          size = {
+            width = vim.api.nvim_win_get_width(winid),
+            height = vim.api.nvim_win_get_height(winid),
+          },
+          type = "window",
+        })
+      end)
+    end)
   end)
 end)
