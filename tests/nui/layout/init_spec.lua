@@ -214,4 +214,96 @@ describe("nui.layout", function()
       assert.spy(p2_mount).was_called(1)
     end)
   end)
+
+  describe("box", function()
+    it("throws if missing child.size", function()
+      local p1, p2 = unpack(create_popups({}, {}))
+
+      local ok, result = pcall(function()
+        Layout.Box({
+          Layout.Box(p1, { size = "50%" }),
+          Layout.Box(p2, {}),
+        })
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "missing child.size")), "string")
+    end)
+
+    describe("size (table)", function()
+      it("missing height is set to 100% if dir=row", function()
+        local p1, p2 = unpack(create_popups({}, {}))
+
+        local box = Layout.Box({
+          Layout.Box(p1, { size = { width = "40%" } }),
+          Layout.Box(p2, { size = { width = "60%", height = "80%" } }),
+        }, { dir = "row" })
+
+        eq(box.box[1].size, {
+          width = "40%",
+          height = "100%",
+        })
+        eq(box.box[2].size, {
+          width = "60%",
+          height = "80%",
+        })
+      end)
+
+      it("missing width is set to 100% if dir=col", function()
+        local p1, p2 = unpack(create_popups({}, {}))
+
+        local box = Layout.Box({
+          Layout.Box(p1, { size = { height = "40%" } }),
+          Layout.Box(p2, { size = { width = "60%", height = "80%" } }),
+        }, { dir = "col" })
+
+        eq(box.box[1].size, {
+          width = "100%",
+          height = "40%",
+        })
+        eq(box.box[2].size, {
+          width = "60%",
+          height = "80%",
+        })
+      end)
+    end)
+
+    describe("size (percentage string)", function()
+      it("is set to width if dir=row", function()
+        local p1, p2 = unpack(create_popups({}, {}))
+
+        local box = Layout.Box({
+          Layout.Box(p1, { size = "40%" }),
+          Layout.Box(p2, { size = "60%" }),
+        }, { dir = "row" })
+
+        eq(box.box[1].size, {
+          width = "40%",
+          height = "100%",
+        })
+        eq(box.box[2].size, {
+          width = "60%",
+          height = "100%",
+        })
+      end)
+
+      it("is set to height if dir=col", function()
+        local p1, p2 = unpack(create_popups({}, {}))
+
+        local box = Layout.Box({
+          Layout.Box(p1, { size = "40%" }),
+          Layout.Box(p2, { size = "60%" }),
+        }, { dir = "col" })
+
+        eq(box.box[1].size, {
+          width = "100%",
+          height = "40%",
+        })
+        eq(box.box[2].size, {
+          width = "100%",
+          height = "60%",
+        })
+      end)
+    end)
+  end)
 end)
