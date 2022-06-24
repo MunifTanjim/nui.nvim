@@ -306,4 +306,94 @@ describe("nui.layout", function()
       end)
     end)
   end)
+
+  it("can correctly process layout", function()
+    local winid = vim.api.nvim_get_current_win()
+    local win_width = vim.api.nvim_win_get_width(winid)
+    local win_height = vim.api.nvim_win_get_height(winid)
+
+    local p1, p2, p3, p4 = unpack(create_popups({}, {}, {
+      border = {
+        style = "rounded",
+      },
+    }, {}))
+
+    layout = Layout(
+      {
+        position = 0,
+        size = "100%",
+      },
+      Layout.Box({
+        Layout.Box(p1, { size = "20%" }),
+        Layout.Box({
+          Layout.Box(p3, { size = "50%" }),
+          Layout.Box(p4, { size = "50%" }),
+        }, { dir = "col", size = "60%" }),
+        Layout.Box(p2, { size = "20%" }),
+      }, { dir = "row" })
+    )
+
+    layout:mount()
+
+    local function assert_layout(component, expected)
+      eq(type(component.bufnr), "number")
+      eq(type(component.winid), "number")
+
+      local row, col = unpack(vim.api.nvim_win_get_position(component.winid))
+      eq(row, expected.position.row)
+      eq(col, expected.position.col)
+
+      local expected_width, expected_height = expected.size.width, expected.size.height
+      if component.border then
+        expected_width = expected_width - component.border._.size_delta.width
+        expected_height = expected_height - component.border._.size_delta.height
+      end
+      eq(vim.api.nvim_win_get_width(component.winid), expected_width)
+      eq(vim.api.nvim_win_get_height(component.winid), expected_height)
+    end
+
+    assert_layout(p1, {
+      position = {
+        row = 0,
+        col = 0,
+      },
+      size = {
+        width = win_width * 20 / 100,
+        height = win_height,
+      },
+    })
+
+    assert_layout(p3, {
+      position = {
+        row = 0,
+        col = win_width * 20 / 100,
+      },
+      size = {
+        width = win_width * 60 / 100,
+        height = win_height * 50 / 100,
+      },
+    })
+
+    assert_layout(p4, {
+      position = {
+        row = win_height * 50 / 100,
+        col = win_width * 20 / 100,
+      },
+      size = {
+        width = win_width * 60 / 100,
+        height = win_height * 50 / 100,
+      },
+    })
+
+    assert_layout(p2, {
+      position = {
+        row = 0,
+        col = win_width * 20 / 100 + win_width * 60 / 100,
+      },
+      size = {
+        width = win_width * 20 / 100,
+        height = win_height,
+      },
+    })
+  end)
 end)
