@@ -89,6 +89,73 @@ describe("nui.layout", function()
     end)
   end)
 
+  describe("o.position", function()
+    local function assert_position(position)
+      local row, col = unpack(vim.api.nvim_win_get_position(layout.winid))
+
+      eq(row, math.floor(position.row))
+      eq(col, math.floor(position.col))
+    end
+
+    it("supports number", function()
+      local position = 5
+
+      layout = Layout({
+        position = position,
+        size = 10,
+      }, {})
+
+      layout:mount()
+
+      assert_position({ row = position, col = position })
+    end)
+
+    it("supports percentage string", function()
+      local size = 10
+      local percentage = 50
+
+      layout = Layout({
+        position = string.format("%s%%", percentage),
+        size = size,
+      }, {})
+
+      layout:mount()
+
+      local winid = vim.api.nvim_get_current_win()
+      local win_width = vim.api.nvim_win_get_width(winid)
+      local win_height = vim.api.nvim_win_get_height(winid)
+
+      assert_position({
+        row = (win_height - size) * percentage / 100,
+        col = (win_width - size) * percentage / 100,
+      })
+    end)
+
+    it("supports table", function()
+      local size = 10
+      local row = 5
+      local col_percentage = 50
+
+      layout = Layout({
+        position = {
+          row = row,
+          col = string.format("%s%%", col_percentage),
+        },
+        size = size,
+      }, {})
+
+      layout:mount()
+
+      local winid = vim.api.nvim_get_current_win()
+      local win_width = vim.api.nvim_win_get_width(winid)
+
+      assert_position({
+        row = row,
+        col = (win_width - size) * col_percentage / 100,
+      })
+    end)
+  end)
+
   describe("method :mount", function()
     it("mounts all components", function()
       local p1, p2 = unpack(create_popups({}, {}))
