@@ -2,77 +2,17 @@ local Border = require("nui.popup.border")
 local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
-local utils = require("nui.utils")
 
+local utils = require("nui.utils")
 local _ = utils._
 local defaults = utils.defaults
 local is_type = utils.is_type
 
----@param position nui_popup_internal_position
-local function get_container_info(position)
-  local relative = position.relative
-
-  if relative == "editor" then
-    return {
-      relative = relative,
-      size = utils.get_editor_size(),
-      type = "editor",
-    }
-  end
-
-  if relative == "cursor" or relative == "win" then
-    return {
-      relative = position.bufpos and "buf" or relative,
-      size = utils.get_window_size(position.win),
-      type = "window",
-    }
-  end
-end
-
-local function calculate_window_size(size, container_size)
-  local width = _.normalize_dimension(size.width, container_size.width)
-  assert(width, "invalid size.width")
-
-  local height = _.normalize_dimension(size.height, container_size.height)
-  assert(height, "invalid size.height")
-
-  return {
-    width = width,
-    height = height,
-  }
-end
-
----@return nui_popup_internal_position
-local function calculate_window_position(position, size, container)
-  local row
-  local col
-
-  local is_percentage_allowed = not vim.tbl_contains({ "buf", "cursor" }, container.relative)
-  local percentage_error = string.format("position %% can not be used relative to %s", container.relative)
-
-  local r = utils.parse_number_input(position.row)
-  assert(r.value ~= nil, "invalid position.row")
-  if r.is_percentage then
-    assert(is_percentage_allowed, percentage_error)
-    row = math.floor((container.size.height - size.height) * r.value)
-  else
-    row = r.value
-  end
-
-  local c = utils.parse_number_input(position.col)
-  assert(c.value ~= nil, "invalid position.col")
-  if c.is_percentage then
-    assert(is_percentage_allowed, percentage_error)
-    col = math.floor((container.size.width - size.width) * c.value)
-  else
-    col = c.value
-  end
-
-  return {
-    row = row,
-    col = col,
-  }
-end
+local layout_utils = require("nui.layout.utils")
+local calculate_window_position = layout_utils.calculate_window_position
+local calculate_window_size = layout_utils.calculate_window_size
+local get_container_info = layout_utils.get_container_info
+local parse_relative = layout_utils.parse_relative
 
 -- @deprecated
 ---@param opacity number
@@ -80,27 +20,6 @@ local function calculate_winblend(opacity)
   assert(0 <= opacity, "opacity must be equal or greater than 0")
   assert(opacity <= 1, "opacity must be equal or lesser than 0")
   return 100 - (opacity * 100)
-end
-
----@return nui_popup_internal_position
-local function parse_relative(relative, fallback_winid)
-  local winid = defaults(relative.winid, fallback_winid)
-
-  if relative.type == "buf" then
-    return {
-      relative = "win",
-      win = winid,
-      bufpos = {
-        relative.position.row,
-        relative.position.col,
-      },
-    }
-  end
-
-  return {
-    relative = relative.type,
-    win = winid,
-  }
 end
 
 local function merge_default_options(options)
