@@ -46,6 +46,12 @@ Quickly render tree-like structured content on the buffer.
 
 ## Components
 
+### [Layout](lua/nui/layout)
+
+**[Check Detailed Documentation for `nui.layout`](lua/nui/layout)**
+
+**[Check Wiki Page for `nui.layout`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.layout)**
+
 ### [Popup](lua/nui/popup)
 
 ![Popup GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/popup.gif)
