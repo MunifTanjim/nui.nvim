@@ -7,14 +7,22 @@ local defaults = utils.defaults
 
 ---@alias nui_layout_option_relative_type "'cursor'"|"'editor'"|"'win'"|"'buf'"
 ---@alias nui_layout_option_relative { winid?: number, type: nui_layout_option_relative_type, winid?: number, position?: { row: number, col: number }  }
+---@alias nui_layout_option_position { row: number|string, col: number|string }
+---@alias nui_layout_option_size { width: number|string, height: number|string }
 ---@alias nui_layout_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
----@alias nui_layout_container_info { relative: nui_layout_option_relative_type, size: { width: number|string, height: number|string }, type: "'editor'"|"'window'" }
+---@alias nui_layout_container_info { relative: nui_layout_option_relative_type, size: nui_layout_option_size, type: "'editor'"|"'window'" }
 
 --luacheck: pop
 
-local mod = {}
+local mod_size = {}
+local mod_position = {}
 
----@param position { row: number|string, col: number|string }
+local mod = {
+  size = mod_size,
+  position = mod_position,
+}
+
+---@param position nui_layout_option_position
 ---@param size { width: number, height: number }
 ---@param container nui_layout_container_info
 ---@return { row: number, col: number }
@@ -108,6 +116,25 @@ function mod.parse_relative(relative, fallback_winid)
     relative = relative.type,
     win = winid,
   }
+end
+
+---@param size_a nui_layout_option_size
+---@param size_b? nui_layout_option_size
+---@return boolean
+function mod_size.are_same(size_a, size_b)
+  return size_b and size_a.width == size_b.width and size_a.height == size_b.height
+end
+
+---@param size nui_layout_option_size
+---@return boolean
+function mod_size.contains_percentage_string(size)
+  return type(size.width) == "string" or type(size.height) == "string"
+end
+
+---@param position nui_layout_option_position
+---@return boolean
+function mod_position.contains_percentage_string(position)
+  return type(position.row) == "string" or type(position.col) == "string"
 end
 
 return mod
