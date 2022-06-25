@@ -161,6 +161,26 @@ size = {
 
 _Signature:_ `Layout.Box(box, options)`
 
+## Methods
+
+### `layout:update`
+
+_Signature:_ `layout:update(config, box?)` or `layout:update(box?)`
+
+**Parameters**
+
+`config` is a `table` having the following keys:
+
+| Key        | Type               |
+| ---------- | ------------------ |
+| `relative` | `string` / `table` |
+| `position` | `string` / `table` |
+| `size`     | `string` / `table` |
+
+`box` is a `table` returned by `Layout.Box`.
+
+They are the same options used for layout initialization.
+
 ## Wiki Page
 
 You can find additional documentation/examples/guides/tips-n-tricks in
