@@ -9,6 +9,10 @@ local calculate_window_position = layout_utils.calculate_window_position
 local calculate_window_size = layout_utils.calculate_window_size
 local get_container_info = layout_utils.get_container_info
 local parse_relative = layout_utils.parse_relative
+local u = {
+  size = layout_utils.size,
+  position = layout_utils.position,
+}
 
 -- GitHub Issue: https://github.com/neovim/neovim/issues/18925
 local function apply_workaround_for_float_relative_position_issue_18925(layout)
@@ -31,6 +35,10 @@ local function normalize_options(options)
   return options
 end
 
+local function is_box(object)
+  return object and (object.box or object.component)
+end
+
 ---@param class NuiLayout
 ---@return NuiLayout
 local function init(class, options, box)
@@ -41,7 +49,11 @@ local function init(class, options, box)
   options = normalize_options(options)
 
   self._ = {
-    box = class.Box(box),
+    layout = {
+      relative = options.relative,
+      size = options.size,
+      position = options.position,
+    },
     loading = false,
     mounted = false,
     win_enter = false,
@@ -52,30 +64,7 @@ local function init(class, options, box)
     },
   }
 
-  local win_config = self._.win_config
-
-  self._.position = vim.tbl_extend(
-    "force",
-    self._._position or {},
-    parse_relative(options.relative, vim.api.nvim_get_current_win())
-  )
-  win_config.relative = self._.position.relative
-  win_config.win = self._.position.relative == "win" and self._.position.win or nil
-  win_config.bufpos = self._.position.bufpos
-
-  local container_info = get_container_info(self._.position)
-
-  self._.size = calculate_window_size(options.size, container_info.size)
-  win_config.width = self._.size.width
-  win_config.height = self._.size.height
-
-  self._.position = vim.tbl_extend(
-    "force",
-    self._.position,
-    calculate_window_position(options.position, self._.size, container_info)
-  )
-  win_config.row = self._.position.row
-  win_config.col = self._.position.col
+  self:update(options, box)
 
   return self
 end
@@ -170,6 +159,19 @@ local function mount_box(box)
   end
 end
 
+function Layout:_process_layout()
+  apply_workaround_for_float_relative_position_issue_18925(self)
+
+  process_layout(self._.box, {
+    winid = self.winid,
+    canvas_size = self._.size,
+    position = {
+      row = 0,
+      col = 0,
+    },
+  })
+end
+
 function Layout:mount()
   if self._.loading or self._.mounted then
     return
@@ -185,20 +187,9 @@ function Layout:mount()
   self.winid = vim.api.nvim_open_win(self.bufnr, self._.win_enter, self._.win_config)
   assert(self.winid, "failed to create popup window")
 
-  apply_workaround_for_float_relative_position_issue_18925(self)
+  self:_process_layout()
 
-  local root_box = self._.box
-
-  process_layout(root_box, {
-    winid = self.winid,
-    canvas_size = self._.size,
-    position = {
-      row = 0,
-      col = 0,
-    },
-  })
-
-  mount_box(root_box)
+  mount_box(self._.box)
 
   self._.loading = false
   self._.mounted = true
@@ -241,18 +232,110 @@ function Layout:unmount()
   self._.mounted = false
 end
 
+function Layout:_update_config_relative()
+  local fallback_winid = self._.position and self._.position.win or vim.api.nvim_get_current_win()
+  self._.position = vim.tbl_extend(
+    "force",
+    self._._position or {},
+    parse_relative(self._.layout.relative, fallback_winid)
+  )
+
+  self._.win_config.relative = self._.position.relative
+  self._.win_config.win = self._.position.relative == "win" and self._.position.win or nil
+  self._.win_config.bufpos = self._.position.bufpos
+end
+
+function Layout:_update_config_size()
+  self._.size = calculate_window_size(self._.layout.size, self._.container.size)
+
+  self._.win_config.width = self._.size.width
+  self._.win_config.height = self._.size.height
+end
+
+function Layout:_update_config_position()
+  self._.position = vim.tbl_extend(
+    "force",
+    self._.position,
+    calculate_window_position(self._.layout.position, self._.size, self._.container)
+  )
+
+  self._.win_config.row = self._.position.row
+  self._.win_config.col = self._.position.col
+end
+
+function Layout:update(config, box)
+  config = config or {}
+
+  if not box and is_box(config) or is_box(config[1]) then
+    box = config
+    config = {}
+  end
+
+  local options = _.normalize_layout_options({
+    relative = config.relative,
+    size = config.size,
+    position = config.position,
+  })
+
+  local win_config = self._.win_config
+
+  if options.relative then
+    self._.layout.relative = options.relative
+    self:_update_config_relative()
+  end
+
+  local prev_container_size = self._.container and self._.container.size
+  self._.container = get_container_info(self._.position)
+  local container_size_changed = not u.size.are_same(self._.container.size, prev_container_size)
+
+  local need_size_refresh = container_size_changed
+    and self._.layout.size
+    and u.size.contains_percentage_string(self._.layout.size)
+
+  if options.size or need_size_refresh then
+    self._.layout.size = options.size or self._.layout.size
+    self:_update_config_size()
+  end
+
+  if not win_config.width or not win_config.height then
+    return error("missing layout config: size")
+  end
+
+  local need_position_refresh = container_size_changed
+    and self._.layout.position
+    and u.position.contains_percentage_string(self._.layout.position)
+
+  if options.position or need_position_refresh then
+    self._.layout.position = options.position or self._.layout.position
+    self:_update_config_position()
+  end
+
+  if not win_config.row or not win_config.col then
+    return error("missing layout config: position")
+  end
+
+  if box then
+    self._.box = Layout.Box(box)
+  end
+
+  if self.winid then
+    vim.api.nvim_win_set_config(self.winid, self._.win_config)
+    self:_process_layout()
+  end
+end
+
 function Layout.Box(box, options)
   options = options or {}
+
+  if is_box(box) then
+    return box
+  end
 
   if box.mount then
     return {
       component = box,
       size = options.size,
     }
-  end
-
-  if box.dir then
-    return box
   end
 
   local dir = defaults(options.dir, "row")

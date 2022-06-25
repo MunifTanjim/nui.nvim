@@ -213,6 +213,27 @@ describe("nui.layout", function()
       assert.spy(p1_mount).was_called(1)
       assert.spy(p2_mount).was_called(1)
     end)
+
+    it("throws if missing config 'size'", function()
+      local ok, result = pcall(function()
+        layout = Layout({}, {})
+      end)
+
+      print(vim.inspect({ result = result }))
+      eq(ok, false)
+      eq(type(string.match(result, "missing layout config: size")), "string")
+    end)
+
+    it("throws if missing config 'position'", function()
+      local ok, result = pcall(function()
+        layout = Layout({
+          size = "50%",
+        }, {})
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(result, "missing layout config: position")), "string")
+    end)
   end)
 
   describe("box", function()
