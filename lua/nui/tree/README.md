@@ -13,7 +13,7 @@ local tree = NuiTree({
     NuiTree.Node({ text = "a" }),
     NuiTree.Node({ text = "b" }, {
       NuiTree.Node({ text = "b-1" }),
-      NuiTree.Node({ text = "b-2" }),
+      NuiTree.Node({ text = { "b-2", "b-3" } }),
     }),
   },
 })
@@ -79,11 +79,11 @@ end,
 
 **Type:** `function`
 
-_Signature:_ `prepare_node(node, parent_node?) -> string | NuiLine`
+_Signature:_ `prepare_node(node, parent_node?) -> string | string[] | NuiLine | NuiLine[]`
 
 If provided, this function is used for preparing each node line.
 
-The return value should be a `NuiLine` object or `string`.
+The return value should be a `NuiLine` object or `string` or a list containing either of them.
 
 **Example**
 
