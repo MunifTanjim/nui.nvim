@@ -146,7 +146,7 @@ win_options = {
 
 ### `tree:get_node`
 
-_Signature:_ `tree:get_node(node_id_or_linenr?) -> NuiTreeNode | nil, number | nil`
+_Signature:_ `tree:get_node(node_id_or_linenr?) -> NuiTreeNode | nil, number | nil, number | nil`
 
 **Parameters**
 
@@ -160,7 +160,7 @@ If `node_id_or_linenr` is `number`, the node on that _linenr_ is returned.
 
 If `node_id` is `nil`, the current node under cursor is returned.
 
-Returns the `node` if found and the `linenr` if it is rendered.
+Returns the `node` if found, and the start and end `linenr` if it is rendered.
 
 ### `tree:get_nodes`
 

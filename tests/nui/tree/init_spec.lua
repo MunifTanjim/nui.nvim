@@ -257,7 +257,7 @@ describe("nui.tree", function()
 
       vim.api.nvim_win_set_cursor(winid, { linenr, 0 })
 
-      eq({ tree:get_node() }, { nodes[3], linenr })
+      eq({ tree:get_node() }, { nodes[3], linenr, linenr })
     end)
 
     it("can get node with id", function()
@@ -282,12 +282,12 @@ describe("nui.tree", function()
 
       tree:render()
 
-      eq({ tree:get_node("b") }, { nodes[2], 2 })
+      eq({ tree:get_node("b") }, { nodes[2], 2, 2 })
 
       tree:get_node("b"):expand()
       tree:render()
 
-      eq({ tree:get_node("b-2") }, { b_node_children[2], 4 })
+      eq({ tree:get_node("b-2") }, { b_node_children[2], 4, 4 })
     end)
 
     it("can get node on linenr", function()
@@ -306,7 +306,7 @@ describe("nui.tree", function()
 
       local linenr = 1
 
-      eq({ tree:get_node(linenr) }, { nodes[1], linenr })
+      eq({ tree:get_node(linenr) }, { nodes[1], linenr, linenr })
     end)
   end)
 
