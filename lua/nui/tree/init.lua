@@ -214,12 +214,12 @@ end
 ---@return number|nil linenr
 function Tree:get_node(node_id_or_linenr)
   if is_type("string", node_id_or_linenr) then
-    return self.nodes.by_id[node_id_or_linenr], self._content.linenr_by_node_id[node_id_or_linenr]
+    return self.nodes.by_id[node_id_or_linenr], unpack(self._content.linenr_by_node_id[node_id_or_linenr] or {})
   end
 
   local linenr = node_id_or_linenr or vim.api.nvim_win_get_cursor(self.winid)[1]
   local node_id = self._content.node_id_by_linenr[linenr]
-  return self.nodes.by_id[node_id], linenr
+  return self.nodes.by_id[node_id], unpack(self._content.linenr_by_node_id[node_id] or {})
 end
 
 ---@param parent_id? string parent node's id
@@ -343,12 +343,15 @@ function Tree:_prepare_content()
       lines = { lines }
     end
 
+    local linenr = {}
     for _, line in ipairs(lines) do
       self._content.lines[current_linenr] = line
       self._content.node_id_by_linenr[current_linenr] = node:get_id()
-      self._content.linenr_by_node_id[node:get_id()] = current_linenr
+      linenr[1] = linenr[1] or current_linenr
+      linenr[2] = current_linenr
       current_linenr = current_linenr + 1
     end
+    self._content.linenr_by_node_id[node:get_id()] = linenr
 
     if not node:has_children() or not node:is_expanded() then
       return
