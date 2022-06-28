@@ -1,5 +1,6 @@
 pcall(require, "luacov")
 
+local Text = require("nui.text")
 local Tree = require("nui.tree")
 local h = require("tests.nui")
 
@@ -108,12 +109,20 @@ describe("nui.tree", function()
     end)
 
     it("returns id using parent_id + depth + n.text", function()
-      local node_d2 = Tree.Node({ text = "depth two" })
+      local node_d2 = Tree.Node({ text = { "depth two a", Text("depth two b") } })
       local node_d1 = Tree.Node({ text = "depth one" }, { node_d2 })
       Tree({ winid = winid, nodes = { node_d1 } })
 
       eq(node_d1:get_id(), string.format("-%s-%s", node_d1:get_depth(), node_d1.text))
-      eq(node_d2:get_id(), string.format("%s-%s-%s", node_d2:get_parent_id(), node_d2:get_depth(), node_d2.text))
+      eq(
+        node_d2:get_id(),
+        string.format(
+          "%s-%s-%s",
+          node_d2:get_parent_id(),
+          node_d2:get_depth(),
+          table.concat({ node_d2.text[1], node_d2.text[2]:content() }, "-")
+        )
+      )
     end)
 
     it("returns id using random number", function()
@@ -186,7 +195,7 @@ describe("nui.tree", function()
     it("uses n.text", function()
       local nodes = {
         Tree.Node({ text = "a" }),
-        Tree.Node({ text = "b" }),
+        Tree.Node({ text = { "b-1", "b-2" } }),
         Tree.Node({ text = "c" }),
       }
 
@@ -197,12 +206,12 @@ describe("nui.tree", function()
 
       tree:render()
 
-      h.assert_buf_lines(
-        tree.bufnr,
-        vim.tbl_map(function(node)
-          return "  " .. node.text
-        end, nodes)
-      )
+      h.assert_buf_lines(tree.bufnr, {
+        "  a",
+        "  b-1",
+        "  b-2",
+        "  c",
+      })
     end)
 
     it("renders arrow if children are present", function()
@@ -210,6 +219,7 @@ describe("nui.tree", function()
         Tree.Node({ text = "a" }),
         Tree.Node({ text = "b" }, {
           Tree.Node({ text = "b-1" }),
+          Tree.Node({ text = { "b-2", "b-3" } }),
         }),
         Tree.Node({ text = "c" }),
       }
@@ -233,6 +243,8 @@ describe("nui.tree", function()
         "  a",
         " b",
         "    b-1",
+        "    b-2",
+        "    b-3",
         "  c",
       })
     end)
@@ -263,7 +275,7 @@ describe("nui.tree", function()
     it("can get node with id", function()
       local b_node_children = {
         Tree.Node({ text = "b-1" }),
-        Tree.Node({ text = "b-2" }),
+        Tree.Node({ text = { "b-2", "b-3" } }),
       }
 
       local nodes = {
@@ -276,7 +288,7 @@ describe("nui.tree", function()
         winid = winid,
         nodes = nodes,
         get_node_id = function(node)
-          return node.text
+          return type(node.text) == "table" and table.concat(node.text, "-") or node.text
         end,
       })
 
@@ -287,13 +299,17 @@ describe("nui.tree", function()
       tree:get_node("b"):expand()
       tree:render()
 
-      eq({ tree:get_node("b-2") }, { b_node_children[2], 4, 4 })
+      eq({ tree:get_node("b-2-b-3") }, { b_node_children[2], 4, 5 })
     end)
 
     it("can get node on linenr", function()
+      local b_node_children = {
+        Tree.Node({ id = "b-1-b-2", text = { "b-1", "b-2" } }),
+      }
+
       local nodes = {
         Tree.Node({ text = "a" }),
-        Tree.Node({ text = "b" }),
+        Tree.Node({ text = "b" }, b_node_children),
         Tree.Node({ text = "c" }),
       }
 
@@ -304,9 +320,13 @@ describe("nui.tree", function()
 
       tree:render()
 
-      local linenr = 1
+      eq({ tree:get_node(1) }, { nodes[1], 1, 1 })
 
-      eq({ tree:get_node(linenr) }, { nodes[1], linenr, linenr })
+      tree:get_node(2):expand()
+      tree:render()
+
+      eq({ tree:get_node(3) }, { b_node_children[1], 3, 4 })
+      eq({ tree:get_node(4) }, { b_node_children[1], 3, 4 })
     end)
   end)
 
