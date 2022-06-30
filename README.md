@@ -48,6 +48,56 @@ Quickly render tree-like structured content on the buffer.
 
 ### [Layout](lua/nui/layout)
 
+![Layout GIF](https://github.com/MunifTanjim/nui.nvim/wiki/media/layout.gif)
+
+```lua
+local Popup = require("nui.popup")
+local Layout = require("nui.layout")
+
+local popup_one, popup_two = Popup({
+  enter = true,
+  border = "single",
+}), Popup({
+  border = "double",
+})
+
+local layout = Layout(
+  {
+    position = "50%",
+    size = {
+      width = 80,
+      height = "60%",
+    },
+  },
+  Layout.Box({
+    Layout.Box(popup_one, { size = "40%" }),
+    Layout.Box(popup_two, { size = "60%" }),
+  }, { dir = "row" })
+)
+
+local current_dir = "row"
+
+popup_one:map("n", "r", function()
+  if current_dir == "col" then
+    layout:update(Layout.Box({
+      Layout.Box(popup_one, { size = "40%" }),
+      Layout.Box(popup_two, { size = "60%" }),
+    }, { dir = "row" }))
+
+    current_dir = "row"
+  else
+    layout:update(Layout.Box({
+      Layout.Box(popup_two, { size = "60%" }),
+      Layout.Box(popup_one, { size = "40%" }),
+    }, { dir = "col" }))
+
+    current_dir = "col"
+  end
+end, {})
+
+layout:mount()
+```
+
 **[Check Detailed Documentation for `nui.layout`](lua/nui/layout)**
 
 **[Check Wiki Page for `nui.layout`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.layout)**
