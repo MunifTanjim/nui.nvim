@@ -15,6 +15,36 @@ local function create_popups(...)
   return popups
 end
 
+local function percent(number, percentage)
+  return math.floor(number * percentage / 100)
+end
+
+local function get_assert_component(layout)
+  local expected_winid = layout.winid
+  assert(expected_winid, "missing layout.winid, forgot to mount it?")
+
+  return function(component, expected)
+    eq(type(component.bufnr), "number")
+    eq(type(component.winid), "number")
+
+    local win_config = vim.api.nvim_win_get_config(component.winid)
+    eq(win_config.relative, "win")
+    eq(win_config.win, expected_winid)
+
+    local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+    eq(row, expected.position.row)
+    eq(col, expected.position.col)
+
+    local expected_width, expected_height = expected.size.width, expected.size.height
+    if component.border then
+      expected_width = expected_width - component.border._.size_delta.width
+      expected_height = expected_height - component.border._.size_delta.height
+    end
+    eq(vim.api.nvim_win_get_width(component.winid), expected_width)
+    eq(vim.api.nvim_win_get_height(component.winid), expected_height)
+  end
+end
+
 describe("nui.layout", function()
   local layout
 
@@ -219,7 +249,6 @@ describe("nui.layout", function()
         layout = Layout({}, {})
       end)
 
-      print(vim.inspect({ result = result }))
       eq(ok, false)
       eq(type(string.match(result, "missing layout config: size")), "string")
     end)
@@ -328,93 +357,302 @@ describe("nui.layout", function()
     end)
   end)
 
-  it("can correctly process layout", function()
-    local winid = vim.api.nvim_get_current_win()
-    local win_width = vim.api.nvim_win_get_width(winid)
-    local win_height = vim.api.nvim_win_get_height(winid)
+  describe("method :update", function()
+    local winid, win_width, win_height
+    local p1, p2, p3, p4
+    local assert_component
 
-    local p1, p2, p3, p4 = unpack(create_popups({}, {}, {
-      border = {
-        style = "rounded",
-      },
-    }, {}))
+    before_each(function()
+      winid = vim.api.nvim_get_current_win()
+      win_width = vim.api.nvim_win_get_width(winid)
+      win_height = vim.api.nvim_win_get_height(winid)
 
-    layout = Layout(
-      {
-        position = 0,
-        size = "100%",
-      },
-      Layout.Box({
-        Layout.Box(p1, { size = "20%" }),
+      p1, p2, p3, p4 = unpack(create_popups({}, {}, {
+        border = {
+          style = "rounded",
+        },
+      }, {}))
+    end)
+
+    local function get_initial_layout(config)
+      return Layout(
+        config,
         Layout.Box({
-          Layout.Box(p3, { size = "50%" }),
-          Layout.Box(p4, { size = "50%" }),
-        }, { dir = "col", size = "60%" }),
-        Layout.Box(p2, { size = "20%" }),
-      }, { dir = "row" })
-    )
-
-    layout:mount()
-
-    local function assert_layout(component, expected)
-      eq(type(component.bufnr), "number")
-      eq(type(component.winid), "number")
-
-      local row, col = unpack(vim.api.nvim_win_get_position(component.winid))
-      eq(row, expected.position.row)
-      eq(col, expected.position.col)
-
-      local expected_width, expected_height = expected.size.width, expected.size.height
-      if component.border then
-        expected_width = expected_width - component.border._.size_delta.width
-        expected_height = expected_height - component.border._.size_delta.height
-      end
-      eq(vim.api.nvim_win_get_width(component.winid), expected_width)
-      eq(vim.api.nvim_win_get_height(component.winid), expected_height)
+          Layout.Box(p1, { size = "20%" }),
+          Layout.Box({
+            Layout.Box(p3, { size = "50%" }),
+            Layout.Box(p4, { size = "50%" }),
+          }, { dir = "col", size = "60%" }),
+          Layout.Box(p2, { size = "20%" }),
+        }, { dir = "row" })
+      )
     end
 
-    assert_layout(p1, {
-      position = {
-        row = 0,
-        col = 0,
-      },
-      size = {
-        width = win_width * 20 / 100,
-        height = win_height,
-      },
-    })
+    local function assert_layout_config(config)
+      local relative, position, size = config.relative, config.position, config.size
 
-    assert_layout(p3, {
-      position = {
-        row = 0,
-        col = win_width * 20 / 100,
-      },
-      size = {
-        width = win_width * 60 / 100,
-        height = win_height * 50 / 100,
-      },
-    })
+      local win_config = vim.api.nvim_win_get_config(layout.winid)
+      eq(win_config.relative, relative.type)
+      eq(win_config.win, relative.winid)
 
-    assert_layout(p4, {
-      position = {
-        row = win_height * 50 / 100,
-        col = win_width * 20 / 100,
-      },
-      size = {
-        width = win_width * 60 / 100,
-        height = win_height * 50 / 100,
-      },
-    })
+      local row, col = unpack(vim.api.nvim_win_get_position(layout.winid))
+      eq(row, position.row)
+      eq(col, position.col)
 
-    assert_layout(p2, {
-      position = {
-        row = 0,
-        col = win_width * 20 / 100 + win_width * 60 / 100,
-      },
-      size = {
-        width = win_width * 20 / 100,
-        height = win_height,
-      },
-    })
+      eq(vim.api.nvim_win_get_width(layout.winid), size.width)
+      eq(vim.api.nvim_win_get_height(layout.winid), size.height)
+    end
+
+    local function assert_initial_layout_components()
+      local size = {
+        width = vim.api.nvim_win_get_width(layout.winid),
+        height = vim.api.nvim_win_get_height(layout.winid),
+      }
+
+      assert_component(p1, {
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = percent(size.width, 20),
+          height = size.height,
+        },
+      })
+
+      assert_component(p3, {
+        position = {
+          row = 0,
+          col = percent(size.width, 20),
+        },
+        size = {
+          width = percent(size.width, 60),
+          height = percent(size.height, 50),
+        },
+      })
+
+      assert_component(p4, {
+        position = {
+          row = percent(size.height, 50),
+          col = percent(size.width, 20),
+        },
+        size = {
+          width = percent(size.width, 60),
+          height = percent(size.height, 50),
+        },
+      })
+
+      assert_component(p2, {
+        position = {
+          row = 0,
+          col = percent(size.width, 20) + percent(size.width, 60),
+        },
+        size = {
+          width = percent(size.width, 20),
+          height = size.height,
+        },
+      })
+    end
+
+    it("processes layout correctly on mount", function()
+      local layout_update_spy = spy.on(Layout, "update")
+
+      layout = get_initial_layout({ position = 0, size = "100%" })
+
+      layout:mount()
+
+      layout_update_spy:revert()
+      assert.spy(layout_update_spy).was_called(1)
+
+      local expected_layout_config = {
+        relative = {
+          type = "win",
+          winid = winid,
+        },
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = win_width,
+          height = win_height,
+        },
+      }
+
+      assert_layout_config(expected_layout_config)
+
+      assert_component = get_assert_component(layout)
+
+      assert_initial_layout_components()
+    end)
+
+    it("can update layout win_config w/o changing boxes", function()
+      layout = get_initial_layout({ position = 0, size = "100%" })
+
+      layout:mount()
+
+      layout:update({
+        position = {
+          row = 2,
+          col = 4,
+        },
+        size = "80%",
+      })
+
+      local expected_layout_config = {
+        relative = {
+          type = "win",
+          winid = winid,
+        },
+        position = {
+          row = 2,
+          col = 4,
+        },
+        size = {
+          width = percent(win_width, 80),
+          height = percent(win_height, 80),
+        },
+      }
+
+      assert_layout_config(expected_layout_config)
+
+      assert_component = get_assert_component(layout)
+
+      assert_initial_layout_components()
+    end)
+
+    it("can update boxes w/o changing layout win_config", function()
+      layout = get_initial_layout({ position = 0, size = "100%" })
+
+      layout:mount()
+
+      layout:update(Layout.Box({
+        Layout.Box(p2, { size = "30%" }),
+        Layout.Box({
+          Layout.Box(p4, { size = "40%" }),
+          Layout.Box(p3, { size = "60%" }),
+        }, { dir = "row", size = "30%" }),
+        Layout.Box(p1, { size = "40%" }),
+      }, { dir = "col" }))
+
+      local expected_layout_config = {
+        relative = {
+          type = "win",
+          winid = winid,
+        },
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = win_width,
+          height = win_height,
+        },
+      }
+
+      assert_layout_config(expected_layout_config)
+
+      assert_component = get_assert_component(layout)
+
+      assert_component(p2, {
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = win_width,
+          height = percent(win_height, 30),
+        },
+      })
+
+      assert_component(p4, {
+        position = {
+          row = percent(win_height, 30),
+          col = 0,
+        },
+        size = {
+          width = percent(win_width, 40),
+          height = percent(win_height, 30),
+        },
+      })
+
+      assert_component(p3, {
+        position = {
+          row = percent(win_height, 30),
+          col = percent(win_width, 40),
+        },
+        size = {
+          width = percent(win_width, 60),
+          height = percent(win_height, 30),
+        },
+      })
+
+      assert_component(p1, {
+        position = {
+          row = percent(win_height, 30) + percent(win_height, 30),
+          col = 0,
+        },
+        size = {
+          width = win_width,
+          height = percent(win_height, 40),
+        },
+      })
+    end)
+
+    it("refreshes layout if container size changes", function()
+      local popup = Popup({
+        position = 0,
+        size = "100%",
+      })
+
+      popup:mount()
+
+      layout = get_initial_layout({
+        relative = {
+          type = "win",
+          winid = popup.winid,
+        },
+        position = 0,
+        size = "80%",
+      })
+
+      layout:mount()
+
+      local expected_layout_config = {
+        relative = {
+          type = "win",
+          winid = popup.winid,
+        },
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = percent(win_width, 80),
+          height = percent(win_height, 80),
+        },
+      }
+
+      assert_layout_config(expected_layout_config)
+
+      assert_component = get_assert_component(layout)
+
+      assert_initial_layout_components()
+
+      popup:set_layout({
+        size = "80%",
+      })
+
+      layout:update()
+
+      expected_layout_config.size = {
+        width = percent(percent(win_width, 80), 80),
+        height = percent(percent(win_height, 80), 80),
+      }
+
+      assert_layout_config(expected_layout_config)
+
+      assert_initial_layout_components()
+    end)
   end)
 end)
