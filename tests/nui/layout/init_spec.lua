@@ -266,7 +266,7 @@ describe("nui.layout", function()
   end)
 
   describe("box", function()
-    it("throws if missing child.size", function()
+    it("requires child.size if grow=false", function()
       local p1, p2 = unpack(create_popups({}, {}))
 
       local ok, result = pcall(function()
@@ -278,6 +278,19 @@ describe("nui.layout", function()
 
       eq(ok, false)
       eq(type(string.match(result, "missing child.size")), "string")
+    end)
+
+    it("does not require child.size if grow=true", function()
+      local p1, p2 = unpack(create_popups({}, {}))
+
+      local ok = pcall(function()
+        Layout.Box({
+          Layout.Box(p1, { size = "50%" }),
+          Layout.Box(p2, { grow = true }),
+        })
+      end)
+
+      eq(ok, true)
     end)
 
     describe("size (table)", function()
@@ -653,6 +666,86 @@ describe("nui.layout", function()
       assert_layout_config(expected_layout_config)
 
       assert_initial_layout_components()
+    end)
+
+    it("supports child with grow=true", function()
+      layout = get_initial_layout({ position = 0, size = "100%" })
+
+      layout:mount()
+
+      layout:update(Layout.Box({
+        Layout.Box(p1, { size = "20%" }),
+        Layout.Box({
+          Layout.Box({}, { size = 4 }),
+          Layout.Box(p3, { grow = true }),
+          Layout.Box({}, { size = 8 }),
+          Layout.Box(p4, { grow = true }),
+        }, { dir = "col", size = "60%" }),
+        Layout.Box(p2, { grow = true }),
+      }, { dir = "row" }))
+
+      local expected_layout_config = {
+        relative = {
+          type = "win",
+          winid = winid,
+        },
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = win_width,
+          height = win_height,
+        },
+      }
+
+      assert_layout_config(expected_layout_config)
+
+      assert_component = get_assert_component(layout)
+
+      assert_component(p1, {
+        position = {
+          row = 0,
+          col = 0,
+        },
+        size = {
+          width = percent(win_width, 20),
+          height = win_height,
+        },
+      })
+
+      assert_component(p3, {
+        position = {
+          row = 4,
+          col = percent(win_width, 20),
+        },
+        size = {
+          width = percent(win_width, 60),
+          height = percent(win_height - 4 - 8, 100 / 2),
+        },
+      })
+
+      assert_component(p4, {
+        position = {
+          row = 4 + 8 + percent(win_height - 4 - 8, 100 / 2),
+          col = percent(win_width, 20),
+        },
+        size = {
+          width = percent(win_width, 60),
+          height = percent(win_height - 4 - 8, 100 / 2),
+        },
+      })
+
+      assert_component(p2, {
+        position = {
+          row = 0,
+          col = percent(win_width, 20) + percent(win_width, 60),
+        },
+        size = {
+          width = percent(win_width, 100 - 20 - 60),
+          height = win_height,
+        },
+      })
     end)
   end)
 end)
