@@ -58,7 +58,7 @@ function mod.calculate_window_position(position, size, container)
 end
 
 ---@param size { width: number|string, height: number|string }
----@param container_size { width: number|string, height: number|string }
+---@param container_size { width: number, height: number }
 ---@return { width: number, height: number }
 function mod.calculate_window_size(size, container_size)
   local width = _.normalize_dimension(size.width, container_size.width)
