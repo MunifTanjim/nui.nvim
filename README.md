@@ -121,10 +121,6 @@ local popup = Popup({
     width = "80%",
     height = "60%",
   },
-  buf_options = {
-    modifiable = true,
-    readonly = false,
-  },
 })
 
 -- mount/open the component
@@ -152,31 +148,28 @@ local Input = require("nui.input")
 local event = require("nui.utils.autocmd").event
 
 local input = Input({
-  position = "20%",
+  position = "50%",
   size = {
-      width = 20,
-      height = 2,
+    width = 20,
   },
-  relative = "editor",
   border = {
     style = "single",
     text = {
-        top = "How old are you?",
-        top_align = "center",
+      top = "[Howdy?]",
+      top_align = "center",
     },
   },
   win_options = {
-    winblend = 10,
-    winhighlight = "Normal:Normal",
+    winhighlight = "Normal:Normal,FloatBorder:Normal",
   },
 }, {
   prompt = "> ",
-  default_value = "42",
+  default_value = "Hello",
   on_close = function()
-    print("Input closed!")
+    print("Input Closed!")
   end,
   on_submit = function(value)
-    print("You are " .. value .. " years old")
+    print("Input Submitted: " .. value)
   end,
 })
 
@@ -202,32 +195,33 @@ local Menu = require("nui.menu")
 local event = require("nui.utils.autocmd").event
 
 local menu = Menu({
-  position = "20%",
+  position = "50%",
   size = {
-    width = 20,
-    height = 2,
+    width = 25,
+    height = 5,
   },
-  relative = "editor",
   border = {
     style = "single",
     text = {
-      top = "Choose Something",
+      top = "[Choose-an-Element]",
       top_align = "center",
     },
   },
   win_options = {
-    winblend = 10,
-    winhighlight = "Normal:Normal",
+    winhighlight = "Normal:Normal,FloatBorder:Normal",
   },
 }, {
   lines = {
-    Menu.item("Item 1"),
-    Menu.item("Item 2"),
-    Menu.separator("Menu Group", {
+    Menu.item("Hydrogen (H)"),
+    Menu.item("Carbon (C)"),
+    Menu.item("Nitrogen (N)"),
+    Menu.separator("Noble-Gases", {
       char = "-",
       text_align = "right",
     }),
-    Menu.item("Item 3"),
+    Menu.item("Helium (He)"),
+    Menu.item("Neon (Ne)"),
+    Menu.item("Argon (Ar)"),
   },
   max_width = 20,
   keymap = {
@@ -237,10 +231,10 @@ local menu = Menu({
     submit = { "<CR>", "<Space>" },
   },
   on_close = function()
-    print("CLOSED")
+    print("Menu Closed!")
   end,
   on_submit = function(item)
-    print("SUBMITTED", vim.inspect(item))
+    print("Menu Submitted: ", item.text)
   end,
 })
 
