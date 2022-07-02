@@ -62,6 +62,9 @@ local function init(class, options, box)
       style = "minimal",
       zindex = 49,
     },
+    win_options = {
+      winblend = 100,
+    },
   }
 
   self:update(options, box)
@@ -229,6 +232,8 @@ function Layout:mount()
 
   self.winid = vim.api.nvim_open_win(self.bufnr, self._.win_enter, self._.win_config)
   assert(self.winid, "failed to create popup window")
+
+  _.set_win_options(self.winid, self._.win_options)
 
   self:_process_layout()
 
