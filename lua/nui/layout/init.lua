@@ -91,8 +91,26 @@ local function get_child_position(canvas_position, current_position, box_dir)
   end
 end
 
-local function get_child_size(child, canvas_size)
-  local outer_size = calculate_window_size(child.size, canvas_size)
+---@param parent table Layout.Box
+---@param child table Layout.Box
+---@param container_size table
+---@param growable_child_dimension? number
+local function get_child_size(parent, child, container_size, growable_child_dimension)
+  local child_size = {
+    width = child.size.width,
+    height = child.size.height,
+  }
+
+  if child.grow and growable_child_dimension then
+    if parent.dir == "col" then
+      child_size.height = growable_child_dimension
+    else
+      child_size.width = growable_child_dimension
+    end
+  end
+
+  local outer_size = calculate_window_size(child_size, container_size)
+
   local inner_size = {
     width = outer_size.width,
     height = outer_size.height,
@@ -123,30 +141,55 @@ local function process_layout(box, meta)
     row = 0,
   }
 
-  for _, child in ipairs(box.box) do
-    local position = get_child_position(meta.position, current_position, box.dir)
-    local outer_size, inner_size = get_child_size(child, canvas_size)
+  local growable_child_count = 0
 
-    if child.component then
-      child.component:set_layout({
-        size = inner_size,
-        relative = {
-          type = "win",
+  for _, child in ipairs(box.box) do
+    if meta.process_growable_child or not child.grow then
+      local position = get_child_position(meta.position, current_position, box.dir)
+      local outer_size, inner_size = get_child_size(box, child, canvas_size, meta.growable_child_dimension)
+
+      if child.component then
+        child.component:set_layout({
+          size = inner_size,
+          relative = {
+            type = "win",
+            winid = meta.winid,
+          },
+          position = position,
+        })
+      else
+        process_layout(child, {
           winid = meta.winid,
-        },
-        position = position,
-      })
-    else
-      process_layout(child, {
-        winid = meta.winid,
-        canvas_size = outer_size,
-        position = position,
-      })
+          canvas_size = outer_size,
+          position = position,
+        })
+      end
+
+      current_position.col = current_position.col + outer_size.width
+      current_position.row = current_position.row + outer_size.height
     end
 
-    current_position.col = current_position.col + outer_size.width
-    current_position.row = current_position.row + outer_size.height
+    if child.grow then
+      growable_child_count = growable_child_count + 1
+    end
   end
+
+  if meta.process_growable_child or growable_child_count == 0 then
+    return
+  end
+
+  local growable_width = canvas_size.width - current_position.col
+  local growable_height = canvas_size.height - current_position.row
+  local growable_dimension = box.dir == "col" and growable_height or growable_width
+  local growable_child_dimension = math.floor(growable_dimension / growable_child_count)
+
+  process_layout(box, {
+    winid = meta.winid,
+    canvas_size = meta.canvas_size,
+    position = meta.position,
+    process_growable_child = true,
+    growable_child_dimension = growable_child_dimension,
+  })
 end
 
 local function mount_box(box)
@@ -334,6 +377,7 @@ function Layout.Box(box, options)
   if box.mount then
     return {
       component = box,
+      grow = options.grow,
       size = options.size,
     }
   end
@@ -342,7 +386,7 @@ function Layout.Box(box, options)
 
   -- normalize children size
   for _, child in ipairs(box) do
-    if not child.size then
+    if not child.grow and not child.size then
       error("missing child.size")
     end
 
@@ -366,6 +410,7 @@ function Layout.Box(box, options)
   return {
     box = box,
     dir = dir,
+    grow = options.grow,
     size = options.size,
   }
 end
