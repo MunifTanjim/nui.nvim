@@ -161,6 +161,21 @@ size = {
 
 _Signature:_ `Layout.Box(box, options)`
 
+**Parameters**
+
+| Name      | Type                           | Description                               |
+| --------- | ------------------------------ | ----------------------------------------- |
+| `box`     | `Layout.Box[]` / nui component | list of `Layout.Box` or any nui component |
+| `options` | `table`                        | box options                               |
+
+`options` is a `table` having the following keys:
+
+| Key    | Type                          | Description                                            |
+| ------ | ----------------------------- | ------------------------------------------------------ |
+| `dir`  | `"col"` / `"row"`             | arrangement direction, only if `box` is `Layout.Box[]` |
+| `grow` | `boolean`                     | if `true`, grows the box to fill up free space         |
+| `size` | `number` / `string` / `table` | optional if `grow` is present                          |
+
 ## Methods
 
 ### `layout:update`
