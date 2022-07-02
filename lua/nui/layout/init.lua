@@ -97,18 +97,18 @@ end
 ---@param parent table Layout.Box
 ---@param child table Layout.Box
 ---@param container_size table
----@param growable_child_dimension? number
-local function get_child_size(parent, child, container_size, growable_child_dimension)
+---@param growable_dimension_per_factor? number
+local function get_child_size(parent, child, container_size, growable_dimension_per_factor)
   local child_size = {
     width = child.size.width,
     height = child.size.height,
   }
 
-  if child.grow and growable_child_dimension then
+  if child.grow and growable_dimension_per_factor then
     if parent.dir == "col" then
-      child_size.height = growable_child_dimension
+      child_size.height = math.floor(growable_dimension_per_factor * child.grow)
     else
-      child_size.width = growable_child_dimension
+      child_size.width = math.floor(growable_dimension_per_factor * child.grow)
     end
   end
 
@@ -144,12 +144,12 @@ local function process_layout(box, meta)
     row = 0,
   }
 
-  local growable_child_count = 0
+  local growable_child_factor = 0
 
   for _, child in ipairs(box.box) do
     if meta.process_growable_child or not child.grow then
       local position = get_child_position(meta.position, current_position, box.dir)
-      local outer_size, inner_size = get_child_size(box, child, canvas_size, meta.growable_child_dimension)
+      local outer_size, inner_size = get_child_size(box, child, canvas_size, meta.growable_dimension_per_factor)
 
       if child.component then
         child.component:set_layout({
@@ -173,25 +173,25 @@ local function process_layout(box, meta)
     end
 
     if child.grow then
-      growable_child_count = growable_child_count + 1
+      growable_child_factor = growable_child_factor + child.grow
     end
   end
 
-  if meta.process_growable_child or growable_child_count == 0 then
+  if meta.process_growable_child or growable_child_factor == 0 then
     return
   end
 
   local growable_width = canvas_size.width - current_position.col
   local growable_height = canvas_size.height - current_position.row
   local growable_dimension = box.dir == "col" and growable_height or growable_width
-  local growable_child_dimension = math.floor(growable_dimension / growable_child_count)
+  local growable_dimension_per_factor = growable_dimension / growable_child_factor
 
   process_layout(box, {
     winid = meta.winid,
     canvas_size = meta.canvas_size,
     position = meta.position,
     process_growable_child = true,
-    growable_child_dimension = growable_child_dimension,
+    growable_dimension_per_factor = growable_dimension_per_factor,
   })
 end
 

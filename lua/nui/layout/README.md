@@ -172,8 +172,8 @@ _Signature:_ `Layout.Box(box, options)`
 
 | Key    | Type                          | Description                                            |
 | ------ | ----------------------------- | ------------------------------------------------------ |
-| `dir`  | `"col"` / `"row"`             | arrangement direction, only if `box` is `Layout.Box[]` |
-| `grow` | `boolean`                     | if `true`, grows the box to fill up free space         |
+| `dir`  | `"col"` / `"row"` (_default_) | arrangement direction, only if `box` is `Layout.Box[]` |
+| `grow` | `number`                      | growth factor to fill up the box free space            |
 | `size` | `number` / `string` / `table` | optional if `grow` is present                          |
 
 ## Methods
