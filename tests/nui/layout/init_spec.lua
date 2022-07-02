@@ -266,7 +266,7 @@ describe("nui.layout", function()
   end)
 
   describe("box", function()
-    it("requires child.size if grow=false", function()
+    it("requires child.size if child.grow is missing", function()
       local p1, p2 = unpack(create_popups({}, {}))
 
       local ok, result = pcall(function()
@@ -280,13 +280,13 @@ describe("nui.layout", function()
       eq(type(string.match(result, "missing child.size")), "string")
     end)
 
-    it("does not require child.size if grow=true", function()
+    it("does not require child.size if child.grow is present", function()
       local p1, p2 = unpack(create_popups({}, {}))
 
       local ok = pcall(function()
         Layout.Box({
           Layout.Box(p1, { size = "50%" }),
-          Layout.Box(p2, { grow = true }),
+          Layout.Box(p2, { grow = 1 }),
         })
       end)
 
@@ -668,7 +668,7 @@ describe("nui.layout", function()
       assert_initial_layout_components()
     end)
 
-    it("supports child with grow=true", function()
+    it("supports child with child.grow", function()
       layout = get_initial_layout({ position = 0, size = "100%" })
 
       layout:mount()
@@ -677,11 +677,11 @@ describe("nui.layout", function()
         Layout.Box(p1, { size = "20%" }),
         Layout.Box({
           Layout.Box({}, { size = 4 }),
-          Layout.Box(p3, { grow = true }),
+          Layout.Box(p3, { grow = 1 }),
           Layout.Box({}, { size = 8 }),
-          Layout.Box(p4, { grow = true }),
+          Layout.Box(p4, { grow = 1 }),
         }, { dir = "col", size = "60%" }),
-        Layout.Box(p2, { grow = true }),
+        Layout.Box(p2, { grow = 1 }),
       }, { dir = "row" }))
 
       local expected_layout_config = {
