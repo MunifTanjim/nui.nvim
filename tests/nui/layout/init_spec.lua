@@ -652,7 +652,7 @@ describe("nui.layout", function()
 
       assert_initial_layout_components()
 
-      popup:set_layout({
+      popup:update_layout({
         size = "80%",
       })
 

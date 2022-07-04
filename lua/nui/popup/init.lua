@@ -99,7 +99,7 @@ local function init(class, options)
   self.win_config.border = self.border:get()
 
   if options.position and options.size then
-    self:set_layout(options)
+    self:update_layout(options)
   end
 
   return self
@@ -361,8 +361,15 @@ function Popup:_update_layout_config(config)
   end
 end
 
----@param config? nui_layout_config
+-- @deprecated
+-- Use `popup:update_layout`.
+---@deprecated
 function Popup:set_layout(config)
+  return self:update_layout(config)
+end
+
+---@param config? nui_layout_config
+function Popup:update_layout(config)
   config = config or {}
 
   self:_update_layout_config(config)
@@ -377,18 +384,20 @@ function Popup:set_layout(config)
 end
 
 -- luacov: disable
--- Use `popup:set_layout`.
 -- @deprecated
+-- Use `popup:update_layout`.
+---@deprecated
 function Popup:set_size(size)
-  self:set_layout({ size = size })
+  self:update_layout({ size = size })
 end
 -- luacov: enable
 
 -- luacov: disable
--- Use `popup:set_layout`.
 -- @deprecated
+-- Use `popup:update_layout`.
+---@deprecated
 function Popup:set_position(position, relative)
-  self:set_layout({ position = position, relative = relative })
+  self:update_layout({ position = position, relative = relative })
 end
 -- luacov: enable
 

@@ -541,7 +541,7 @@ describe("nui.popup", function()
     end)
   end)
 
-  describe("method :set_layout", function()
+  describe("method :update_layout", function()
     local function assert_size(size, border_size)
       if border_size and type(border_size) ~= "table" then
         border_size = {
@@ -615,7 +615,7 @@ describe("nui.popup", function()
         height = size.height + 2,
       }
 
-      popup:set_layout({ size = new_size })
+      popup:update_layout({ size = new_size })
 
       assert_size(new_size)
     end)
@@ -658,7 +658,7 @@ describe("nui.popup", function()
         height = size.height + 2,
       }
 
-      popup:set_layout({ size = new_size })
+      popup:update_layout({ size = new_size })
 
       assert_size(new_size, true)
       h.popup.assert_border_lines({
@@ -696,7 +696,7 @@ describe("nui.popup", function()
         col = position.col + 2,
       }
 
-      popup:set_layout({ position = new_position })
+      popup:update_layout({ position = new_position })
 
       assert_position(new_position)
     end)
@@ -734,7 +734,7 @@ describe("nui.popup", function()
         col = position.col + 2,
       }
 
-      popup:set_layout({ position = new_position })
+      popup:update_layout({ position = new_position })
 
       assert_position(new_position)
     end)
@@ -778,11 +778,11 @@ describe("nui.popup", function()
         height = 8,
       }
 
-      container_popup:set_layout({
+      container_popup:update_layout({
         size = container_size,
       })
 
-      popup:set_layout()
+      popup:update_layout()
 
       assert_size({
         width = percent(container_size.width, 50),
@@ -799,7 +799,7 @@ describe("nui.popup", function()
       popup = Popup({})
 
       local ok, result = pcall(function()
-        popup:set_layout({})
+        popup:update_layout({})
       end)
 
       eq(ok, false)
@@ -810,7 +810,7 @@ describe("nui.popup", function()
       popup = Popup({})
 
       local ok, result = pcall(function()
-        popup:set_layout({
+        popup:update_layout({
           relative = "win",
         })
       end)
@@ -823,7 +823,7 @@ describe("nui.popup", function()
       popup = Popup({})
 
       local ok, result = pcall(function()
-        popup:set_layout({
+        popup:update_layout({
           relative = "win",
           size = "50%",
         })
