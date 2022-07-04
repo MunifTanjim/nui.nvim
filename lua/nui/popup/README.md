@@ -549,9 +549,9 @@ popup:off("*")
 
 ---
 
-### `popup:set_layout`
+### `popup:update_layout`
 
-_Signature:_ `popup:set_layout(config)`
+_Signature:_ `popup:update_layout(config)`
 
 Sets the layout of the popup. You can use this method to change popup's
 size or position after it's mounted.
@@ -571,7 +571,7 @@ They are the same options used for popup initialization.
 **Examples**
 
 ```lua
-popup:set_layout({
+popup:update_layout({
   relative = "win",
   size = {
     width = 80,
