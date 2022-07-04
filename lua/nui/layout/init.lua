@@ -5,13 +5,11 @@ local _ = utils._
 
 local defaults = utils.defaults
 local is_type = utils.is_type
-local calculate_window_position = layout_utils.calculate_window_position
 local calculate_window_size = layout_utils.calculate_window_size
-local get_container_info = layout_utils.get_container_info
-local parse_relative = layout_utils.parse_relative
 local u = {
   size = layout_utils.size,
   position = layout_utils.position,
+  update_layout_config = layout_utils.update_layout_config,
 }
 
 -- GitHub Issue: https://github.com/neovim/neovim/issues/18925
@@ -280,37 +278,6 @@ function Layout:unmount()
   self._.mounted = false
 end
 
-function Layout:_update_config_relative()
-  local fallback_winid = self._.position and self._.position.win or vim.api.nvim_get_current_win()
-  self._.position = vim.tbl_extend(
-    "force",
-    self._._position or {},
-    parse_relative(self._.layout.relative, fallback_winid)
-  )
-
-  self._.win_config.relative = self._.position.relative
-  self._.win_config.win = self._.position.relative == "win" and self._.position.win or nil
-  self._.win_config.bufpos = self._.position.bufpos
-end
-
-function Layout:_update_config_size()
-  self._.size = calculate_window_size(self._.layout.size, self._.container.size)
-
-  self._.win_config.width = self._.size.width
-  self._.win_config.height = self._.size.height
-end
-
-function Layout:_update_config_position()
-  self._.position = vim.tbl_extend(
-    "force",
-    self._.position,
-    calculate_window_position(self._.layout.position, self._.size, self._.container)
-  )
-
-  self._.win_config.row = self._.position.row
-  self._.win_config.col = self._.position.col
-end
-
 function Layout:update(config, box)
   config = config or {}
 
@@ -319,48 +286,7 @@ function Layout:update(config, box)
     config = {}
   end
 
-  local options = _.normalize_layout_options({
-    relative = config.relative,
-    size = config.size,
-    position = config.position,
-  })
-
-  local win_config = self._.win_config
-
-  if options.relative then
-    self._.layout.relative = options.relative
-    self:_update_config_relative()
-  end
-
-  local prev_container_size = self._.container and self._.container.size
-  self._.container = get_container_info(self._.position)
-  local container_size_changed = not u.size.are_same(self._.container.size, prev_container_size)
-
-  local need_size_refresh = container_size_changed
-    and self._.layout.size
-    and u.size.contains_percentage_string(self._.layout.size)
-
-  if options.size or need_size_refresh then
-    self._.layout.size = options.size or self._.layout.size
-    self:_update_config_size()
-  end
-
-  if not win_config.width or not win_config.height then
-    return error("missing layout config: size")
-  end
-
-  local need_position_refresh = container_size_changed
-    and self._.layout.position
-    and u.position.contains_percentage_string(self._.layout.position)
-
-  if options.position or need_position_refresh then
-    self._.layout.position = options.position or self._.layout.position
-    self:_update_config_position()
-  end
-
-  if not win_config.row or not win_config.col then
-    return error("missing layout config: position")
-  end
+  u.update_layout_config(self, config)
 
   if box then
     self._.box = Layout.Box(box)

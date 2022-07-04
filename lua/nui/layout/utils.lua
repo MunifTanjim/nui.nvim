@@ -119,6 +119,78 @@ function mod.parse_relative(relative, fallback_winid)
   }
 end
 
+---@param config nui_layout_config
+function mod.update_layout_config(component, config)
+  local options = _.normalize_layout_options({
+    relative = config.relative,
+    size = config.size,
+    position = config.position,
+  })
+
+  local win_config = component._.win_config
+
+  if options.relative then
+    component._.layout.relative = options.relative
+
+    local fallback_winid = component._.position and component._.position.win or vim.api.nvim_get_current_win()
+    component._.position = vim.tbl_extend(
+      "force",
+      component._._position or {},
+      mod.parse_relative(component._.layout.relative, fallback_winid)
+    )
+
+    win_config.relative = component._.position.relative
+    win_config.win = component._.position.relative == "win" and component._.position.win or nil
+    win_config.bufpos = component._.position.bufpos
+  end
+
+  if not win_config.relative then
+    return error("missing layout config: relative")
+  end
+
+  local prev_container_size = component._.container and component._.container.size
+  component._.container = mod.get_container_info(component._.position)
+  local container_size_changed = not mod.size.are_same(component._.container.size, prev_container_size)
+
+  local need_size_refresh = container_size_changed
+    and component._.layout.size
+    and mod.size.contains_percentage_string(component._.layout.size)
+
+  if options.size or need_size_refresh then
+    component._.layout.size = options.size or component._.layout.size
+
+    component._.size = mod.calculate_window_size(component._.layout.size, component._.container.size)
+
+    win_config.width = component._.size.width
+    win_config.height = component._.size.height
+  end
+
+  if not win_config.width or not win_config.height then
+    return error("missing layout config: size")
+  end
+
+  local need_position_refresh = container_size_changed
+    and component._.layout.position
+    and mod.position.contains_percentage_string(component._.layout.position)
+
+  if options.position or need_position_refresh then
+    component._.layout.position = options.position or component._.layout.position
+
+    component._.position = vim.tbl_extend(
+      "force",
+      component._.position,
+      mod.calculate_window_position(component._.layout.position, component._.size, component._.container)
+    )
+
+    win_config.row = component._.position.row
+    win_config.col = component._.position.col
+  end
+
+  if not win_config.row or not win_config.col then
+    return error("missing layout config: position")
+  end
+end
+
 ---@param size_a nui_layout_option_size
 ---@param size_b? nui_layout_option_size
 ---@return boolean
