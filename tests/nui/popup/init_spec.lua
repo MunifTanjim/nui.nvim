@@ -7,6 +7,10 @@ local spy = require("luassert.spy")
 
 local eq, feedkeys = h.eq, h.feedkeys
 
+local function percent(number, percentage)
+  return math.floor(number * percentage / 100)
+end
+
 describe("nui.popup", function()
   local popup
 
@@ -557,17 +561,29 @@ describe("nui.popup", function()
       end
     end
 
-    local function assert_position(position)
-      local win_config = vim.api.nvim_win_get_config(popup.winid)
-      eq(win_config.win, popup.border.winid or vim.api.nvim_get_current_win())
+    local function assert_position(position, container_winid)
+      local log = container_winid
 
-      local row, col = unpack(vim.api.nvim_win_get_position(popup.winid))
+      container_winid = container_winid or vim.api.nvim_get_current_win()
+
+      local win_config = vim.api.nvim_win_get_config(popup.winid)
+      eq(win_config.win, popup.border.winid or container_winid)
+
+      local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+
+      if log then
+        print(vim.inspect({
+          p = popup,
+          cwi = container_winid,
+        }))
+      end
 
       if popup.border.winid then
-        eq(row, position.row + 1)
-        eq(col, position.col + 1)
+        eq(row, 1)
+        eq(col, 1)
 
-        local border_row, border_col = unpack(vim.api.nvim_win_get_position(popup.border.winid))
+        local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
+        local border_row, border_col = border_win_config.row[vim.val_idx], border_win_config.col[vim.val_idx]
 
         eq(border_row, position.row)
         eq(border_col, position.col)
@@ -721,6 +737,62 @@ describe("nui.popup", function()
       popup:set_layout({ position = new_position })
 
       assert_position(new_position)
+    end)
+
+    it("refreshes layout if container size changes", function()
+      local container_size = {
+        width = 20,
+        height = 10,
+      }
+
+      local container_popup = Popup({
+        position = 0,
+        size = container_size,
+      })
+
+      container_popup:mount()
+
+      popup = Popup({
+        relative = {
+          type = "win",
+          winid = container_popup.winid,
+        },
+        position = "20%",
+        size = "50%",
+      })
+
+      popup:mount()
+
+      assert_size({
+        width = percent(container_size.width, 50),
+        height = percent(container_size.height, 50),
+      })
+
+      assert_position({
+        row = percent(container_size.height - percent(container_size.height, 50), 20),
+        col = percent(container_size.width - percent(container_size.width, 50), 20),
+      }, container_popup.winid)
+
+      container_size = {
+        width = 16,
+        height = 8,
+      }
+
+      container_popup:set_layout({
+        size = container_size,
+      })
+
+      popup:set_layout()
+
+      assert_size({
+        width = percent(container_size.width, 50),
+        height = percent(container_size.height, 50),
+      })
+
+      assert_position({
+        row = percent(container_size.height - percent(container_size.height, 50), 20),
+        col = percent(container_size.width - percent(container_size.width, 50), 20),
+      }, container_popup.winid)
     end)
 
     it("throws if missing config 'relative'", function()

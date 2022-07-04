@@ -6,9 +6,10 @@ local defaults = utils.defaults
 --luacheck: push no max line length
 
 ---@alias nui_layout_option_relative_type "'cursor'"|"'editor'"|"'win'"|"'buf'"
----@alias nui_layout_option_relative { winid?: number, type: nui_layout_option_relative_type, winid?: number, position?: { row: number, col: number }  }
+---@alias nui_layout_option_relative { type: nui_layout_option_relative_type, winid?: number, position?: { row: number, col: number }  }
 ---@alias nui_layout_option_position { row: number|string, col: number|string }
 ---@alias nui_layout_option_size { width: number|string, height: number|string }
+---@alias nui_layout_config { relative?: nui_layout_option_relative, size?: nui_layout_option_size, position?: nui_layout_option_position }
 ---@alias nui_layout_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_layout_container_info { relative: nui_layout_option_relative_type, size: nui_layout_option_size, type: "'editor'"|"'window'" }
 
