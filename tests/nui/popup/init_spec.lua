@@ -562,21 +562,12 @@ describe("nui.popup", function()
     end
 
     local function assert_position(position, container_winid)
-      local log = container_winid
-
       container_winid = container_winid or vim.api.nvim_get_current_win()
 
       local win_config = vim.api.nvim_win_get_config(popup.winid)
       eq(win_config.win, popup.border.winid or container_winid)
 
       local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
-
-      if log then
-        print(vim.inspect({
-          p = popup,
-          cwi = container_winid,
-        }))
-      end
 
       if popup.border.winid then
         eq(row, 1)
