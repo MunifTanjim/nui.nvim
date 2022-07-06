@@ -2,6 +2,7 @@ pcall(require, "luacov")
 
 local Layout = require("nui.layout")
 local Popup = require("nui.popup")
+local Split = require("nui.split")
 local h = require("tests.nui")
 local spy = require("luassert.spy")
 
@@ -242,6 +243,39 @@ describe("nui.layout", function()
 
       assert.spy(p1_mount).was_called(1)
       assert.spy(p2_mount).was_called(1)
+    end)
+
+    it("supports container component", function()
+      local p1, p2 = unpack(create_popups({}, {}))
+
+      local split = Split({
+        relative = "editor",
+        position = "bottom",
+        size = 10,
+      })
+
+      local split_mount = spy.on(split, "mount")
+
+      layout = Layout(
+        split,
+        Layout.Box({
+          Layout.Box(p1, { size = "50%" }),
+          Layout.Box(p2, { size = "50%" }),
+        })
+      )
+
+      layout:mount()
+
+      assert.spy(split_mount).was_called(1)
+
+      local win_config = vim.api.nvim_win_get_config(layout.winid)
+      eq(win_config.relative, "win")
+      eq(win_config.row[vim.val_idx], 0)
+      eq(win_config.col[vim.val_idx], 0)
+      eq(win_config.width, vim.o.columns)
+      eq(win_config.height, 10)
+
+      split:unmount()
     end)
 
     it("throws if missing config 'size'", function()

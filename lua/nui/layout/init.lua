@@ -37,21 +37,41 @@ local function is_box(object)
   return object and (object.box or object.component)
 end
 
+local function is_component(object)
+  return object and object.mount
+end
+
+local function is_component_mounted(component)
+  return is_type("number", component.winid)
+end
+
+local function get_layout_config_relative_to_component(component)
+  return {
+    relative = { type = "win", winid = component.winid },
+    position = { row = 0, col = 0 },
+    size = { width = "100%", height = "100%" },
+  }
+end
+
 ---@param class NuiLayout
 ---@return NuiLayout
 local function init(class, options, box)
   ---@type NuiLayout
   local self = setmetatable({}, { __index = class })
 
-  options = merge_default_options(options)
-  options = normalize_options(options)
+  local container_component
+  if is_component(options) then
+    container_component = options
+    options = get_layout_config_relative_to_component(container_component)
+  else
+    options = merge_default_options(options)
+    options = normalize_options(options)
+  end
 
   self._ = {
-    layout = {
-      relative = options.relative,
-      size = options.size,
-      position = options.position,
-    },
+    box = class.Box(box),
+    container_component = container_component,
+    layout = {},
     loading = false,
     mounted = false,
     win_enter = false,
@@ -65,7 +85,9 @@ local function init(class, options, box)
     },
   }
 
-  self:update(options, box)
+  if not is_component(container_component) or is_component_mounted(container_component) then
+    self:update(options)
+  end
 
   return self
 end
@@ -222,6 +244,12 @@ function Layout:mount()
   end
 
   self._.loading = true
+
+  local container_component = self._.container_component
+  if is_component(container_component) and not is_component_mounted(container_component) then
+    container_component:mount()
+    self:update(get_layout_config_relative_to_component(container_component))
+  end
 
   if not self.bufnr then
     self.bufnr = vim.api.nvim_create_buf(false, true)

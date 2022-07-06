@@ -29,7 +29,9 @@ local layout = Layout(
 layout:mount()
 ```
 
-_Signature:_ `Layout(options, box)`
+_Signature:_ `Layout(options, box)` or `Layout(component, box)`
+
+`component` can be `Popup` or `Split`.
 
 ## Options
 
