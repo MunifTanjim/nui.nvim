@@ -59,10 +59,10 @@ local function init(class, options, box)
   ---@type NuiLayout
   local self = setmetatable({}, { __index = class })
 
-  local container_component
+  local container
   if is_component(options) then
-    container_component = options
-    options = get_layout_config_relative_to_component(container_component)
+    container = options
+    options = get_layout_config_relative_to_component(container)
   else
     options = merge_default_options(options)
     options = normalize_options(options)
@@ -70,7 +70,7 @@ local function init(class, options, box)
 
   self._ = {
     box = class.Box(box),
-    container_component = container_component,
+    container = container,
     layout = {},
     loading = false,
     mounted = false,
@@ -85,7 +85,7 @@ local function init(class, options, box)
     },
   }
 
-  if not is_component(container_component) or is_component_mounted(container_component) then
+  if not is_component(container) or is_component_mounted(container) then
     self:update(options)
   end
 
@@ -245,10 +245,10 @@ function Layout:mount()
 
   self._.loading = true
 
-  local container_component = self._.container_component
-  if is_component(container_component) and not is_component_mounted(container_component) then
-    container_component:mount()
-    self:update(get_layout_config_relative_to_component(container_component))
+  local container = self._.container
+  if is_component(container) and not is_component_mounted(container) then
+    container:mount()
+    self:update(get_layout_config_relative_to_component(container))
   end
 
   if not self.bufnr then

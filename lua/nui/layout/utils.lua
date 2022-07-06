@@ -148,9 +148,9 @@ function mod.update_layout_config(component, config)
     return error("missing layout config: relative")
   end
 
-  local prev_container_size = component._.container and component._.container.size
-  component._.container = mod.get_container_info(component._.position)
-  local container_size_changed = not mod.size.are_same(component._.container.size, prev_container_size)
+  local prev_container_size = component._.container_info and component._.container_info.size
+  component._.container_info = mod.get_container_info(component._.position)
+  local container_size_changed = not mod.size.are_same(component._.container_info.size, prev_container_size)
 
   local need_size_refresh = container_size_changed
     and component._.layout.size
@@ -159,7 +159,7 @@ function mod.update_layout_config(component, config)
   if options.size or need_size_refresh then
     component._.layout.size = options.size or component._.layout.size
 
-    component._.size = mod.calculate_window_size(component._.layout.size, component._.container.size)
+    component._.size = mod.calculate_window_size(component._.layout.size, component._.container_info.size)
 
     win_config.width = component._.size.width
     win_config.height = component._.size.height
@@ -179,7 +179,7 @@ function mod.update_layout_config(component, config)
     component._.position = vim.tbl_extend(
       "force",
       component._.position,
-      mod.calculate_window_position(component._.layout.position, component._.size, component._.container)
+      mod.calculate_window_position(component._.layout.position, component._.size, component._.container_info)
     )
 
     win_config.row = component._.position.row
