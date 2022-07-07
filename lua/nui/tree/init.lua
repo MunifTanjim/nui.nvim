@@ -3,6 +3,35 @@ local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 local tree_util = require("nui.tree.util")
 
+---@param bufnr number
+---@param linenr_range { [1]: integer, [2]: integer }
+local function clear_buf_lines(bufnr, linenr_range)
+  local count = linenr_range[2] - linenr_range[1]
+
+  if count < 1 then
+    return
+  end
+
+  local lines = {}
+  for i = 1, count do
+    lines[i] = ""
+  end
+
+  vim.api.nvim_buf_set_lines(bufnr, linenr_range[1] - 1, linenr_range[2] - 1, false, lines)
+end
+
+---@param bufnr number
+---@param linenr_range { [1]: integer, [2]: integer }
+local function delete_buf_lines(bufnr, linenr_range)
+  local count = linenr_range[2] - linenr_range[1]
+
+  if count < 1 then
+    return
+  end
+
+  vim.api.nvim_buf_set_lines(bufnr, linenr_range[1] - 1, linenr_range[2] - 1, false, {})
+end
+
 ---@param nodes NuiTreeNode[]
 ---@param parent_node? NuiTreeNode
 ---@param get_node_id nui_tree_get_node_id
@@ -153,6 +182,7 @@ local function init(class, options)
     }, defaults(options.win_options, {})),
     get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id),
     prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node),
+    track_tree_linenr = nil,
   }
 
   _.set_buf_options(self.bufnr, self._.buf_options)
@@ -168,7 +198,7 @@ end
 
 ---@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
 ---@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): string | string[] | NuiLine | NuiLine[]
----@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node }
+---@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node, track_tree_linenr?: boolean }
 
 --luacheck: pop
 
@@ -268,8 +298,8 @@ end
 function Tree:set_nodes(nodes, parent_id)
   --luacheck: push no max line length
 
-  ---@type { lines: string[]|NuiLine[], node_id_by_linenr: table<number,string>, linenr_by_node_id: table<string,number> }
-  self._content = { lines = {}, node_id_by_linenr = {}, linenr_by_node_id = {} }
+  ---@type { linenr: {[1]?:integer,[2]?:integer}, lines: string[]|NuiLine[], node_id_by_linenr: table<number,string>, linenr_by_node_id: table<string, {[1]:integer,[2]:integer}> }
+  self._content = { linenr = {}, lines = {}, node_id_by_linenr = {}, linenr_by_node_id = {} }
 
   --luacheck: pop
 
@@ -325,7 +355,8 @@ function Tree:remove_node(node_id)
   return node
 end
 
-function Tree:_prepare_content()
+---@param linenr_start number start line number (1-indexed)
+function Tree:_prepare_content(linenr_start)
   self._content.lines = {}
   self._content.node_id_by_linenr = {}
   self._content.linenr_by_node_id = {}
@@ -346,9 +377,9 @@ function Tree:_prepare_content()
     local linenr = {}
     for _, line in ipairs(lines) do
       self._content.lines[current_linenr] = line
-      self._content.node_id_by_linenr[current_linenr] = node:get_id()
-      linenr[1] = linenr[1] or current_linenr
-      linenr[2] = current_linenr
+      self._content.node_id_by_linenr[current_linenr + linenr_start - 1] = node:get_id()
+      linenr[1] = linenr[1] or (current_linenr + linenr_start - 1)
+      linenr[2] = (current_linenr + linenr_start - 1)
       current_linenr = current_linenr + 1
     end
     self._content.linenr_by_node_id[node:get_id()] = linenr
@@ -365,29 +396,61 @@ function Tree:_prepare_content()
   for _, node_id in ipairs(self.nodes.root_ids) do
     prepare(node_id)
   end
+
+  self._content.linenr = { linenr_start, current_linenr + linenr_start - 1 }
 end
 
-function Tree:render()
-  self:_prepare_content()
+---@param linenr_start? number start line number (1-indexed)
+function Tree:render(linenr_start)
+  if is_type("nil", self._.track_tree_linenr) then
+    self._.track_tree_linenr = is_type("number", linenr_start)
+  end
+
+  linenr_start = linenr_start or self._content.linenr[1] or 1
+
+  local prev_linenr = { self._content.linenr[1], self._content.linenr[2] }
+  self:_prepare_content(linenr_start)
+  local next_linenr = { self._content.linenr[1], self._content.linenr[2] }
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
 
-  vim.api.nvim_buf_set_lines(
-    self.bufnr,
-    0,
-    -1,
-    false,
-    vim.tbl_map(function(line)
-      if is_type("string", line) then
-        return line
-      end
-      return line:content()
-    end, self._content.lines)
-  )
+  local buf_lines = vim.tbl_map(function(line)
+    if is_type("string", line) then
+      return line
+    end
+    return line:content()
+  end, self._content.lines)
+
+  if self._.track_tree_linenr then
+    -- if linenr_start was shifted downwards, clear the
+    -- previously rendered buffer lines above the tree.
+    clear_buf_lines(self.bufnr, {
+      math.min(next_linenr[1], prev_linenr[1] or next_linenr[1]),
+      next_linenr[1],
+    })
+
+    -- if linenr_start was shifted upwards, delete the
+    -- previously rendered buffer lines below the tree.
+    delete_buf_lines(self.bufnr, {
+      math.min(next_linenr[2], prev_linenr[2] or next_linenr[2]),
+      prev_linenr[2] or 0,
+    })
+
+    -- for initial render, start inserting the tree in a single buffer line.
+    -- for subsequent renders, replace the buffer lines from previous tree.
+    local content_linenr_range = {
+      next_linenr[1],
+      prev_linenr[1] and math.min(next_linenr[2], prev_linenr[2] or next_linenr[2]) or next_linenr[1] + 1,
+    }
+
+    vim.api.nvim_buf_set_lines(self.bufnr, content_linenr_range[1] - 1, content_linenr_range[2] - 1, false, buf_lines)
+  else
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, buf_lines)
+  end
 
   for i, line in ipairs(self._content.lines) do
     if not is_type("string", line) then
-      line:highlight(self.bufnr, self.ns_id, i)
+      line:highlight(self.bufnr, self.ns_id, i + linenr_start - 1)
     end
   end
 
