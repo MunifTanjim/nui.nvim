@@ -217,9 +217,13 @@ otherwise nodes are set at tree root.
 
 ### `tree:render`
 
-_Signature:_ `tree:render()`
+_Signature:_ `tree:render(linenr_start?)`
 
 Renders the tree on buffer.
+
+| Name           | Type             | Description                   |
+| -------------- | ---------------- | ----------------------------- |
+| `linenr_start` | `number` / `nil` | start line number (1-indexed) |
 
 ## NuiTree.Node
 
