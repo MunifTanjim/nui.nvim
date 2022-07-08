@@ -173,4 +173,96 @@ describe("nui.popup", function()
       h.assert_extmark(extmarks[1], linenr, text, hl_group)
     end)
   end)
+
+  describe("method :set_text", function()
+    it("works", function()
+      local text_top, text_bottom = "top", "bot"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          text = {
+            top = text_top,
+            top_align = "left",
+          },
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭top─────╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      popup.border:set_text("top", text_top, "center")
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭──top───╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      popup.border:set_text("top", text_top, "right")
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭─────top╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      local hl_group = "NuiPopupTest"
+
+      popup.border:set_text("bottom", Text(text_bottom, hl_group))
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭─────top╮",
+        "│        │",
+        "│        │",
+        "╰──bot───╯",
+      })
+
+      local linenr = 4
+      local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[1]
+      local byte_start = string.find(line, text_bottom)
+
+      local extmarks = h.get_line_extmarks(popup.border.bufnr, popup_options.ns_id, linenr, byte_start, #text_bottom)
+      h.assert_extmark(
+        vim.tbl_filter(function(extmark)
+          return extmark[4].hl_group == hl_group
+        end, extmarks)[1],
+        linenr,
+        text_bottom,
+        hl_group
+      )
+
+      popup:unmount()
+    end)
+
+    it("does nothing for simple border", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(type(popup.border.bufnr), "nil")
+
+      popup.border:set_text("top", "text")
+
+      eq(type(popup.border.bufnr), "nil")
+
+      popup:unmount()
+    end)
+  end)
 end)
