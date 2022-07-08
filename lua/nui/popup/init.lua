@@ -15,13 +15,16 @@ local u = {
   update_layout_config = layout_utils.update_layout_config,
 }
 
+-- luacov: disable
 -- @deprecated
 ---@param opacity number
+---@deprecated
 local function calculate_winblend(opacity)
   assert(0 <= opacity, "opacity must be equal or greater than 0")
   assert(opacity <= 1, "opacity must be equal or lesser than 0")
   return 100 - (opacity * 100)
 end
+-- luacov: enable
 
 local function merge_default_options(options)
   options.relative = defaults(options.relative, "win")
@@ -83,8 +86,9 @@ local function init(class, options)
     self:_buf_create()
   end
 
+  -- luacov: disable
+  -- @deprecated
   if not self._.win_options.winblend and is_type("number", options.opacity) then
-    -- @deprecated
     self._.win_options.winblend = calculate_winblend(options.opacity)
   end
 
@@ -92,6 +96,7 @@ local function init(class, options)
   if not self._.win_options.winhighlight and not is_type("nil", options.highlight) then
     self._.win_options.winhighlight = options.highlight
   end
+  -- luacov: enable
 
   self.border = Border(self, options.border)
   self.win_config.border = self.border:get()
