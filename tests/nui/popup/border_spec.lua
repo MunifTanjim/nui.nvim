@@ -21,62 +21,99 @@ describe("nui.popup", function()
   end)
 
   describe("border.style", function()
-    it("supports string name", function()
-      popup_options = vim.tbl_deep_extend("force", popup_options, {
-        border = {
-          style = "rounded",
-          padding = { 0 },
-        },
-      })
+    describe("for complex border", function()
+      it("supports string name", function()
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = "rounded",
+            padding = { 0 },
+          },
+        })
 
-      local popup = Popup(popup_options)
+        local popup = Popup(popup_options)
 
-      popup:mount()
+        popup:mount()
 
-      h.assert_buf_lines(popup.border.bufnr, {
-        "╭────────╮",
-        "│        │",
-        "│        │",
-        "╰────────╯",
-      })
-    end)
+        h.assert_buf_lines(popup.border.bufnr, {
+          "╭────────╮",
+          "│        │",
+          "│        │",
+          "╰────────╯",
+        })
+      end)
 
-    it("supports list table", function()
-      local style = h.popup.create_border_style_list()
+      it("supports list table", function()
+        local style = h.popup.create_border_style_list()
 
-      popup_options = vim.tbl_deep_extend("force", popup_options, {
-        border = {
-          style = style,
-          padding = { 0 },
-        },
-      })
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+            padding = { 0 },
+          },
+        })
 
-      local popup = Popup(popup_options)
+        local popup = Popup(popup_options)
 
-      popup:mount()
+        popup:mount()
 
-      h.popup.assert_border_lines(popup_options, popup.border.bufnr)
-    end)
+        h.popup.assert_border_lines(popup_options, popup.border.bufnr)
+      end)
 
-    it("supports map table", function()
-      local style = h.popup.create_border_style_map()
+      it("supports partial list table", function()
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = { "-" },
+            padding = { 0 },
+          },
+        })
 
-      popup_options = vim.tbl_deep_extend("force", popup_options, {
-        border = {
-          style = style,
-          padding = { 0 },
-        },
-      })
+        local popup = Popup(popup_options)
 
-      local popup = Popup(popup_options)
+        popup:mount()
 
-      popup:mount()
+        popup_options.border.style = { "-", "-", "-", "-", "-", "-", "-", "-" }
 
-      h.popup.assert_border_lines(popup_options, popup.border.bufnr)
-    end)
+        h.popup.assert_border_lines(popup_options, popup.border.bufnr)
+      end)
 
-    describe("supports highlight", function()
-      it("as (char, hl_group) tuple in map table", function()
+      it("supports map table", function()
+        local style = h.popup.create_border_style_map()
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+            padding = { 0 },
+          },
+        })
+
+        local popup = Popup(popup_options)
+
+        popup:mount()
+
+        h.popup.assert_border_lines(popup_options, popup.border.bufnr)
+      end)
+
+      it("supports (char, hl_group) tuple in partial list table", function()
+        local hl_group = "NuiPopupTest"
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = { { "-", hl_group } },
+            padding = { 0 },
+          },
+        })
+
+        local popup = Popup(popup_options)
+
+        popup:mount()
+
+        popup_options.border.style = { "-", "-", "-", "-", "-", "-", "-", "-" }
+
+        h.popup.assert_border_lines(popup_options, popup.border.bufnr)
+        h.popup.assert_border_highlight(popup_options, popup.border.bufnr, hl_group, true)
+      end)
+
+      it("supports (char, hl_group) tuple in map table", function()
         local hl_group = "NuiPopupTest"
         local style = h.popup.create_border_style_map_with_tuple(hl_group)
 
@@ -95,7 +132,7 @@ describe("nui.popup", function()
         h.popup.assert_border_highlight(popup_options, popup.border.bufnr, hl_group)
       end)
 
-      it("as nui.text in map table", function()
+      it("supports nui.text in map table", function()
         local hl_group = "NuiPopupTest"
         local style = h.popup.create_border_style_map_with_nui_text(hl_group)
 
@@ -112,6 +149,69 @@ describe("nui.popup", function()
 
         h.popup.assert_border_lines(popup_options, popup.border.bufnr)
         h.popup.assert_border_highlight(popup_options, popup.border.bufnr, hl_group)
+      end)
+    end)
+
+    describe("for simple border", function()
+      it("supports nui.text as char", function()
+        local hl_group = "NuiPopupTest"
+
+        local style = h.popup.create_border_style_list()
+        style[2] = Text(style[2], hl_group)
+        style[6] = Text(style[6])
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+          },
+        })
+
+        local popup = Popup(popup_options)
+
+        popup:mount()
+
+        local win_config = vim.api.nvim_win_get_config(popup.winid)
+
+        eq(win_config.border[2], { style[2]:content(), hl_group })
+        eq(win_config.border[6], style[6]:content())
+      end)
+
+      it("supports (char, hl_group) tuple as char", function()
+        local hl_group = "NuiPopupTest"
+
+        local style = h.popup.create_border_style_list()
+        style[2] = { style[2], hl_group }
+        style[6] = { style[6] }
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+          },
+        })
+
+        local popup = Popup(popup_options)
+
+        popup:mount()
+
+        local win_config = vim.api.nvim_win_get_config(popup.winid)
+
+        eq(win_config.border[2], { style[2][1], style[2][2] })
+        eq(win_config.border[6], style[6][1])
+      end)
+
+      it("throws if map table missing keys", function()
+        local style = h.popup.create_border_style_map()
+        style["top"] = nil
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+          },
+        })
+
+        local ok, err = pcall(Popup, popup_options)
+        eq(ok, false)
+        eq(type(string.match(err, "missing named border: top")), "string")
       end)
     end)
   end)

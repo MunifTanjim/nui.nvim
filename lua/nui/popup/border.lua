@@ -18,10 +18,6 @@ local index_name = {
 }
 
 local function to_border_map(border)
-  if not is_type("list", border) then
-    error("invalid data")
-  end
-
   -- fillup all 8 characters
   local count = vim.tbl_count(border)
   if count < 8 then
@@ -45,14 +41,10 @@ local function to_border_map(border)
 end
 
 local function to_border_list(named_border)
-  if not is_type("map", named_border) then
-    error("invalid data")
-  end
-
   local border = {}
 
   for index, name in ipairs(index_name) do
-    if is_type(named_border[name], "nil") then
+    if is_type("nil", named_border[name]) then
       error(string.format("missing named border: %s", name))
     end
 
@@ -580,7 +572,9 @@ function Border:get()
     return internal.char
   end
 
-  return to_border_list(internal.char)
+  if is_type("map", internal.char) then
+    return to_border_list(internal.char)
+  end
 end
 
 ---@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: table): NuiPopupBorder

@@ -203,7 +203,7 @@ function popup.assert_border_lines(options, border_bufnr)
   mod.assert_buf_lines(border_bufnr, expected_lines)
 end
 
-function popup.assert_border_highlight(options, border_bufnr, hl_group)
+function popup.assert_border_highlight(options, border_bufnr, hl_group, no_hl_group_suffix)
   local size = { width = options.size.width, height = options.size.height }
 
   for linenr = 1, size.height + 2 do
@@ -214,23 +214,30 @@ function popup.assert_border_highlight(options, border_bufnr, hl_group)
 
     mod.eq(#extmarks, (is_top_line or is_bottom_line) and 4 or 2)
 
+    local function with_suffix(hl_group_name, suffix)
+      if no_hl_group_suffix then
+        return hl_group_name
+      end
+      return hl_group_name .. suffix
+    end
+
     mod.assert_extmark(
       extmarks[1],
       linenr,
       nil,
-      hl_group .. (is_top_line and "_top_left" or is_bottom_line and "_bottom_left" or "_left")
+      with_suffix(hl_group, (is_top_line and "_top_left" or is_bottom_line and "_bottom_left" or "_left"))
     )
 
     if is_top_line or is_bottom_line then
-      mod.assert_extmark(extmarks[2], linenr, nil, hl_group .. (is_top_line and "_top" or "_bottom"))
-      mod.assert_extmark(extmarks[3], linenr, nil, hl_group .. (is_top_line and "_top" or "_bottom"))
+      mod.assert_extmark(extmarks[2], linenr, nil, with_suffix(hl_group, (is_top_line and "_top" or "_bottom")))
+      mod.assert_extmark(extmarks[3], linenr, nil, with_suffix(hl_group, (is_top_line and "_top" or "_bottom")))
     end
 
     mod.assert_extmark(
       extmarks[#extmarks],
       linenr,
       nil,
-      hl_group .. (is_top_line and "_top_right" or is_bottom_line and "_bottom_right" or "_right")
+      with_suffix(hl_group, (is_top_line and "_top_right" or is_bottom_line and "_bottom_right" or "_right"))
     )
   end
 end
