@@ -836,5 +836,28 @@ describe("nui.popup", function()
       eq(ok, false)
       eq(type(string.match(result, "layout is not ready")), "string")
     end)
+
+    it("is idempotent", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      local border_mount = spy.on(popup.border, "mount")
+
+      popup:mount()
+
+      local bufnr, winid = popup.bufnr, popup.winid
+
+      eq(type(bufnr), "number")
+      eq(type(winid), "number")
+      assert.spy(border_mount).was_called(1)
+
+      popup:mount()
+
+      eq(bufnr, popup.bufnr)
+      eq(winid, popup.winid)
+      assert.spy(border_mount).was_called(1)
+    end)
   end)
 end)
