@@ -222,6 +222,29 @@ describe("nui.popup", function()
     end)
   end)
 
+  describe("method :unmount", function()
+    it("does nothing if popup not mounted", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          text = {
+            top = "text",
+          },
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      eq(type(popup.border.bufnr), "nil")
+      eq(type(popup.border.winid), "nil")
+
+      popup.border:unmount()
+
+      eq(type(popup.border.bufnr), "nil")
+      eq(type(popup.border.winid), "nil")
+    end)
+  end)
+
   describe("method :set_text", function()
     it("works", function()
       local text_top, text_bottom = "top", "bot"
