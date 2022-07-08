@@ -633,6 +633,58 @@ describe("nui.tree", function()
         "  c",
       })
     end)
+
+    it("supports param linenr_start", function()
+      local b_node_children = {
+        Tree.Node({ text = "b-1" }),
+        Tree.Node({ text = "b-2" }),
+      }
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }, b_node_children),
+      }
+
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "NuiTreeTest" })
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:render(2)
+
+      h.assert_buf_lines(tree.bufnr, {
+        "NuiTreeTest",
+        "  a",
+        " b",
+      })
+
+      nodes[2]:expand()
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "NuiTreeTest",
+        "  a",
+        " b",
+        "    b-1",
+        "    b-2",
+      })
+
+      nodes[2]:collapse()
+
+      tree:render(3)
+
+      h.assert_buf_lines(tree.bufnr, {
+        "NuiTreeTest",
+        "",
+        "  a",
+        " b",
+      })
+    end)
   end)
 end)
 
