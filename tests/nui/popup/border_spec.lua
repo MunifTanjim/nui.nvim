@@ -217,6 +217,40 @@ describe("nui.popup", function()
   end)
 
   describe("border.text", function()
+    it("throws error if borderless", function()
+      local text = "popup"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "none",
+          text = {
+            top = text,
+          },
+        },
+      })
+
+      local ok, err = pcall(Popup, popup_options)
+      eq(ok, false)
+      eq(type(string.match(err, "text not supported for style:")), "string")
+    end)
+
+    it("throws error if invalid border style", function()
+      local text = "popup"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "__invalid__",
+          text = {
+            top = text,
+          },
+        },
+      })
+
+      local ok, err = pcall(Popup, popup_options)
+      eq(ok, false)
+      eq(type(string.match(err, "invalid border style name")), "string")
+    end)
+
     it("supports simple text", function()
       local text = "popup"
 
