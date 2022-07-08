@@ -860,4 +860,67 @@ describe("nui.popup", function()
       assert.spy(border_mount).was_called(1)
     end)
   end)
+
+  describe("method :hide", function()
+    it("works", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      popup:mount()
+
+      vim.api.nvim_buf_set_lines(popup.bufnr, 0, -1, false, {
+        "42",
+      })
+
+      eq(type(popup.bufnr), "number")
+      eq(type(popup.winid), "number")
+
+      popup:hide()
+
+      eq(type(popup.bufnr), "number")
+      eq(type(popup.winid), "nil")
+
+      h.assert_buf_lines(popup.bufnr, {
+        "42",
+      })
+    end)
+
+    it("is idempotent", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      popup:mount()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      popup:hide()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids + 1)
+
+      popup:hide()
+
+      eq(#curr_winids, #vim.api.nvim_list_wins())
+    end)
+
+    it("does nothing if not mounted", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      popup:hide()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids)
+    end)
+  end)
 end)
