@@ -20,6 +20,87 @@ describe("nui.popup", function()
     }
   end)
 
+  describe("border.padding", function()
+    local function assert_padding(padding, popup)
+      local border_char_size = 1
+
+      local popup_win_config = vim.api.nvim_win_get_config(popup.winid)
+      eq(popup_win_config.win, popup.border.winid)
+      eq(popup_win_config.row[vim.val_idx], border_char_size + padding.top)
+      eq(popup_win_config.col[vim.val_idx], border_char_size + padding.left)
+
+      local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
+      eq(border_win_config.width, popup_options.size.width + border_char_size * 2 + padding.right + padding.left)
+      eq(border_win_config.height, popup_options.size.height + border_char_size * 2 + padding.top + padding.bottom)
+    end
+
+    it("supports list table", function()
+      local padding = {
+        top = 2,
+        right = 2,
+        bottom = 1,
+        left = 1,
+      }
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          padding = { padding.top, padding.right, padding.bottom, padding.left },
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      assert_padding(padding, popup)
+    end)
+
+    it("supports partial list table", function()
+      local padding = {
+        top = 2,
+        right = 1,
+        bottom = 2,
+        left = 1,
+      }
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          padding = { padding.top, padding.right },
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      assert_padding(padding, popup)
+    end)
+
+    it("supports map table", function()
+      local padding = {
+        top = 2,
+        right = 2,
+        bottom = 1,
+        left = 1,
+      }
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          padding = padding,
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      assert_padding(padding, popup)
+    end)
+  end)
+
   describe("border.style", function()
     describe("for complex border", function()
       it("supports string name", function()
