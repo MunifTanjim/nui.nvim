@@ -923,4 +923,89 @@ describe("nui.popup", function()
       eq(#prev_winids, #curr_winids)
     end)
   end)
+
+  describe("method :show", function()
+    it("works", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      popup:mount()
+
+      vim.api.nvim_buf_set_lines(popup.bufnr, 0, -1, false, {
+        "42",
+      })
+
+      local bufnr, winid = popup.bufnr, popup.winid
+      eq(type(bufnr), "number")
+      eq(type(winid), "number")
+
+      popup:hide()
+      popup:show()
+
+      eq(bufnr, popup.bufnr)
+      eq(type(popup.winid), "number")
+      eq(winid ~= popup.winid, true)
+
+      h.assert_buf_lines(popup.bufnr, {
+        "42",
+      })
+    end)
+
+    it("is idempotent", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      popup:mount()
+
+      popup:hide()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      popup:show()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids + 1, #curr_winids)
+
+      popup:show()
+
+      eq(#curr_winids, #vim.api.nvim_list_wins())
+    end)
+
+    it("does nothing if not mounted", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      popup:show()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids)
+    end)
+
+    it("does nothing if not hidden", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      popup:mount()
+
+      local prev_winids = vim.api.nvim_list_wins()
+
+      popup:show()
+
+      local curr_winids = vim.api.nvim_list_wins()
+
+      eq(#prev_winids, #curr_winids)
+    end)
+  end)
 end)
