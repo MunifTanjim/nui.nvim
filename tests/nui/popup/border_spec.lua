@@ -174,6 +174,54 @@ describe("nui.popup", function()
     end)
   end)
 
+  describe("method :mount", function()
+    it("sets winhighlight from popup", function()
+      local winhighlight = "Normal:Normal,FloatBorder:FloatBorder"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          text = {
+            top = "text",
+          },
+        },
+        win_options = {
+          winhighlight = winhighlight,
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), winhighlight)
+    end)
+
+    it("does nothing if popup mounted", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          text = {
+            top = "text",
+          },
+        },
+      })
+
+      local popup = Popup(popup_options)
+
+      popup:mount()
+
+      local bufnr, winid = popup.border.bufnr, popup.border.winid
+      eq(type(bufnr), "number")
+      eq(type(winid), "number")
+
+      popup.border:mount()
+
+      eq(bufnr, popup.border.bufnr)
+      eq(winid, popup.border.winid)
+    end)
+  end)
+
   describe("method :set_text", function()
     it("works", function()
       local text_top, text_bottom = "top", "bot"
