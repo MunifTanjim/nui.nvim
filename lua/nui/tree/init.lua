@@ -197,7 +197,7 @@ end
 --luacheck: push no max line length
 
 ---@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
----@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): string | string[] | NuiLine | NuiLine[]
+---@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): nil | string | string[] | NuiLine | NuiLine[]
 ---@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node, track_tree_linenr?: boolean }
 
 --luacheck: pop
@@ -370,19 +370,22 @@ function Tree:_prepare_content(linenr_start)
     end
 
     local lines = self._.prepare_node(node, parent_node)
-    if not is_type("table", lines) or lines.content then
-      lines = { lines }
-    end
 
-    local linenr = {}
-    for _, line in ipairs(lines) do
-      self._content.lines[current_linenr] = line
-      self._content.node_id_by_linenr[current_linenr + linenr_start - 1] = node:get_id()
-      linenr[1] = linenr[1] or (current_linenr + linenr_start - 1)
-      linenr[2] = (current_linenr + linenr_start - 1)
-      current_linenr = current_linenr + 1
+    if lines then
+      if not is_type("table", lines) or lines.content then
+        lines = { lines }
+      end
+
+      local linenr = {}
+      for _, line in ipairs(lines) do
+        self._content.lines[current_linenr] = line
+        self._content.node_id_by_linenr[current_linenr + linenr_start - 1] = node:get_id()
+        linenr[1] = linenr[1] or (current_linenr + linenr_start - 1)
+        linenr[2] = (current_linenr + linenr_start - 1)
+        current_linenr = current_linenr + 1
+      end
+      self._content.linenr_by_node_id[node:get_id()] = linenr
     end
-    self._content.linenr_by_node_id[node:get_id()] = linenr
 
     if not node:has_children() or not node:is_expanded() then
       return
