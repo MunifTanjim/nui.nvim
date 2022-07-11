@@ -404,13 +404,11 @@ function autocmd.buf.remove(bufnr, group_name, event)
     return
   end
 
-  for _, item in
-    ipairs(vim.api.nvim_get_autocmds({
-      buffer = bufnr,
-      event = event,
-      group = group_name,
-    }))
-  do
+  for _, item in ipairs(vim.api.nvim_get_autocmds({
+    buffer = bufnr,
+    event = event,
+    group = group_name,
+  })) do
     if item.id then
       vim.api.nvim_del_autocmd(item.id)
     end
