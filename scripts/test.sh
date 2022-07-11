@@ -43,7 +43,10 @@ setup_environment
 
 test_dir="${1:-"nui"}"
 
-luacov_dir="$(dirname $(luarocks which luacov 2>/dev/null | head -1))"
+luacov_dir="$(dirname "$(luarocks which luacov 2>/dev/null | head -1)")"
+if [[ "${luacov_dir}" == "." ]]; then
+  luacov_dir=""
+fi
 
 if test -n "${luacov_dir}"; then
   rm -f luacov.*.out
@@ -56,5 +59,5 @@ if test -n "${luacov_dir}"; then
   luacov
 
   echo
-  tail -n +$(($(cat luacov.report.out | grep -n "^Summary$" | cut -d":" -f1) - 1)) luacov.report.out
+  tail -n +$(($(grep -n "^Summary$" luacov.report.out | cut -d":" -f1) - 1)) luacov.report.out
 fi
