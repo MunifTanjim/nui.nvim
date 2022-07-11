@@ -58,6 +58,34 @@ describe("nui.text", function()
     end)
   end)
 
+  describe("method :set_highlight", function()
+    it("works", function()
+      local content = "42"
+      local hl_group = "NuiTextTest"
+      local text = Text(content, hl_group)
+
+      eq(text.extmark, {
+        hl_group = hl_group,
+      })
+
+      hl_group = "Modified"
+      text:set_highlight(hl_group)
+      eq(text.extmark, {
+        hl_group = hl_group,
+      })
+
+      hl_group = { hl_group = "Modified" }
+      text:set_highlight(hl_group)
+      eq(text.extmark, hl_group)
+
+      hl_group = nil
+      text:set_highlight(hl_group)
+      eq(text.extmark, {
+        hl_group = hl_group,
+      })
+    end)
+  end)
+
   describe("method :content", function()
     it("works", function()
       local content = "42"
