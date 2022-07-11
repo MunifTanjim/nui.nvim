@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+test_dir="nui"
+
 while [[ $# -gt 0 ]]; do
   case "${1}" in
     --clean)
@@ -11,6 +13,9 @@ while [[ $# -gt 0 ]]; do
       echo "[test] envionment cleaned"
       ;;
     *)
+      if [[ "${test_dir}" == "nui" ]] && [[ "${1}" == "nui/"* ]]; then
+        test_dir="${1}"
+      fi
       shift
       ;;
   esac
@@ -40,8 +45,6 @@ function setup_environment() {
 }
 
 setup_environment
-
-test_dir="${1:-"nui"}"
 
 luacov_dir="$(dirname "$(luarocks which luacov 2>/dev/null | head -1)")"
 if [[ "${luacov_dir}" == "." ]]; then
