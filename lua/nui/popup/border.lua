@@ -575,11 +575,10 @@ function Border:set_highlight(border_highlight)
   local internal = self._
 
   internal.highlight = nil
-  internal.winhighlight =
-    table.concat({
-      self.popup._.win_options.winhighlight,
-      string.format("FloatBorder:%s", border_highlight)
-    }, ",")
+  internal.winhighlight = table.concat({
+    self.popup._.win_options.winhighlight,
+    string.format("FloatBorder:%s", border_highlight),
+  }, ",")
 
   internal.highlight = normalize_highlight(internal)
 
@@ -593,7 +592,6 @@ function Border:set_highlight(border_highlight)
 
   self:_render()
 end
-
 
 function Border:get()
   local internal = self._
