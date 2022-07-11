@@ -634,6 +634,36 @@ describe("nui.tree", function()
       })
     end)
 
+    it("skips node if o.prepare_node returns nil", function()
+      local nodes = {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+        Tree.Node({ text = "c" }),
+      }
+
+      local tree = Tree({
+        winid = winid,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+        prepare_node = function(node)
+          if node:get_id() == "b" then
+            return nil
+          end
+
+          return node.text
+        end,
+      })
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "a",
+        "c",
+      })
+    end)
+
     it("supports param linenr_start", function()
       local b_node_children = {
         Tree.Node({ text = "b-1" }),

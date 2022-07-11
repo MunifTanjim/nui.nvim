@@ -79,11 +79,13 @@ end,
 
 **Type:** `function`
 
-_Signature:_ `prepare_node(node, parent_node?) -> string | string[] | NuiLine | NuiLine[]`
+_Signature:_ `prepare_node(node, parent_node?) -> nil | string | string[] | NuiLine | NuiLine[]`
 
 If provided, this function is used for preparing each node line.
 
 The return value should be a `NuiLine` object or `string` or a list containing either of them.
+
+If return value is `nil`, that node will not be rendered.
 
 **Example**
 
