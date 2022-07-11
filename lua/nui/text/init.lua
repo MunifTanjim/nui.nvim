@@ -46,6 +46,19 @@ function Text:set(content, extmark)
   return self
 end
 
+---@param extmark? string|table highlight group name or extmark options
+---@return NuiText
+function Text:set_highlight(extmark)
+  if extmark then
+    self.extmark = is_type("string", extmark) and { hl_group = extmark } or vim.deepcopy(extmark)
+    self.extmark.id = nil
+  else
+    self.extmark = { id = nil, hl_group = nil }
+  end
+
+  return self
+end
+
 ---@return string
 function Text:content()
   return self._content

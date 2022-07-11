@@ -123,7 +123,7 @@ local function parse_padding(padding)
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
+---@param text? nil | string | table | function # string or NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 ---@return table NuiLine
 local function calculate_buf_edge_line(internal, edge, text, align)
@@ -143,17 +143,20 @@ local function calculate_buf_edge_line(internal, edge, text, align)
 
   local max_width = size.width - left_char:width() - right_char:width()
 
-  local content_text = Text(defaults(text, ""))
-  if mid_char:width() == 0 then
-    content_text:set(string.rep(" ", max_width))
+  local content_line
+  if type(text) == "function" then
+    content_line = text(max_width)
   else
+    content_line = Line()
+    local content_text = Text(defaults(text, ""))
     content_text:set(_.truncate_text(content_text:content(), max_width))
+    content_line:append(content_text)
   end
 
   local left_gap_width, right_gap_width = _.calculate_gap_width(
     defaults(align, "center"),
     max_width,
-    content_text:width()
+    content_line:width()
   )
 
   local line = Line()
@@ -164,7 +167,7 @@ local function calculate_buf_edge_line(internal, edge, text, align)
     line:append(Text(mid_char):set(string.rep(mid_char:content(), left_gap_width)))
   end
 
-  line:append(content_text)
+  line:extend(content_line)
 
   if right_gap_width > 0 then
     line:append(Text(mid_char):set(string.rep(mid_char:content(), right_gap_width)))
@@ -523,25 +526,31 @@ function Border:_relayout()
   self.win_config.row = internal.position.row
   self.win_config.col = internal.position.col
 
-  internal.lines = calculate_buf_lines(internal)
-
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
   end
 
-  if self.bufnr then
-    if internal.lines then
-      _.render_lines(internal.lines, self.bufnr, self.popup.ns_id, 1, #internal.lines)
-    end
-  end
+  self:_render()
 
   adjust_popup_win_config(self)
 
   vim.api.nvim_command("redraw")
 end
 
+function Border:_render()
+  local internal = self._
+
+  internal.lines = calculate_buf_lines(internal)
+
+  if self.bufnr then
+    if internal.lines then
+      _.render_lines(internal.lines, self.bufnr, self.popup.ns_id, 1, #internal.lines)
+    end
+  end
+end
+
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
+---@param text? nil | string | table | function # string or NuiText or render(width)
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 function Border:set_text(edge, text, align)
   local internal = self._
@@ -560,6 +569,31 @@ function Border:set_text(edge, text, align)
   internal.lines[linenr] = line
   line:render(self.bufnr, self.popup.ns_id, linenr)
 end
+
+---@param border_highlight string For example, "WarningMsg"
+function Border:set_highlight(border_highlight)
+  local internal = self._
+
+  internal.highlight = nil
+  internal.winhighlight =
+    table.concat({
+      self.popup._.win_options.winhighlight,
+      string.format("FloatBorder:%s", border_highlight)
+    }, ",")
+
+  internal.highlight = normalize_highlight(internal)
+
+  for _, item in pairs(internal.char) do
+    item:set_highlight(internal.highlight)
+  end
+
+  if internal.winhighlight then
+    vim.api.nvim_win_set_option(self.winid, "winhighlight", internal.winhighlight)
+  end
+
+  self:_render()
+end
+
 
 function Border:get()
   local internal = self._
