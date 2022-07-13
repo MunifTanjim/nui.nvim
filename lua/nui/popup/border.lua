@@ -145,7 +145,7 @@ local function calculate_buf_edge_line(internal, edge, text, align)
 
   local content_line
   if type(text) == "function" then
-    content_line = text(max_width)
+    content_line = text(max_width, mid_char)
   else
     content_line = Line()
     local content_text = Text(defaults(text, ""))
