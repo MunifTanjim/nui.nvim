@@ -31,6 +31,15 @@ function Line:append(text, highlight)
   return nui_text
 end
 
+---@param line table NuLine NuLine object
+---@return table NuLine
+function Line:extend(line)
+  for _, text in ipairs(line._texts) do
+    table.insert(self._texts, text)
+  end
+  return self
+end
+
 ---@return string
 function Line:content()
   return table.concat(vim.tbl_map(function(text)
@@ -61,6 +70,15 @@ function Line:render(bufnr, ns_id, linenr_start, linenr_end)
   local content = self:content()
   vim.api.nvim_buf_set_lines(bufnr, row_start, row_end, false, { content })
   self:highlight(bufnr, ns_id, linenr_start)
+end
+
+---@return number
+function Line:width()
+  local width = 0
+  for _, text in ipairs(self._texts) do
+    width = width + text:width()
+  end
+  return width
 end
 
 ---@alias NuiLine.constructor fun(texts?: NuiText[]): NuiLine

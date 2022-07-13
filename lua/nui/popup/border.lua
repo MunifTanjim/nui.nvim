@@ -123,7 +123,7 @@ local function parse_padding(padding)
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
+---@param text? nil | string | table | function # string or NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 ---@return table NuiLine
 local function calculate_buf_edge_line(internal, edge, text, align)
@@ -143,17 +143,20 @@ local function calculate_buf_edge_line(internal, edge, text, align)
 
   local max_width = size.width - left_char:width() - right_char:width()
 
-  local content_text = Text(defaults(text, ""))
-  if mid_char:width() == 0 then
-    content_text:set(string.rep(" ", max_width))
+  local content_line
+  if type(text) == "function" then
+    content_line = text(max_width)
   else
+    content_line = Line()
+    local content_text = Text(defaults(text, ""))
     content_text:set(_.truncate_text(content_text:content(), max_width))
+    content_line:append(content_text)
   end
 
   local left_gap_width, right_gap_width = _.calculate_gap_width(
     defaults(align, "center"),
     max_width,
-    content_text:width()
+    content_line:width()
   )
 
   local line = Line()
@@ -164,7 +167,7 @@ local function calculate_buf_edge_line(internal, edge, text, align)
     line:append(Text(mid_char):set(string.rep(mid_char:content(), left_gap_width)))
   end
 
-  line:append(content_text)
+  line:extend(content_line)
 
   if right_gap_width > 0 then
     line:append(Text(mid_char):set(string.rep(mid_char:content(), right_gap_width)))
@@ -541,7 +544,7 @@ function Border:_relayout()
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
+---@param text? nil | string | table | function # string or NuiText or render(width)
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 function Border:set_text(edge, text, align)
   local internal = self._
