@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-test_dir="nui"
+test_scope="nui"
 
 while [[ $# -gt 0 ]]; do
   case "${1}" in
@@ -13,8 +13,8 @@ while [[ $# -gt 0 ]]; do
       echo "[test] envionment cleaned"
       ;;
     *)
-      if [[ "${test_dir}" == "nui" ]] && [[ "${1}" == "nui/"* ]]; then
-        test_dir="${1}"
+      if [[ "${test_scope}" == "nui" ]] && [[ "${1}" == "nui/"* ]]; then
+        test_scope="${1}"
       fi
       shift
       ;;
@@ -56,7 +56,11 @@ if test -n "${luacov_dir}"; then
   export LUA_PATH=";;${luacov_dir}/?.lua"
 fi
 
-nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory tests/${test_dir}/ { minimal_init = 'tests/minimal_init.vim'; sequential = true }"
+if [[ -d "./tests/${test_scope}/" ]]; then
+  nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory ./tests/${test_scope}/ { minimal_init = 'tests/minimal_init.vim'; sequential = true }"
+elif [[ -f "./tests/${test_scope}_spec.lua" ]]; then
+  nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedFile ./tests/${test_scope}_spec.lua"
+fi
 
 if test -n "${luacov_dir}"; then
   luacov
