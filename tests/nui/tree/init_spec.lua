@@ -674,7 +674,11 @@ describe("nui.tree", function()
         Tree.Node({ text = "b" }, b_node_children),
       }
 
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "NuiTreeTest" })
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
+        "NuiTreeTest",
+        "",
+        "NuiTreeTest",
+      })
 
       local tree = Tree({
         winid = winid,
@@ -690,6 +694,7 @@ describe("nui.tree", function()
         "NuiTreeTest",
         "  a",
         " b",
+        "NuiTreeTest",
       })
 
       nodes[2]:expand()
@@ -702,6 +707,7 @@ describe("nui.tree", function()
         " b",
         "    b-1",
         "    b-2",
+        "NuiTreeTest",
       })
 
       nodes[2]:collapse()
@@ -713,6 +719,7 @@ describe("nui.tree", function()
         "",
         "  a",
         " b",
+        "NuiTreeTest",
       })
     end)
   end)
