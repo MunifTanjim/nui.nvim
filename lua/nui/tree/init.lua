@@ -6,7 +6,7 @@ local tree_util = require("nui.tree.util")
 ---@param bufnr number
 ---@param linenr_range { [1]: integer, [2]: integer }
 local function clear_buf_lines(bufnr, linenr_range)
-  local count = linenr_range[2] - linenr_range[1]
+  local count = linenr_range[2] - linenr_range[1] + 1
 
   if count < 1 then
     return
@@ -17,19 +17,7 @@ local function clear_buf_lines(bufnr, linenr_range)
     lines[i] = ""
   end
 
-  vim.api.nvim_buf_set_lines(bufnr, linenr_range[1] - 1, linenr_range[2] - 1, false, lines)
-end
-
----@param bufnr number
----@param linenr_range { [1]: integer, [2]: integer }
-local function delete_buf_lines(bufnr, linenr_range)
-  local count = linenr_range[2] - linenr_range[1]
-
-  if count < 1 then
-    return
-  end
-
-  vim.api.nvim_buf_set_lines(bufnr, linenr_range[1] - 1, linenr_range[2] - 1, false, {})
+  vim.api.nvim_buf_set_lines(bufnr, linenr_range[1] - 1, linenr_range[2], false, lines)
 end
 
 ---@param nodes NuiTreeNode[]
@@ -400,7 +388,7 @@ function Tree:_prepare_content(linenr_start)
     prepare(node_id)
   end
 
-  self._content.linenr = { linenr_start, current_linenr + linenr_start - 1 }
+  self._content.linenr = { linenr_start, current_linenr - 1 + linenr_start - 1 }
 end
 
 ---@param linenr_start? number start line number (1-indexed)
@@ -429,24 +417,21 @@ function Tree:render(linenr_start)
     -- previously rendered buffer lines above the tree.
     clear_buf_lines(self.bufnr, {
       math.min(next_linenr[1], prev_linenr[1] or next_linenr[1]),
-      next_linenr[1],
-    })
-
-    -- if linenr_start was shifted upwards, delete the
-    -- previously rendered buffer lines below the tree.
-    delete_buf_lines(self.bufnr, {
-      math.min(next_linenr[2], prev_linenr[2] or next_linenr[2]),
-      prev_linenr[2] or 0,
+      prev_linenr[1] and next_linenr[1] - 1 or 0,
     })
 
     -- for initial render, start inserting the tree in a single buffer line.
-    -- for subsequent renders, replace the buffer lines from previous tree.
     local content_linenr_range = {
       next_linenr[1],
-      prev_linenr[1] and math.min(next_linenr[2], prev_linenr[2] or next_linenr[2]) or next_linenr[1] + 1,
+      next_linenr[1],
     }
+    -- for subsequent renders, replace the buffer lines from previous tree.
+    if prev_linenr[1] then
+      content_linenr_range[2] = prev_linenr[2] < next_linenr[2] and math.min(next_linenr[2], prev_linenr[2])
+        or math.max(next_linenr[2], prev_linenr[2])
+    end
 
-    vim.api.nvim_buf_set_lines(self.bufnr, content_linenr_range[1] - 1, content_linenr_range[2] - 1, false, buf_lines)
+    vim.api.nvim_buf_set_lines(self.bufnr, content_linenr_range[1] - 1, content_linenr_range[2], false, buf_lines)
   else
     vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, buf_lines)
   end
