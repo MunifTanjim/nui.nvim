@@ -402,11 +402,9 @@ describe("nui.menu", function()
 
       local linenr = 1
       local line = vim.api.nvim_buf_get_lines(menu.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, text)
+      local byte_start = string.find(line, text) - 1
 
-      local extmarks = vim.api.nvim_buf_get_extmarks(menu.bufnr, menu.ns_id, linenr - 1, linenr, {
-        details = true,
-      })
+      local extmarks = h.get_line_extmarks(menu.bufnr, menu.ns_id, linenr)
 
       eq(type(byte_start), "number")
 
@@ -471,13 +469,7 @@ describe("nui.menu", function()
 
       local linenr = 2
 
-      local extmarks = vim.api.nvim_buf_get_extmarks(
-        menu.bufnr,
-        menu.ns_id,
-        { linenr - 1, 0 },
-        { linenr - 1, -1 },
-        { details = true }
-      )
+      local extmarks = h.get_line_extmarks(menu.bufnr, menu.ns_id, linenr)
 
       eq(#extmarks, 1)
       h.assert_extmark(extmarks[1], linenr, text, hl_group)
@@ -526,13 +518,7 @@ describe("nui.menu", function()
 
       local linenr = 2
 
-      local extmarks = vim.api.nvim_buf_get_extmarks(
-        menu.bufnr,
-        menu.ns_id,
-        { linenr - 1, 0 },
-        { linenr - 1, -1 },
-        { details = true }
-      )
+      local extmarks = h.get_line_extmarks(menu.bufnr, menu.ns_id, linenr)
 
       eq(#extmarks, 4)
       h.assert_extmark(extmarks[1], linenr, "*", hl_group)
