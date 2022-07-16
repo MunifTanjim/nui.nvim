@@ -71,7 +71,7 @@ function Text:highlight(bufnr, ns_id, linenr, byte_start)
     return
   end
 
-  self.extmark.end_col = byte_start + self:length()
+  self.extmark.end_col = byte_start + self:length() - 1
 
   self.extmark.id = vim.api.nvim_buf_set_extmark(
     bufnr,
