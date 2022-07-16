@@ -98,7 +98,7 @@ function mod.assert_extmark(extmark, linenr, text, hl_group)
   mod.eq(extmark[2], linenr - 1)
 
   if text then
-    mod.eq(extmark[4].end_col - extmark[3], #text)
+    mod.eq((extmark[4].end_col - extmark[3]) + 1, #text)
   end
 
   mod.eq(mod.tbl_pick(extmark[4], { "end_row", "hl_group" }), {
