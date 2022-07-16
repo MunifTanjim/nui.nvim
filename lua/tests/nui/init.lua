@@ -52,24 +52,24 @@ function mod.tbl_omit(tbl, keys)
 end
 
 ---@param bufnr number
----@param ns_id number
----@param linenr number
----@param col_start? number
----@param col_end? number
-function mod.get_line_extmarks(bufnr, ns_id, linenr, col_start, col_end)
+---@param ns_id integer
+---@param linenr integer (1-indexed)
+---@param byte_start? integer (0-indexed)
+---@param byte_end? integer (0-indexed)
+function mod.get_line_extmarks(bufnr, ns_id, linenr, byte_start, byte_end)
   return vim.api.nvim_buf_get_extmarks(
     bufnr,
     ns_id,
-    { linenr - 1, col_start or 0 },
-    { linenr - 1, col_end or -1 },
+    { linenr - 1, byte_start or 0 },
+    { linenr - 1, byte_end or -1 },
     { details = true }
   )
 end
 
 ---@param bufnr number
 ---@param lines string[]
----@param linenr_start? number
----@param linenr_end? number
+---@param linenr_start? integer (1-indexed)
+---@param linenr_end? integer (1-indexed)
 function mod.assert_buf_lines(bufnr, lines, linenr_start, linenr_end)
   mod.eq(vim.api.nvim_buf_get_lines(bufnr, linenr_start or 0, linenr_end or -1, false), lines)
 end
@@ -91,7 +91,7 @@ function mod.assert_win_options(winid, options)
 end
 
 ---@param extmark table
----@param linenr number
+---@param linenr number (1-indexed)
 ---@param text string
 ---@param hl_group string
 function mod.assert_extmark(extmark, linenr, text, hl_group)
