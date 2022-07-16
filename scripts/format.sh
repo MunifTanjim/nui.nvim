@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
 r_v_major="0"
-r_v_minor="11"
-r_v_patch="2"
+r_v_minor="13"
+r_v_patch="1"
 
 v="$(stylua --version | cut -d' ' -f2)"
 v_major="$(echo "${v}" | cut -d'.' -f1)"
