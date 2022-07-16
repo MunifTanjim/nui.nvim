@@ -127,20 +127,12 @@ describe("nui.text", function()
         ns_id = vim.api.nvim_create_namespace(ns)
       end)
 
-      local function assert_highlight()
-        local extmarks = h.get_line_extmarks(bufnr, ns_id, linenr)
-
-        eq(#extmarks, 1)
-        eq(extmarks[1][3], byte_start)
-        h.assert_extmark(extmarks[1], linenr, text:content(), hl_group)
-      end
-
       it("is applied with :render", function()
         reset_lines()
         linenr, byte_start = 1, 0
         text = Text("a", hl_group)
         text:render(bufnr, ns_id, linenr, byte_start)
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, text:content(), hl_group)
       end)
 
       it("is applied with :render_char", function()
@@ -148,7 +140,7 @@ describe("nui.text", function()
         linenr, byte_start = 1, 0
         text = Text(multibyte_char, hl_group)
         text:render_char(bufnr, ns_id, linenr, byte_start)
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, text:content(), hl_group)
       end)
 
       it("can highlight existing buffer text", function()
@@ -156,7 +148,7 @@ describe("nui.text", function()
         linenr, byte_start = 2, 0
         text = Text(initial_lines[linenr], hl_group)
         text:highlight(bufnr, ns_id, linenr, byte_start)
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, text:content(), hl_group)
       end)
 
       it("does not create multiple extmarks", function()
@@ -165,11 +157,11 @@ describe("nui.text", function()
         text = Text(initial_lines[linenr], hl_group)
 
         text:highlight(bufnr, ns_id, linenr, byte_start)
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, text:content(), hl_group)
         text:highlight(bufnr, ns_id, linenr, byte_start)
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, text:content(), hl_group)
         text:highlight(bufnr, ns_id, linenr, byte_start)
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, text:content(), hl_group)
       end)
     end)
 
