@@ -39,9 +39,11 @@ describe("nui.input", function()
 
       local linenr = 1
       local line = vim.api.nvim_buf_get_lines(input.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, prompt_text) - 1
+      local byte_start = string.find(line, prompt_text)
 
-      local extmarks = h.get_line_extmarks(input.bufnr, input.ns_id, linenr)
+      local extmarks = vim.api.nvim_buf_get_extmarks(input.bufnr, input.ns_id, linenr - 1, linenr, {
+        details = true,
+      })
 
       eq(type(byte_start), "number")
 
