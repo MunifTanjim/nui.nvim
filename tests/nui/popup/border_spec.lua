@@ -350,7 +350,7 @@ describe("nui.popup", function()
 
       local linenr = 1
       local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, text) - 1
+      local byte_start = string.find(line, text)
 
       popup:unmount()
 
@@ -376,7 +376,7 @@ describe("nui.popup", function()
 
       local linenr = 1
       local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, text) - 1
+      local byte_start = string.find(line, text)
 
       local extmarks = h.get_line_extmarks(popup.border.bufnr, popup_options.ns_id, linenr, byte_start, #text)
 
@@ -516,7 +516,7 @@ describe("nui.popup", function()
 
       local linenr = 4
       local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[1]
-      local byte_start = string.find(line, text_bottom) - 1
+      local byte_start = string.find(line, text_bottom)
 
       local extmarks = h.get_line_extmarks(popup.border.bufnr, popup_options.ns_id, linenr, byte_start, #text_bottom)
       h.assert_extmark(
