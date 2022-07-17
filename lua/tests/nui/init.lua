@@ -118,7 +118,7 @@ function mod.assert_highlight(bufnr, ns_id, linenr, text, hl_group)
   local byte_start = string.find(line, text) -- 1-indexed
   byte_start = byte_start - 1 -- 0-indexed
 
-  local extmarks = mod.get_line_extmarks(bufnr, ns_id, linenr, byte_start, byte_start + #text - 1)
+  local extmarks = mod.get_line_extmarks(bufnr, ns_id, linenr, byte_start, #text)
 
   mod.eq(#extmarks, 1)
   mod.eq(extmarks[1][3], byte_start)
