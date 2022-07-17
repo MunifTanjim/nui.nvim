@@ -67,6 +67,10 @@ describe("nui.line", function()
       vim.api.nvim_win_set_buf(winid, bufnr)
     end)
 
+    after_each(function()
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end)
+
     describe(":highlight", function()
       local hl_group, ns, ns_id
       local linenr
@@ -87,18 +91,10 @@ describe("nui.line", function()
         line = Line({ t1, t2, t3 })
       end)
 
-      local function assert_highlight()
-        local extmarks = h.get_line_extmarks(bufnr, ns_id, linenr)
-
-        eq(#extmarks, 1)
-        eq(extmarks[1][3], t1:length())
-        h.assert_extmark(extmarks[1], linenr, t2:content(), hl_group)
-      end
-
       it("is applied with :render", function()
         line:render(bufnr, ns_id, linenr)
 
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group)
       end)
 
       it("can highlight existing buffer line", function()
@@ -106,7 +102,7 @@ describe("nui.line", function()
 
         line:highlight(bufnr, ns_id, linenr)
 
-        assert_highlight()
+        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group)
       end)
     end)
 
@@ -119,7 +115,7 @@ describe("nui.line", function()
         line:append("2")
         line:render(bufnr, -1, linenr)
 
-        eq(vim.api.nvim_buf_get_lines(bufnr, linenr - 1, linenr, false), {
+        h.assert_buf_lines(bufnr, {
           "42",
         })
       end)
