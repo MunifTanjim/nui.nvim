@@ -10,6 +10,7 @@ local eq, feedkeys = h.eq, h.feedkeys
 describe("nui.menu", function()
   local callbacks
   local popup_options
+  local menu
 
   before_each(function()
     callbacks = {
@@ -23,9 +24,16 @@ describe("nui.menu", function()
     }
   end)
 
+  after_each(function()
+    if menu then
+      menu:unmount()
+      menu = nil
+    end
+  end)
+
   describe("method :new", function()
     it("works with menu", function()
-      local menu = Menu:new(popup_options, {
+      menu = Menu:new(popup_options, {
         lines = {
           Menu.item("a"),
         },
@@ -39,7 +47,7 @@ describe("nui.menu", function()
     end)
 
     it("works with menu object", function()
-      local menu = Menu
+      menu = Menu
         :new(popup_options, {
           lines = {},
         })
@@ -67,7 +75,7 @@ describe("nui.menu", function()
         Menu.item("Item 3", { id = 3 }),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         keymap = {
           focus_next = { "j", "s" },
           focus_prev = { "k", "w" },
@@ -104,7 +112,7 @@ describe("nui.menu", function()
         Menu.item("Item 3", { id = 3 }),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         keymap = {
           focus_next = "s",
           focus_prev = "w",
@@ -135,7 +143,7 @@ describe("nui.menu", function()
         Menu.item("B"),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
         min_width = min_width,
       })
@@ -160,7 +168,7 @@ describe("nui.menu", function()
         Menu.item("Item Number Two"),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
         max_width = max_width,
       })
@@ -185,7 +193,7 @@ describe("nui.menu", function()
         Menu.item("B"),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
         min_height = min_height,
       })
@@ -204,7 +212,7 @@ describe("nui.menu", function()
         Menu.item("B"),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
         max_height = max_height,
       })
@@ -223,7 +231,7 @@ describe("nui.menu", function()
       Menu.item("Item 2", { id = 2 }),
     }
 
-    local menu = Menu(popup_options, {
+    menu = Menu(popup_options, {
       lines = lines,
       on_change = on_change,
     })
@@ -255,7 +263,7 @@ describe("nui.menu", function()
       Menu.item("Item 2", { id = 2 }),
     }
 
-    local menu = Menu(popup_options, {
+    menu = Menu(popup_options, {
       lines = lines,
       on_submit = on_submit,
     })
@@ -276,7 +284,7 @@ describe("nui.menu", function()
       Menu.item("Item 2", { id = 2 }),
     }
 
-    local menu = Menu(popup_options, {
+    menu = Menu(popup_options, {
       lines = lines,
       on_close = on_close,
     })
@@ -300,7 +308,7 @@ describe("nui.menu", function()
         return "-" .. item.text .. "-"
       end
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
         prepare_item = prepare_item,
       })
@@ -319,7 +327,7 @@ describe("nui.menu", function()
 
       popup_options.border = "single"
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
       })
 
@@ -343,7 +351,7 @@ describe("nui.menu", function()
         Menu.item("-"),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
         on_change = on_change,
         should_skip_item = function(item)
@@ -372,7 +380,7 @@ describe("nui.menu", function()
         Menu.item({ text = text }),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
       })
 
@@ -390,7 +398,7 @@ describe("nui.menu", function()
         Menu.item(Text(text, hl_group)),
       }
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = items,
       })
 
@@ -400,24 +408,13 @@ describe("nui.menu", function()
         text,
       })
 
-      local linenr = 1
-      local line = vim.api.nvim_buf_get_lines(menu.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, text)
-
-      local extmarks = vim.api.nvim_buf_get_extmarks(menu.bufnr, menu.ns_id, linenr - 1, linenr, {
-        details = true,
-      })
-
-      eq(type(byte_start), "number")
-
-      eq(#extmarks, 1)
-      h.assert_extmark(extmarks[1], linenr, text, hl_group)
+      h.assert_highlight(menu.bufnr, menu.ns_id, 1, text, hl_group)
     end)
   end)
 
   describe("separator", function()
     it("text supports string", function()
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = {
           Menu.item("A"),
           Menu.separator("Group"),
@@ -434,7 +431,7 @@ describe("nui.menu", function()
     end)
 
     it("text longer than max_width is truncated", function()
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = {
           Menu.item("A"),
           Menu.separator("Long Long Group"),
@@ -454,7 +451,7 @@ describe("nui.menu", function()
       local hl_group = "NuiMenuTest"
       local text = "Group"
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = {
           Menu.item("A"),
           Menu.separator(Text(text, hl_group)),
@@ -469,22 +466,11 @@ describe("nui.menu", function()
         " Group    ",
       })
 
-      local linenr = 2
-
-      local extmarks = vim.api.nvim_buf_get_extmarks(
-        menu.bufnr,
-        menu.ns_id,
-        { linenr - 1, 0 },
-        { linenr - 1, -1 },
-        { details = true }
-      )
-
-      eq(#extmarks, 1)
-      h.assert_extmark(extmarks[1], linenr, text, hl_group)
+      h.assert_highlight(menu.bufnr, menu.ns_id, 2, text, hl_group)
     end)
 
     it("o.char supports string", function()
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = {
           Menu.item("A"),
           Menu.separator("Group", {
@@ -506,7 +492,7 @@ describe("nui.menu", function()
     it("o.char supports nui.text", function()
       local hl_group = "NuiMenuTest"
 
-      local menu = Menu(popup_options, {
+      menu = Menu(popup_options, {
         lines = {
           Menu.item("A"),
           Menu.separator("Group", {
@@ -526,13 +512,7 @@ describe("nui.menu", function()
 
       local linenr = 2
 
-      local extmarks = vim.api.nvim_buf_get_extmarks(
-        menu.bufnr,
-        menu.ns_id,
-        { linenr - 1, 0 },
-        { linenr - 1, -1 },
-        { details = true }
-      )
+      local extmarks = h.get_line_extmarks(menu.bufnr, menu.ns_id, linenr)
 
       eq(#extmarks, 4)
       h.assert_extmark(extmarks[1], linenr, "*", hl_group)
