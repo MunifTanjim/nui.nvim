@@ -107,24 +107,6 @@ function mod.assert_extmark(extmark, linenr, text, hl_group)
   })
 end
 
----@param bufnr number
----@param ns_id integer
----@param linenr integer
----@param text string
----@param hl_group string
-function mod.assert_highlight(bufnr, ns_id, linenr, text, hl_group)
-  local line = vim.api.nvim_buf_get_lines(bufnr, linenr - 1, linenr, false)[1]
-
-  local byte_start = string.find(line, text) -- 1-indexed
-  byte_start = byte_start - 1 -- 0-indexed
-
-  local extmarks = mod.get_line_extmarks(bufnr, ns_id, linenr, byte_start, #text)
-
-  mod.eq(#extmarks, 1)
-  mod.eq(extmarks[1][3], byte_start)
-  mod.assert_extmark(extmarks[1], linenr, text, hl_group)
-end
-
 function mod.describe_flipping_feature(feature_name, desc, func)
   describe(string.format("(w/ %s) %s", feature_name, desc), function()
     require("nui.utils")._.feature[feature_name] = true
