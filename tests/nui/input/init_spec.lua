@@ -4,7 +4,7 @@ local Input = require("nui.input")
 local Text = require("nui.text")
 local h = require("tests.nui")
 
-local eq, feedkeys, tbl_pick = h.eq, h.feedkeys, h.tbl_pick
+local eq, feedkeys = h.eq, h.feedkeys
 
 -- Input's functionalities are not testable using headless nvim.
 -- Not sure what to do about it.
@@ -12,6 +12,7 @@ local eq, feedkeys, tbl_pick = h.eq, h.feedkeys, h.tbl_pick
 describe("nui.input", function()
   local parent_winid, parent_bufnr
   local popup_options
+  local input
 
   before_each(function()
     parent_winid = vim.api.nvim_get_current_win()
@@ -24,36 +25,29 @@ describe("nui.input", function()
     }
   end)
 
+  after_each(function()
+    if input then
+      input:unmount()
+      input = nil
+    end
+  end)
+
   pending("o.prompt", function()
     it("supports NuiText", function()
       local prompt_text = "> "
       local hl_group = "NuiInputTest"
 
-      local input = Input(popup_options, {
+      input = Input(popup_options, {
         prompt = Text(prompt_text, hl_group),
       })
 
       input:mount()
 
-      eq(vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false), { prompt_text })
-
-      local linenr = 1
-      local line = vim.api.nvim_buf_get_lines(input.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, prompt_text)
-
-      local extmarks = vim.api.nvim_buf_get_extmarks(input.bufnr, input.ns_id, linenr - 1, linenr, {
-        details = true,
+      h.assert_buf_lines(input.bufnr, {
+        prompt_text,
       })
 
-      eq(type(byte_start), "number")
-
-      eq(#extmarks, 1)
-      eq(extmarks[1][2], linenr - 1)
-      eq(extmarks[1][4].end_col - extmarks[1][3], #prompt_text)
-      eq(tbl_pick(extmarks[1][4], { "end_row", "hl_group" }), {
-        end_row = linenr - 1,
-        hl_group = hl_group,
-      })
+      h.assert_highlight(input.bufnr, input.ns_id, 1, prompt_text, hl_group)
     end)
   end)
 
@@ -74,7 +68,7 @@ describe("nui.input", function()
       setup()
 
       local done = false
-      local input = Input(popup_options, {
+      input = Input(popup_options, {
         on_submit = function()
           done = true
         end,
@@ -96,7 +90,7 @@ describe("nui.input", function()
       setup()
 
       local done = false
-      local input = Input(popup_options, {
+      input = Input(popup_options, {
         on_submit = function()
           done = true
         end,
@@ -118,7 +112,7 @@ describe("nui.input", function()
       setup()
 
       local done = false
-      local input = Input(popup_options, {
+      input = Input(popup_options, {
         on_close = function()
           done = true
         end,
@@ -142,7 +136,7 @@ describe("nui.input", function()
       setup()
 
       local done = false
-      local input = Input(popup_options, {
+      input = Input(popup_options, {
         on_close = function()
           done = true
         end,
