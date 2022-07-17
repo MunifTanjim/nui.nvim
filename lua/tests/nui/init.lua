@@ -52,26 +52,50 @@ function mod.tbl_omit(tbl, keys)
 end
 
 ---@param bufnr number
----@param ns_id number
----@param linenr number
----@param col_start? number
----@param col_end? number
-function mod.get_line_extmarks(bufnr, ns_id, linenr, col_start, col_end)
+---@param ns_id integer
+---@param linenr integer (1-indexed)
+---@param byte_start? integer (0-indexed)
+---@param byte_end? integer (0-indexed, inclusive)
+function mod.get_line_extmarks(bufnr, ns_id, linenr, byte_start, byte_end)
   return vim.api.nvim_buf_get_extmarks(
     bufnr,
     ns_id,
-    { linenr - 1, col_start or 0 },
-    { linenr - 1, col_end or -1 },
+    { linenr - 1, byte_start or 0 },
+    { linenr - 1, byte_end and byte_end + 1 or -1 },
     { details = true }
   )
 end
 
 ---@param bufnr number
+---@param ns_id integer
+---@param linenr integer (1-indexed)
+---@param text string
+---@return table[]
+---@return { byte_start: integer, byte_end: integer } info (byte range: 0-indexed, inclusive)
+function mod.get_text_extmarks(bufnr, ns_id, linenr, text)
+  local line = vim.api.nvim_buf_get_lines(bufnr, linenr - 1, linenr, false)[1]
+
+  local byte_start = string.find(line, text) -- 1-indexed
+  byte_start = byte_start - 1 -- 0-indexed
+  local byte_end = byte_start + #text - 1 -- inclusive
+
+  local extmarks = vim.api.nvim_buf_get_extmarks(
+    bufnr,
+    ns_id,
+    { linenr - 1, byte_start },
+    { linenr - 1, byte_end },
+    { details = true }
+  )
+
+  return extmarks, { byte_start = byte_start, byte_end = byte_end }
+end
+
+---@param bufnr number
 ---@param lines string[]
----@param linenr_start? number
----@param linenr_end? number
+---@param linenr_start? integer (1-indexed)
+---@param linenr_end? integer (1-indexed, inclusive)
 function mod.assert_buf_lines(bufnr, lines, linenr_start, linenr_end)
-  mod.eq(vim.api.nvim_buf_get_lines(bufnr, linenr_start or 0, linenr_end or -1, false), lines)
+  mod.eq(vim.api.nvim_buf_get_lines(bufnr, linenr_start and linenr_start - 1 or 0, linenr_end or -1, false), lines)
 end
 
 ---@param bufnr number
@@ -91,20 +115,34 @@ function mod.assert_win_options(winid, options)
 end
 
 ---@param extmark table
----@param linenr number
+---@param linenr number (1-indexed)
 ---@param text string
 ---@param hl_group string
 function mod.assert_extmark(extmark, linenr, text, hl_group)
   mod.eq(extmark[2], linenr - 1)
 
   if text then
-    mod.eq(extmark[4].end_col - extmark[3], #text)
+    local start_col = extmark[3]
+    mod.eq(extmark[4].end_col - start_col, #text)
   end
 
   mod.eq(mod.tbl_pick(extmark[4], { "end_row", "hl_group" }), {
     end_row = linenr - 1,
     hl_group = hl_group,
   })
+end
+
+---@param bufnr number
+---@param ns_id integer
+---@param linenr integer (1-indexed)
+---@param text string
+---@param hl_group string
+function mod.assert_highlight(bufnr, ns_id, linenr, text, hl_group)
+  local extmarks, info = mod.get_text_extmarks(bufnr, ns_id, linenr, text)
+
+  mod.eq(#extmarks, 1)
+  mod.eq(extmarks[1][3], info.byte_start)
+  mod.assert_extmark(extmarks[1], linenr, text, hl_group)
 end
 
 function mod.describe_flipping_feature(feature_name, desc, func)
