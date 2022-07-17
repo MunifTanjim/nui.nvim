@@ -15,7 +15,10 @@ describe("nui.popup", function()
   local popup
 
   after_each(function()
-    popup:unmount()
+    if popup then
+      popup:unmount()
+      popup = nil
+    end
   end)
 
   it("supports o.bufnr (unmanaed buffer)", function()

@@ -8,6 +8,7 @@ local eq = h.eq
 
 describe("nui.popup", function()
   local popup_options = {}
+  local popup
 
   before_each(function()
     popup_options = {
@@ -20,16 +21,23 @@ describe("nui.popup", function()
     }
   end)
 
+  after_each(function()
+    if popup then
+      popup:unmount()
+      popup = nil
+    end
+  end)
+
   describe("border.padding", function()
-    local function assert_padding(padding, popup)
+    local function assert_padding(padding, target_popup)
       local border_char_size = 1
 
-      local popup_win_config = vim.api.nvim_win_get_config(popup.winid)
-      eq(popup_win_config.win, popup.border.winid)
+      local popup_win_config = vim.api.nvim_win_get_config(target_popup.winid)
+      eq(popup_win_config.win, target_popup.border.winid)
       eq(popup_win_config.row[vim.val_idx], border_char_size + padding.top)
       eq(popup_win_config.col[vim.val_idx], border_char_size + padding.left)
 
-      local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
+      local border_win_config = vim.api.nvim_win_get_config(target_popup.border.winid)
       eq(border_win_config.width, popup_options.size.width + border_char_size * 2 + padding.right + padding.left)
       eq(border_win_config.height, popup_options.size.height + border_char_size * 2 + padding.top + padding.bottom)
     end
@@ -49,7 +57,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -71,7 +79,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -93,7 +101,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -111,7 +119,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -133,7 +141,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -148,7 +156,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -167,7 +175,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -184,7 +192,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -205,7 +213,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -224,7 +232,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -247,7 +255,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -270,7 +278,7 @@ describe("nui.popup", function()
           },
         })
 
-        local popup = Popup(popup_options)
+        popup = Popup(popup_options)
 
         popup:mount()
 
@@ -344,17 +352,13 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
-      local linenr = 1
-      local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, text)
-
-      popup:unmount()
-
-      eq(type(byte_start), "number")
+      h.assert_buf_lines(popup.border.bufnr, {
+        "┌─popup──┐",
+      }, 1, 1)
     end)
 
     it("supports nui.text", function()
@@ -370,22 +374,15 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
-      local linenr = 1
-      local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[linenr]
-      local byte_start = string.find(line, text)
+      h.assert_buf_lines(popup.border.bufnr, {
+        "┌─popup──┐",
+      }, 1, 1)
 
-      local extmarks = h.get_line_extmarks(popup.border.bufnr, popup_options.ns_id, linenr, byte_start, #text)
-
-      popup:unmount()
-
-      eq(type(byte_start), "number")
-
-      eq(#extmarks, 1)
-      h.assert_extmark(extmarks[1], linenr, text, hl_group)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, text, hl_group)
     end)
   end)
 
@@ -405,7 +402,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -422,7 +419,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -448,7 +445,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       eq(type(popup.border.bufnr), "nil")
       eq(type(popup.border.winid), "nil")
@@ -474,7 +471,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -514,21 +511,7 @@ describe("nui.popup", function()
         "╰──bot───╯",
       })
 
-      local linenr = 4
-      local line = vim.api.nvim_buf_get_lines(popup.border.bufnr, linenr - 1, linenr, false)[1]
-      local byte_start = string.find(line, text_bottom)
-
-      local extmarks = h.get_line_extmarks(popup.border.bufnr, popup_options.ns_id, linenr, byte_start, #text_bottom)
-      h.assert_extmark(
-        vim.tbl_filter(function(extmark)
-          return extmark[4].hl_group == hl_group
-        end, extmarks)[1],
-        linenr,
-        text_bottom,
-        hl_group
-      )
-
-      popup:unmount()
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 4, text_bottom, hl_group)
     end)
 
     it("does nothing for simple border", function()
@@ -538,7 +521,7 @@ describe("nui.popup", function()
         },
       })
 
-      local popup = Popup(popup_options)
+      popup = Popup(popup_options)
 
       popup:mount()
 
@@ -547,8 +530,6 @@ describe("nui.popup", function()
       popup.border:set_text("top", "text")
 
       eq(type(popup.border.bufnr), "nil")
-
-      popup:unmount()
     end)
   end)
 end)
