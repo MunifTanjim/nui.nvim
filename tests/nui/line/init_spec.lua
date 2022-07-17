@@ -87,9 +87,18 @@ describe("nui.line", function()
         line = Line({ t1, t2, t3 })
       end)
 
+      local function assert_highlight()
+        local extmarks = h.get_line_extmarks(bufnr, ns_id, linenr)
+
+        eq(#extmarks, 1)
+        eq(extmarks[1][3], t1:length())
+        h.assert_extmark(extmarks[1], linenr, t2:content(), hl_group)
+      end
+
       it("is applied with :render", function()
         line:render(bufnr, ns_id, linenr)
-        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group)
+
+        assert_highlight()
       end)
 
       it("can highlight existing buffer line", function()
@@ -97,7 +106,7 @@ describe("nui.line", function()
 
         line:highlight(bufnr, ns_id, linenr)
 
-        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group)
+        assert_highlight()
       end)
     end)
 
