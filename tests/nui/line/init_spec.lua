@@ -72,37 +72,47 @@ describe("nui.line", function()
     end)
 
     describe(":highlight", function()
-      local hl_group, ns, ns_id
+      local hl_group_one, hl_group_two, ns, ns_id
       local linenr
-      local t1, t2, t3
+      local t1, t2, t3, t4
       local line
 
       before_each(function()
-        hl_group = "NuiTextTest"
+        hl_group_one = "NuiTextTestOne"
+        hl_group_two = "NuiTextTestTwo"
         ns = "NuiTest"
         ns_id = vim.api.nvim_create_namespace(ns)
 
         linenr = 1
 
         t1 = Text("One")
-        t2 = Text("Two", hl_group)
-        t3 = Text("Three")
+        t2 = Text("Two", hl_group_one)
+        t3 = Text("Three", hl_group_two)
+        t4 = Text("Four")
 
-        line = Line({ t1, t2, t3 })
+        line = Line({ t1, t2, t3, t4 })
       end)
 
       it("is applied with :render", function()
         line:render(bufnr, ns_id, linenr)
 
-        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group)
+        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group_one)
+        h.assert_highlight(bufnr, ns_id, linenr, t3:content(), hl_group_two)
       end)
 
       it("can highlight existing buffer line", function()
-        vim.api.nvim_buf_set_lines(bufnr, linenr - 1, -1, false, { t1:content() .. t2:content() .. t3:content() })
+        vim.api.nvim_buf_set_lines(
+          bufnr,
+          linenr - 1,
+          -1,
+          false,
+          { t1:content() .. t2:content() .. t3:content() .. t4:content() }
+        )
 
         line:highlight(bufnr, ns_id, linenr)
 
-        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group)
+        h.assert_highlight(bufnr, ns_id, linenr, t2:content(), hl_group_one)
+        h.assert_highlight(bufnr, ns_id, linenr, t3:content(), hl_group_two)
       end)
     end)
 
