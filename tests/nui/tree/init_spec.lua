@@ -16,6 +16,10 @@ describe("nui.tree", function()
     vim.api.nvim_win_set_buf(winid, bufnr)
   end)
 
+  after_each(function()
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+  end)
+
   it("throws if no winid", function()
     local ok, err = pcall(Tree, {})
     eq(ok, false)
