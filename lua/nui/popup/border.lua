@@ -343,8 +343,10 @@ end
 local function merge_winhl(current_winhl, hl_name, hl_replacement)
   local hl_prefix = string.format("%s:", hl_name)
 
-  local current_parts = vim.split(current_winhl, ",")
-  local new_parts = vim.tbl_filter(function(part) return not vim.startswith(part, hl_prefix) end, current_parts)
+  local current_parts = vim.split(current_winhl or "", ",")
+  local new_parts = vim.tbl_filter(function(part)
+    return not vim.startswith(part, hl_prefix) and part ~= ""
+  end, current_parts)
   table.insert(new_parts, string.format("%s:%s", hl_name, hl_replacement))
 
   local result = table.concat(new_parts, ",")
@@ -572,13 +574,24 @@ end
 function Border:set_highlight(border_highlight)
   local internal = self._
 
-  internal.highlight = nil
+  if internal.type ~= "complex" then
+    internal.winhighlight = merge_winhl(
+      vim.api.nvim_win_get_option(self.popup.winid, 'winhl'),
+      "FloatBorder",
+      border_highlight
+    )
+
+    vim.api.nvim_win_set_option(self.popup.winid, "winhl", internal.winhighlight)
+    return
+  end
+
   internal.winhighlight = merge_winhl(
     self.popup._.win_options.winhighlight,
     "FloatBorder",
     border_highlight
   )
 
+  internal.highlight = nil
   internal.highlight = normalize_highlight(internal)
 
   for _, item in pairs(internal.char) do
