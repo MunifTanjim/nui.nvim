@@ -1,3 +1,4 @@
+local Object = require("nui.object")
 local Line = require("nui.line")
 local Text = require("nui.text")
 local _ = require("nui.utils")._
@@ -334,12 +335,27 @@ local function adjust_popup_win_config(border)
   popup.win_config.col = popup_position.col
 end
 
----@param class NuiPopupBorder
----@param popup NuiPopup
-local function init(class, popup, options)
-  ---@type NuiPopupBorder
-  local self = setmetatable({}, { __index = class })
+--luacheck: push no max line length
 
+---@alias nui_t_text_align "'left'" | "'center'" | "'right'"
+---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
+---@alias nui_popup_border_internal_position { row: number, col: number }
+---@alias nui_popup_border_internal_size { width: number, height: number }
+---@alias nui_popup_border_internal_text { top?: string, top_align?: nui_t_text_align, bottom?: string, bottom_align?: nui_t_text_align }
+---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
+
+--luacheck: pop
+
+---@class NuiPopupBorder
+---@field bufnr number
+---@field private _ nui_popup_border_internal
+---@field private popup NuiPopup
+---@field win_config nui_popup_win_config
+---@field winid number
+local Border = Object("NuiPopupBorder")
+
+---@param popup NuiPopup
+function Border:init(popup, options)
   self.popup = popup
 
   self._ = {
@@ -396,36 +412,6 @@ local function init(class, popup, options)
     focusable = false,
     zindex = self.popup.win_config.zindex - 1,
   }
-
-  return self
-end
-
---luacheck: push no max line length
-
----@alias nui_t_text_align "'left'" | "'center'" | "'right'"
----@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
----@alias nui_popup_border_internal_position { row: number, col: number }
----@alias nui_popup_border_internal_size { width: number, height: number }
----@alias nui_popup_border_internal_text { top?: string, top_align?: nui_t_text_align, bottom?: string, bottom_align?: nui_t_text_align }
----@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
-
---luacheck: pop
-
----@class NuiPopupBorder
----@field bufnr number
----@field private _ nui_popup_border_internal
----@field private popup NuiPopup
----@field win_config nui_popup_win_config
----@field winid number
-local Border = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiPopupBorder",
-})
-
-function Border:init(popup, options)
-  return init(self, popup, options)
 end
 
 function Border:_open_window()

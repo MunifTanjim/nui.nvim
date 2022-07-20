@@ -21,11 +21,15 @@ local function patch_cursor_position(target_cursor, force)
   end
 end
 
----@param class NuiInput
+---@alias nui_input_internal nui_popup_internal|{ default_value: string, prompt: NuiText }
+
+---@class NuiInput: NuiPopup
+---@field private _ nui_input_internal
+local Input = Popup:extend("NuiInput")
+
 ---@param popup_options table
 ---@param options table
----@return NuiInput
-local function init(class, popup_options, options)
+function Input:init(popup_options, options)
   popup_options.enter = true
 
   popup_options.buf_options = defaults(popup_options.buf_options, {})
@@ -39,8 +43,7 @@ local function init(class, popup_options, options)
 
   popup_options.size.height = 1
 
-  ---@type NuiInput
-  local self = class.super.init(class, popup_options)
+  Input.super.init(self, popup_options)
 
   self._.default_value = defaults(options.default_value, "")
   self._.prompt = Text(defaults(options.prompt, ""))
@@ -101,31 +104,12 @@ local function init(class, popup_options, options)
       options.on_change(value)
     end
   end
-
-  return self
-end
-
----@alias nui_input_internal nui_popup_internal|{ default_value: string, prompt: NuiText }
-
----@class NuiInput: NuiPopup
----@field private super NuiPopup
----@field private _ nui_input_internal
-local Input = setmetatable({
-  super = Popup,
-}, {
-  __call = init,
-  __index = Popup,
-  __name = "NuiInput",
-})
-
-function Input:init(popup_options, options)
-  return init(self, popup_options, options)
 end
 
 function Input:mount()
   local props = self.input_props
 
-  self.super.mount(self)
+  Input.super.mount(self)
 
   if props.on_change then
     vim.api.nvim_buf_attach(self.bufnr, false, {
