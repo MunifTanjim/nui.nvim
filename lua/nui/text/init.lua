@@ -1,32 +1,21 @@
+local Object = require("nui.object")
 local _ = require("nui.utils")._
 local is_type = require("nui.utils").is_type
 
----@param class NuiText
+---@class NuiText
+---@field protected extmark? table|{ id?: number, hl_group: string }
+local Text = Object("NuiText")
+
 ---@param content string|NuiText text content or NuiText object
 ---@param extmark? string|table highlight group name or extmark options
----@return NuiText
-local function init(class, content, extmark)
-  ---@type NuiText
-  local self = setmetatable({}, { __index = class })
-
+function Text:init(content, extmark)
   if is_type("table", content) then
     -- cloning
     self:set(content._content, content.extmark)
   else
     self:set(content, extmark)
   end
-
-  return self
 end
-
----@class NuiText
----@field protected extmark? table|{ id?: number, hl_group: string }
-local Text = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiText",
-})
 
 ---@param content string text content
 ---@param extmark? string|table highlight group name or extmark options

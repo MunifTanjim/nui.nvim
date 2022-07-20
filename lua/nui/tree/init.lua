@@ -1,3 +1,4 @@
+local Object = require("nui.object")
 local _ = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
@@ -132,12 +133,23 @@ function TreeNode:collapse()
   return false
 end
 
----@param class NuiTree
----@return NuiTree
-local function init(class, options)
-  ---@type NuiTree
-  local self = setmetatable({}, { __index = class })
+--luacheck: push no max line length
 
+---@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
+---@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): nil | string | string[] | NuiLine | NuiLine[]
+---@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node, track_tree_linenr?: boolean }
+
+--luacheck: pop
+
+---@class NuiTree
+---@field bufnr number
+---@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
+---@field ns_id number
+---@field private _ nui_tree_internal
+---@field winid number
+local Tree = Object("NuiTree")
+
+function Tree:init(options)
   local winid = options.winid
   if not winid then
     error("missing winid")
@@ -178,30 +190,7 @@ local function init(class, options)
   _.set_win_options(self.winid, self._.win_options)
 
   self:set_nodes(defaults(options.nodes, {}))
-
-  return self
 end
-
---luacheck: push no max line length
-
----@alias nui_tree_get_node_id fun(node: NuiTreeNode): string
----@alias nui_tree_prepare_node fun(node: NuiTreeNode, parent_node?: NuiTreeNode): nil | string | string[] | NuiLine | NuiLine[]
----@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node, track_tree_linenr?: boolean }
-
---luacheck: pop
-
----@class NuiTree
----@field bufnr number
----@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
----@field ns_id number
----@field private _ nui_tree_internal
----@field winid number
-local Tree = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiTree",
-})
 
 ---@generic D : table
 ---@param data D data table

@@ -1,4 +1,5 @@
 local Border = require("nui.popup.border")
+local Object = require("nui.object")
 local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
@@ -52,11 +53,25 @@ local function normalize_options(options)
   return options
 end
 
----@param class NuiPopup
-local function init(class, options)
-  ---@type NuiPopup
-  local self = setmetatable({}, { __index = class })
+--luacheck: push no max line length
 
+---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
+---@alias nui_popup_internal_size { height: number, width: number }
+---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
+---@alias nui_popup_internal { layout: nui_layout_config, layout_ready: boolean, loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean, buf_options: table<string,any>, win_options: table<string,any>, win_config: nui_popup_win_config }
+
+--luacheck: pop
+
+---@class NuiPopup
+---@field border NuiPopupBorder
+---@field bufnr number
+---@field ns_id number
+---@field private _ nui_popup_internal
+---@field win_config nui_popup_win_config
+---@field winid number
+local Popup = Object("NuiPopup")
+
+function Popup:init(options)
   options = merge_default_options(options)
   options = normalize_options(options)
 
@@ -104,35 +119,6 @@ local function init(class, options)
   if options.position and options.size then
     self:update_layout(options)
   end
-
-  return self
-end
-
---luacheck: push no max line length
-
----@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
----@alias nui_popup_internal_size { height: number, width: number }
----@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table }
----@alias nui_popup_internal { layout: nui_layout_config, layout_ready: boolean, loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean, buf_options: table<string,any>, win_options: table<string,any>, win_config: nui_popup_win_config }
-
---luacheck: pop
-
----@class NuiPopup
----@field border NuiPopupBorder
----@field bufnr number
----@field ns_id number
----@field private _ nui_popup_internal
----@field win_config nui_popup_win_config
----@field winid number
-local Popup = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiPopup",
-})
-
-function Popup:init(options)
-  return init(self, options)
 end
 
 function Popup:_open_window()

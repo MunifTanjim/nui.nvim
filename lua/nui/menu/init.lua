@@ -166,11 +166,53 @@ local function focus_item(menu, direction, current_linenr)
   end
 end
 
----@param class NuiMenu
+--luacheck: push no max line length
+
+---@alias nui_menu_prepare_item nui_tree_prepare_node
+---@alias nui_menu_should_skip_item fun(node: NuiTreeNode): boolean
+---@alias nui_menu_internal nui_popup_internal|{ items: NuiTreeNode[], keymap: table<string,string[]>, sep: { char?: string|NuiText, text_align?: nui_t_text_align }, prepare_item: nui_menu_prepare_item, should_skip_item: nui_menu_should_skip_item }
+
+--luacheck: pop
+
+---@class NuiMenu: NuiPopup
+---@field private _ nui_menu_internal
+local Menu = Popup:extend("NuiMenu")
+
+---@param text? string|NuiText
+---@returns table NuiTreeNode
+function Menu.separator(text, options)
+  options = options or {}
+  return Tree.Node({
+    _type = "separator",
+    _char = options.char,
+    _text_align = options.text_align,
+    text = defaults(text, ""),
+  })
+end
+
+---@param text string|NuiText
+---@param data? table
+---@returns table NuiTreeNode
+function Menu.item(text, data)
+  if not data then
+    ---@diagnostic disable-next-line: undefined-field
+    if is_type("table", text) and text.text then
+      data = text
+    else
+      data = { text = text }
+    end
+  else
+    data.text = text
+  end
+
+  data._type = "item"
+
+  return Tree.Node(data)
+end
+
 ---@param popup_options table
 ---@param options table
----@return NuiMenu
-local function init(class, popup_options, options)
+function Menu:init(popup_options, options)
   local items, max_width = prepare_items(options.lines)
 
   local width = math.max(math.min(max_width, defaults(options.max_width, 256)), defaults(options.min_width, 4))
@@ -189,8 +231,7 @@ local function init(class, popup_options, options)
     },
   }, popup_options)
 
-  ---@type NuiMenu
-  local self = class.super.init(class, popup_options)
+  Menu.super.init(self, popup_options)
 
   self._.items = items
   self._.keymap = parse_keymap(options.keymap)
@@ -237,67 +278,10 @@ local function init(class, popup_options, options)
   props.on_focus_prev = function()
     focus_item(self, "prev")
   end
-
-  return self
-end
-
---luacheck: push no max line length
-
----@alias nui_menu_prepare_item nui_tree_prepare_node
----@alias nui_menu_should_skip_item fun(node: NuiTreeNode): boolean
----@alias nui_menu_internal nui_popup_internal|{ items: NuiTreeNode[], keymap: table<string,string[]>, sep: { char?: string|NuiText, text_align?: nui_t_text_align }, prepare_item: nui_menu_prepare_item, should_skip_item: nui_menu_should_skip_item }
-
---luacheck: pop
-
----@class NuiMenu: NuiPopup
----@field private super NuiPopup
----@field private _ nui_menu_internal
-local Menu = setmetatable({
-  super = Popup,
-}, {
-  __call = init,
-  __index = Popup,
-  __name = "NuiMenu",
-})
-
----@param text? string|NuiText
----@returns table NuiTreeNode
-function Menu.separator(text, options)
-  options = options or {}
-  return Tree.Node({
-    _type = "separator",
-    _char = options.char,
-    _text_align = options.text_align,
-    text = defaults(text, ""),
-  })
-end
-
----@param text string|NuiText
----@param data? table
----@returns table NuiTreeNode
-function Menu.item(text, data)
-  if not data then
-    ---@diagnostic disable-next-line: undefined-field
-    if is_type("table", text) and text.text then
-      data = text
-    else
-      data = { text = text }
-    end
-  else
-    data.text = text
-  end
-
-  data._type = "item"
-
-  return Tree.Node(data)
-end
-
-function Menu:new(popup_options, options)
-  return init(self, popup_options, options)
 end
 
 function Menu:mount()
-  self.super.mount(self)
+  Menu.super.mount(self)
 
   local props = self.menu_props
 

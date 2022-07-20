@@ -1,3 +1,4 @@
+local Object = require("nui.object")
 local utils = require("nui.utils")
 local layout_utils = require("nui.layout.utils")
 
@@ -53,12 +54,10 @@ local function get_layout_config_relative_to_component(component)
   }
 end
 
----@param class NuiLayout
----@return NuiLayout
-local function init(class, options, box)
-  ---@type NuiLayout
-  local self = setmetatable({}, { __index = class })
+---@class NuiLayout
+local Layout = Object("NuiLayout")
 
+function Layout:init(options, box)
   local container
   if is_component(options) then
     container = options
@@ -69,7 +68,7 @@ local function init(class, options, box)
   end
 
   self._ = {
-    box = class.Box(box),
+    box = Layout.Box(box),
     container = container,
     layout = {},
     loading = false,
@@ -88,17 +87,7 @@ local function init(class, options, box)
   if not is_component(container) or is_component_mounted(container) then
     self:update(options)
   end
-
-  return self
 end
-
----@class NuiLayout
-local Layout = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiLayout",
-})
 
 local function get_child_position(canvas_position, current_position, box_dir)
   if box_dir == "row" then

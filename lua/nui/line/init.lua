@@ -1,26 +1,15 @@
+local Object = require("nui.object")
 local NuiText = require("nui.text")
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
----@param class NuiLine
----@param texts? table[] NuiText objects
----@return NuiLine
-local function init(class, texts)
-  ---@type NuiLine
-  local self = setmetatable({}, { __index = class })
-
-  self._texts = defaults(texts, {})
-
-  return self
-end
-
 ---@class NuiLine
-local Line = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiLine",
-})
+local Line = Object("NuiLine")
+
+---@param texts? table[] NuiText objects
+function Line:init(texts)
+  self._texts = defaults(texts, {})
+end
 
 ---@param text string|table text content or NuiText object
 ---@param highlight? string|table data for highlight

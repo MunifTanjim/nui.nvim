@@ -1,3 +1,4 @@
+local Object = require("nui.object")
 local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
@@ -54,13 +55,23 @@ local function calculate_window_size(position, size, container)
   }
 end
 
----@param class NuiSplit
----@param options table
----@return NuiSplit
-local function init(class, options)
-  ---@type NuiSplit
-  local self = setmetatable({}, { __index = class })
+--luacheck: push no max line length
 
+---@alias nui_split_internal_position "'top'"|"'right'"|"'bottom'"|"'left'"
+---@alias nui_split_internal_relative "'editor'"|"'win'"
+---@alias nui_split_internal_size { width?: number, height?: number }
+---@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any>, position: nui_split_internal_position, relative: nui_split_internal_relative, size: nui_split_internal_size }
+
+--luacheck: pop
+
+---@class NuiSplit
+---@field private _ nui_split_internal
+---@field bufnr number
+---@field winid number
+local Split = Object("NuiSplit")
+
+---@param options table
+function Split:init(options)
   self._ = {
     buf_options = defaults(options.buf_options, {}),
     loading = false,
@@ -77,35 +88,7 @@ local function init(class, options)
 
   local container_info = get_container_info(self._.relative)
   self._.size = calculate_window_size(self._.position, options.size, container_info)
-
-  return self
 end
-
---luacheck: push no max line length
-
----@alias nui_split_internal_position "'top'"|"'right'"|"'bottom'"|"'left'"
----@alias nui_split_internal_relative "'editor'"|"'win'"
----@alias nui_split_internal_size { width?: number, height?: number }
----@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any>, position: nui_split_internal_position, relative: nui_split_internal_relative, size: nui_split_internal_size }
-
---luacheck: pop
-
----@class NuiSplit
----@field private _ nui_split_internal
----@field bufnr number
----@field winid number
-local Split = setmetatable({
-  super = nil,
-}, {
-  __call = init,
-  __name = "NuiSplit",
-})
-
--- luacov: disable
-function Split:init(options)
-  return init(self, options)
-end
--- luacov: enable
 
 function Split:_open_window()
   if self.winid or not self.bufnr then
