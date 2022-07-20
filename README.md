@@ -276,6 +276,72 @@ end)
 
 **[Check Wiki Page for `nui.split`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.split)**
 
+## Extendibility
+
+Each of the [blocks](#blocks) and [components](#components) can be extended to add new
+methods or change their behaviors.
+
+```lua
+local Timer = Popup:extend("Timer")
+
+function Timer:init(popup_options)
+  local options = vim.tbl_deep_extend("force", popup_options or {}, {
+    border = "double",
+    focusable = false,
+    position = { row = 0, col = "100%" },
+    size = { width = 10, height = 1 },
+    win_options = {
+      winhighlight = "Normal:Normal,FloatBorder:SpecialChar",
+    },
+  })
+
+  Timer.super.init(self, options)
+end
+
+function Timer:countdown(time, step, format)
+  local function draw_content(text)
+    local gap_width = 10 - vim.api.nvim_strwidth(text)
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, {
+      string.format(
+        "%s%s%s",
+        string.rep(" ", math.floor(gap_width / 2)),
+        text,
+        string.rep(" ", math.ceil(gap_width / 2))
+      ),
+    })
+  end
+
+  self:mount()
+
+  local remaining_time = time
+
+  draw_content(format(remaining_time))
+
+  vim.fn.timer_start(step, function()
+    remaining_time = remaining_time - step
+
+    draw_content(format(remaining_time))
+
+    if remaining_time <= 0 then
+      self:unmount()
+    end
+  end, { ["repeat"] = math.ceil(remaining_time / step) })
+end
+
+local timer = Timer()
+
+timer:countdown(10000, 1000, function(time)
+  return tostring(time / 1000) .. "s"
+end)
+```
+
+#### `nui.object`
+
+A small object library is bundled with `nui.nvim`. It is, more or less, a clone of the
+[`kikito/middleclass`](https://github.com/kikito/middleclass) library.
+
+[Check Wiki Page for `nui.object`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.object)
+
 ## License
 
 Licensed under the MIT License. Check the [LICENSE](./LICENSE) file for details.
