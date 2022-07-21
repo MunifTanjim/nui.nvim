@@ -63,7 +63,7 @@ local function set_win_config(winid, win_config)
   end
 end
 
-local function merge_default_options(options)
+local function merge_default_options(options, default_options)
   options.relative = defaults(options.relative, "win")
   options.position = defaults(options.position, vim.go.splitbelow and "bottom" or "top")
 
@@ -71,10 +71,7 @@ local function merge_default_options(options)
 
   options.buf_options = defaults(options.buf_options, {})
   options.buf_variables = defaults(options.buf_variables, {})
-  options.win_options = vim.tbl_extend("force", {
-    winfixwidth = true,
-    winfixheight = true,
-  }, defaults(options.win_options, {}))
+  options.win_options = vim.tbl_extend("force", default_options.win_options, defaults(options.win_options, {}))
   options.win_variables = defaults(options.win_variables, {})
 
   return options
@@ -114,9 +111,16 @@ end
 ---@field winid number
 local Split = Object("NuiSplit")
 
+Split.static.default_options = {
+  win_options = {
+    winfixwidth = true,
+    winfixheight = true,
+  },
+}
+
 ---@param options table
 function Split:init(options)
-  options = merge_default_options(options)
+  options = merge_default_options(options, self.class.default_options)
   options = normalize_options(options)
 
   self._ = {
