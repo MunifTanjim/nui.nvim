@@ -135,7 +135,7 @@ function mod.update_layout_config(component, config)
     local fallback_winid = component._.position and component._.position.win or vim.api.nvim_get_current_win()
     component._.position = vim.tbl_extend(
       "force",
-      component._._position or {},
+      component._.position or {},
       mod.parse_relative(component._.layout.relative, fallback_winid)
     )
 
