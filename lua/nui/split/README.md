@@ -19,12 +19,32 @@ You can manipulate the assocciated buffer and window using the
 
 ### `relative`
 
-| Value               | Description                 |
-| ------------------- | --------------------------- |
-| `"editor"`          | split current editor screen |
-| `"win"` (_default_) | split current window        |
+**Type:** `string` or `table`
 
-This option also affects how `size` is calculated.
+This option affects how `size` is calculated.
+
+**Examples**
+
+Split current editor screen:
+
+```lua
+relative = "editor"
+```
+
+Split current window (_default_):
+
+```lua
+relative = "win"
+```
+
+Split window with specific id:
+
+```lua
+relative = {
+  type = "win",
+  winid = 42,
+}
+```
 
 ### `position`
 
