@@ -36,6 +36,18 @@ This option also affects how `size` is calculated.
 
 For `percentage string`, size is calculated according to the option `relative`.
 
+### `enter`
+
+**Type:** `boolean`
+
+If `false`, the split is not entered immediately after mount.
+
+**Examples**
+
+```lua
+enter = false
+```
+
 ### `buf_options`
 
 Table containing buffer options to set for this split.

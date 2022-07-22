@@ -14,6 +14,52 @@ describe("nui.split", function()
     split:unmount()
   end)
 
+  describe("o.enter", function()
+    it("if true, sets the split as current window", function()
+      split = Split({
+        enter = true,
+        size = 10,
+        position = "bottom",
+      })
+
+      local winid = vim.api.nvim_get_current_win()
+
+      split:mount()
+
+      h.eq(winid ~= split.winid, true)
+      h.eq(split.winid, vim.api.nvim_get_current_win())
+    end)
+
+    it("if false, does not set the split as current window", function()
+      split = Split({
+        enter = false,
+        size = 10,
+        position = "bottom",
+      })
+
+      local winid = vim.api.nvim_get_current_win()
+
+      split:mount()
+
+      h.eq(winid ~= split.winid, true)
+      h.eq(winid, vim.api.nvim_get_current_win())
+    end)
+
+    it("is true by default", function()
+      split = Split({
+        size = 10,
+        position = "bottom",
+      })
+
+      local winid = vim.api.nvim_get_current_win()
+
+      split:mount()
+
+      h.eq(winid ~= split.winid, true)
+      h.eq(split.winid, vim.api.nvim_get_current_win())
+    end)
+  end)
+
   describe("o.size", function()
     for position, dimension in pairs({ top = "height", right = "width", bottom = "height", left = "width" }) do
       it(string.format("is set as %s if o.position=%s", dimension, position), function()
