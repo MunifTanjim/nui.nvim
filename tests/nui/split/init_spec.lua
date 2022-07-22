@@ -89,46 +89,82 @@ describe("nui.split", function()
     end)
   end)
 
-  it("supports o.relative=win", function()
-    local left_half_split = Split({
-      size = "50%",
-      position = "left",
-    })
+  describe("o.relative", function()
+    it("supports 'editor'", function()
+      local left_half_split = Split({
+        size = "50%",
+        position = "left",
+      })
 
-    left_half_split:mount()
+      left_half_split:mount()
 
-    split = Split({
-      size = 20,
-      position = "bottom",
-      relative = "win",
-    })
+      split = Split({
+        size = 20,
+        position = "bottom",
+        relative = "editor",
+      })
 
-    split:mount()
+      split:mount()
 
-    eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns / 2)
+      eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns)
 
-    left_half_split:unmount()
-  end)
+      left_half_split:unmount()
+    end)
 
-  it("supports o.relative=editor", function()
-    local left_half_split = Split({
-      size = "50%",
-      position = "left",
-    })
+    it("supports 'win'", function()
+      local left_half_split = Split({
+        size = "50%",
+        position = "left",
+      })
 
-    left_half_split:mount()
+      left_half_split:mount()
 
-    split = Split({
-      size = 20,
-      position = "bottom",
-      relative = "editor",
-    })
+      split = Split({
+        size = 20,
+        position = "bottom",
+        relative = "win",
+      })
 
-    split:mount()
+      split:mount()
 
-    eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns)
+      eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns / 2)
 
-    left_half_split:unmount()
+      left_half_split:unmount()
+    end)
+
+    it("supports specific window", function()
+      local winid = vim.api.nvim_get_current_win()
+
+      local left_half_split = Split({
+        enter = false,
+        size = "30%",
+        position = "left",
+      })
+
+      left_half_split:mount()
+
+      eq(winid, vim.api.nvim_get_current_win())
+
+      eq(vim.api.nvim_win_get_width(left_half_split.winid), vim.o.columns * 30 / 100)
+
+      split = Split({
+        enter = false,
+        size = 10,
+        position = "bottom",
+        relative = {
+          type = "win",
+          winid = left_half_split.winid,
+        },
+      })
+
+      split:mount()
+
+      eq(winid, vim.api.nvim_get_current_win())
+
+      eq(vim.api.nvim_win_get_width(split.winid), vim.o.columns * 30 / 100)
+
+      left_half_split:unmount()
+    end)
   end)
 
   describe("method :mount", function()

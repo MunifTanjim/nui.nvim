@@ -22,23 +22,23 @@ local split_direction_command_map = {
 
 ---@param relative nui_split_internal_relative
 local function get_container_info(relative)
-  if relative == "editor" then
+  if relative.type == "editor" then
     return {
       size = utils.get_editor_size(),
       type = "editor",
     }
   end
 
-  if relative == "win" then
+  if relative.type == "win" then
     return {
-      size = utils.get_window_size(),
+      size = utils.get_window_size(relative.win),
       type = "window",
     }
   end
 end
 
 ---@param position nui_split_internal_position
----@param size number
+---@param size number|string
 local function calculate_window_size(position, size, container)
   if not size then
     return {}
@@ -55,10 +55,52 @@ local function calculate_window_size(position, size, container)
   }
 end
 
+local function set_win_config(winid, win_config)
+  if win_config.width then
+    vim.api.nvim_win_set_width(winid, win_config.width)
+  elseif win_config.height then
+    vim.api.nvim_win_set_height(winid, win_config.height)
+  end
+end
+
+local function merge_default_options(options)
+  options.relative = defaults(options.relative, "win")
+  options.position = defaults(options.position, vim.go.splitbelow and "bottom" or "top")
+
+  options.enter = defaults(options.enter, true)
+
+  options.buf_options = defaults(options.buf_options, {})
+  options.win_options = vim.tbl_extend("force", {
+    winfixwidth = true,
+    winfixheight = true,
+  }, defaults(options.win_options, {}))
+
+  return options
+end
+
+local function normalize_options(options)
+  if utils.is_type("string", options.relative) then
+    options.relative = {
+      type = options.relative,
+    }
+  end
+
+  return options
+end
+
+local function parse_relative(relative, fallback_winid)
+  local winid = defaults(relative.winid, fallback_winid)
+
+  return {
+    type = relative.type,
+    win = winid,
+  }
+end
+
 --luacheck: push no max line length
 
 ---@alias nui_split_internal_position "'top'"|"'right'"|"'bottom'"|"'left'"
----@alias nui_split_internal_relative "'editor'"|"'win'"
+---@alias nui_split_internal_relative { type: "'editor'"|"'win'", win: number }
 ---@alias nui_split_internal_size { width?: number, height?: number }
 ---@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any>, position: nui_split_internal_position, relative: nui_split_internal_relative, size: nui_split_internal_size }
 
@@ -72,23 +114,30 @@ local Split = Object("NuiSplit")
 
 ---@param options table
 function Split:init(options)
+  options = merge_default_options(options)
+  options = normalize_options(options)
+
   self._ = {
-    enter = defaults(options.enter, true),
-    buf_options = defaults(options.buf_options, {}),
+    enter = options.enter,
+    buf_options = options.buf_options,
     loading = false,
     mounted = false,
-    position = defaults(options.position, vim.go.splitbelow and "bottom" or "top"),
-    relative = defaults(options.relative, "win"),
-    win_options = vim.tbl_extend("force", {
-      winfixwidth = true,
-      winfixheight = true,
-    }, defaults(options.win_options, {})),
+    layout = {
+      size = options.size,
+    },
+    position = options.position,
+    relative = parse_relative(options.relative, 0),
+    size = {},
+    win_options = options.win_options,
+    win_config = {},
   }
 
   self:_buf_create()
 
   local container_info = get_container_info(self._.relative)
-  self._.size = calculate_window_size(self._.position, options.size, container_info)
+  self._.size = calculate_window_size(self._.position, self._.layout.size, container_info)
+  self._.win_config.width = self._.size.width
+  self._.win_config.height = self._.size.height
 end
 
 function Split:_open_window()
@@ -96,26 +145,22 @@ function Split:_open_window()
     return
   end
 
-  vim.api.nvim_win_call(0, function()
+  self.winid = vim.api.nvim_win_call(self._.relative.win, function()
     vim.api.nvim_command(
       string.format(
         "silent noswapfile %s sbuffer %s",
-        split_direction_command_map[self._.relative][self._.position],
+        split_direction_command_map[self._.relative.type][self._.position],
         self.bufnr
       )
     )
 
-    self.winid = vim.api.nvim_get_current_win()
+    return vim.api.nvim_get_current_win()
   end)
+
+  set_win_config(self.winid, self._.win_config)
 
   if self._.enter then
     vim.api.nvim_set_current_win(self.winid)
-  end
-
-  if self._.size.width then
-    vim.api.nvim_win_set_width(self.winid, self._.size.width)
-  elseif self._.size.height then
-    vim.api.nvim_win_set_height(self.winid, self._.size.height)
   end
 
   utils._.set_win_options(self.winid, self._.win_options)
