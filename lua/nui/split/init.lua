@@ -73,6 +73,7 @@ local Split = Object("NuiSplit")
 ---@param options table
 function Split:init(options)
   self._ = {
+    enter = defaults(options.enter, true),
     buf_options = defaults(options.buf_options, {}),
     loading = false,
     mounted = false,
@@ -95,15 +96,21 @@ function Split:_open_window()
     return
   end
 
-  vim.api.nvim_command(
-    string.format(
-      "silent noswapfile %s sbuffer %s",
-      split_direction_command_map[self._.relative][self._.position],
-      self.bufnr
+  vim.api.nvim_win_call(0, function()
+    vim.api.nvim_command(
+      string.format(
+        "silent noswapfile %s sbuffer %s",
+        split_direction_command_map[self._.relative][self._.position],
+        self.bufnr
+      )
     )
-  )
 
-  self.winid = vim.fn.win_getid()
+    self.winid = vim.api.nvim_get_current_win()
+  end)
+
+  if self._.enter then
+    vim.api.nvim_set_current_win(self.winid)
+  end
 
   if self._.size.width then
     vim.api.nvim_win_set_width(self.winid, self._.size.width)
