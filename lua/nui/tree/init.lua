@@ -21,6 +21,13 @@ local function clear_buf_lines(bufnr, linenr_range)
   vim.api.nvim_buf_set_lines(bufnr, linenr_range[1] - 1, linenr_range[2], false, lines)
 end
 
+-- returns id of the first window that contains the buffer
+---@param bufnr number
+---@return number winid
+local function get_winid(bufnr)
+  return vim.fn.win_findbuf(bufnr)[1]
+end
+
 ---@param nodes NuiTreeNode[]
 ---@param parent_node? NuiTreeNode
 ---@param get_node_id nui_tree_get_node_id
@@ -146,19 +153,32 @@ end
 ---@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
 ---@field ns_id number
 ---@field private _ nui_tree_internal
----@field winid number
+---@field winid number # @deprecated
 local Tree = Object("NuiTree")
 
 function Tree:init(options)
-  local winid = options.winid
-  if not winid then
-    error("missing winid")
-  elseif not vim.api.nvim_win_is_valid(winid) then
-    error("invalid winid " .. winid)
+  ---@deprecated
+  if options.winid then
+    if not vim.api.nvim_win_is_valid(options.winid) then
+      error("invalid winid " .. options.winid)
+    end
+
+    self.winid = options.winid
+    self.bufnr = vim.api.nvim_win_get_buf(self.winid)
   end
 
-  self.winid = winid
-  self.bufnr = vim.api.nvim_win_get_buf(self.winid)
+  if options.bufnr then
+    if not vim.api.nvim_buf_is_valid(options.bufnr) then
+      error("invalid bufnr " .. options.bufnr)
+    end
+
+    self.bufnr = options.bufnr
+    self.winid = nil
+  end
+
+  if not self.bufnr then
+    error("missing bufnr")
+  end
 
   self.ns_id = defaults(options.ns_id, -1)
   if is_type("string", self.ns_id) then
@@ -175,6 +195,7 @@ function Tree:init(options)
       swapfile = false,
       undolevels = 0,
     }, defaults(options.buf_options, {})),
+    ---@deprecated
     win_options = vim.tbl_extend("force", {
       foldcolumn = "0",
       foldmethod = "manual",
@@ -187,7 +208,10 @@ function Tree:init(options)
 
   _.set_buf_options(self.bufnr, self._.buf_options)
 
-  _.set_win_options(self.winid, self._.win_options)
+  ---@deprecated
+  if self.winid then
+    _.set_win_options(self.winid, self._.win_options)
+  end
 
   self:set_nodes(defaults(options.nodes, {}))
 end
@@ -224,7 +248,8 @@ function Tree:get_node(node_id_or_linenr)
     return self.nodes.by_id[node_id_or_linenr], unpack(self._content.linenr_by_node_id[node_id_or_linenr] or {})
   end
 
-  local linenr = node_id_or_linenr or vim.api.nvim_win_get_cursor(self.winid)[1]
+  local winid = get_winid(self.bufnr)
+  local linenr = node_id_or_linenr or vim.api.nvim_win_get_cursor(winid)[1]
   local node_id = self._content.node_id_by_linenr[linenr]
   return self.nodes.by_id[node_id], unpack(self._content.linenr_by_node_id[node_id] or {})
 end
