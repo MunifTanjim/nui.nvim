@@ -20,21 +20,51 @@ describe("nui.tree", function()
     vim.api.nvim_buf_delete(bufnr, { force = true })
   end)
 
-  it("throws if no winid", function()
-    local ok, err = pcall(Tree, {})
-    eq(ok, false)
-    eq(type(err), "string")
+  describe("(#deprecated) o.winid", function()
+    it("throws if missing", function()
+      local ok, err = pcall(Tree, {})
+      eq(ok, false)
+      eq(type(string.match(err, "missing bufnr")), "string")
+    end)
+
+    it("throws if invalid", function()
+      local ok, err = pcall(Tree, { winid = 999 })
+      eq(ok, false)
+      eq(type(string.match(err, "invalid winid ")), "string")
+    end)
+
+    it("sets t.winid and t.bufnr properly", function()
+      local tree = Tree({ winid = winid })
+
+      eq(tree.winid, winid)
+      eq(tree.bufnr, bufnr)
+    end)
   end)
 
-  it("throws if invalid winid", function()
-    local ok, err = pcall(Tree, { winid = 999 })
-    eq(ok, false)
-    eq(type(err), "string")
+  describe("o.bufnr", function()
+    it("throws if missing", function()
+      local ok, err = pcall(Tree, {})
+      eq(ok, false)
+      eq(type(string.match(err, "missing bufnr")), "string")
+    end)
+
+    it("throws if invalid", function()
+      local ok, err = pcall(Tree, { bufnr = 999 })
+      eq(ok, false)
+      eq(type(string.match(err, "invalid bufnr ")), "string")
+    end)
+
+    it("sets t.bufnr properly", function()
+      local tree = Tree({ bufnr = bufnr })
+
+      eq(tree.winid, nil)
+      eq(tree.bufnr, bufnr)
+    end)
   end)
 
   it("throws on duplicated node id", function()
     local ok, err = pcall(Tree, {
-      winid = winid,
+      bufnr = bufnr,
       nodes = {
         Tree.Node({ id = "id", text = "text" }),
         Tree.Node({ id = "id", text = "text" }),
@@ -44,15 +74,8 @@ describe("nui.tree", function()
     eq(type(err), "string")
   end)
 
-  it("sets t.winid and t.bufnr properly", function()
-    local tree = Tree({ winid = winid })
-
-    eq(winid, tree.winid)
-    eq(bufnr, tree.bufnr)
-  end)
-
   it("sets default buf options emulating scratch-buffer", function()
-    local tree = Tree({ winid = winid })
+    local tree = Tree({ bufnr = bufnr })
 
     h.assert_buf_options(tree.bufnr, {
       bufhidden = "hide",
@@ -62,19 +85,54 @@ describe("nui.tree", function()
     })
   end)
 
-  it("sets default win options for handling folds", function()
-    local tree = Tree({ winid = winid })
+  describe("(#deprecated) o.win_options", function()
+    it("sets default values for handling folds", function()
+      local tree = Tree({ winid = winid })
 
-    h.assert_win_options(tree.winid, {
-      foldmethod = "manual",
-      foldcolumn = "0",
-      wrap = false,
-    })
+      h.assert_win_options(tree.winid, {
+        foldmethod = "manual",
+        foldcolumn = "0",
+        wrap = false,
+      })
+    end)
+
+    it("sets values", function()
+      local initial_statusline = vim.api.nvim_win_get_option(winid, "statusline")
+
+      local statusline = "test: win_options " .. math.random()
+      local tree = Tree({
+        winid = winid,
+        win_options = {
+          statusline = statusline,
+        },
+      })
+
+      h.assert_win_options(tree.winid, {
+        statusline = statusline,
+      })
+
+      vim.api.nvim_win_set_option(tree.winid, "statusline", initial_statusline)
+    end)
+
+    it("has no effect if o.bufnr is present", function()
+      local initial_statusline = vim.api.nvim_win_get_option(winid, "statusline")
+
+      Tree({
+        bufnr = bufnr,
+        win_options = {
+          statusline = "test: win_options" .. math.random(),
+        },
+      })
+
+      h.assert_win_options(winid, {
+        statusline = initial_statusline,
+      })
+    end)
   end)
 
   it("sets t.ns_id if o.ns_id is string", function()
     local ns = "NuiTreeTest"
-    local tree = Tree({ winid = winid, ns_id = ns })
+    local tree = Tree({ bufnr = bufnr, ns_id = ns })
 
     local namespaces = vim.api.nvim_get_namespaces()
 
@@ -84,7 +142,7 @@ describe("nui.tree", function()
   it("sets t.ns_id if o.ns_id is number", function()
     local ns = "NuiTreeTest"
     local ns_id = vim.api.nvim_create_namespace(ns)
-    local tree = Tree({ winid = winid, ns_id = ns_id })
+    local tree = Tree({ bufnr = bufnr, ns_id = ns_id })
 
     eq(tree.ns_id, ns_id)
   end)
@@ -93,7 +151,7 @@ describe("nui.tree", function()
     local node_d2 = Tree.Node({ key = "depth two" })
     local node_d1 = Tree.Node({ key = "depth one" }, { node_d2 })
     Tree({
-      winid = winid,
+      bufnr = bufnr,
       nodes = { node_d1 },
       get_node_id = function(node)
         return node.key
@@ -107,7 +165,7 @@ describe("nui.tree", function()
   describe("default get_node_id", function()
     it("returns id using n.id", function()
       local node = Tree.Node({ id = "id", text = "text" })
-      Tree({ winid = winid, nodes = { node } })
+      Tree({ bufnr = bufnr, nodes = { node } })
 
       eq(node:get_id(), "-id")
     end)
@@ -115,7 +173,7 @@ describe("nui.tree", function()
     it("returns id using parent_id + depth + n.text", function()
       local node_d2 = Tree.Node({ text = { "depth two a", Text("depth two b") } })
       local node_d1 = Tree.Node({ text = "depth one" }, { node_d2 })
-      Tree({ winid = winid, nodes = { node_d1 } })
+      Tree({ bufnr = bufnr, nodes = { node_d1 } })
 
       eq(node_d1:get_id(), string.format("-%s-%s", node_d1:get_depth(), node_d1.text))
       eq(
@@ -135,7 +193,7 @@ describe("nui.tree", function()
       math.randomseed(0)
 
       local node = Tree.Node({})
-      Tree({ winid = winid, nodes = { node } })
+      Tree({ bufnr = bufnr, nodes = { node } })
 
       eq(node:get_id(), expected_id)
     end)
@@ -162,7 +220,7 @@ describe("nui.tree", function()
     nodes[2]:expand()
 
     local tree = Tree({
-      winid = winid,
+      bufnr = bufnr,
       nodes = nodes,
       prepare_node = prepare_node,
     })
@@ -187,7 +245,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
       })
 
@@ -204,7 +262,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
       })
 
@@ -228,7 +286,7 @@ describe("nui.tree", function()
         Tree.Node({ text = "c" }),
       }
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
       })
 
@@ -263,7 +321,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
       })
 
@@ -289,7 +347,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return type(node.text) == "table" and table.concat(node.text, "-") or node.text
@@ -318,7 +376,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
       })
 
@@ -344,7 +402,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -360,7 +418,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = {
           Tree.Node({ text = "a" }),
           Tree.Node({ text = "b" }, child_nodes),
@@ -377,7 +435,7 @@ describe("nui.tree", function()
   describe("method :add_node", function()
     it("throw if invalid parent_id", function()
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = {
           Tree.Node({ text = "x" }),
         },
@@ -390,7 +448,7 @@ describe("nui.tree", function()
 
     it("can add node at root", function()
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = {
           Tree.Node({ text = "x" }),
         },
@@ -426,7 +484,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -457,7 +515,7 @@ describe("nui.tree", function()
   describe("method :set_nodes", function()
     it("throw if invalid parent_id", function()
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = {
           Tree.Node({ text = "x" }),
         },
@@ -470,7 +528,7 @@ describe("nui.tree", function()
 
     it("can set nodes at root", function()
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = {
           Tree.Node({ text = "x" }),
         },
@@ -509,7 +567,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -553,7 +611,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -590,7 +648,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -620,7 +678,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -646,7 +704,7 @@ describe("nui.tree", function()
       }
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -685,7 +743,7 @@ describe("nui.tree", function()
       })
 
       local tree = Tree({
-        winid = winid,
+        bufnr = bufnr,
         nodes = nodes,
         get_node_id = function(node)
           return node.text
@@ -748,7 +806,7 @@ describe("nui.tree.Node", function()
       local node_w_children = Tree.Node({ text = "b" }, { Tree.Node({ text = "b-1" }) })
 
       Tree({
-        winid = vim.api.nvim_get_current_win(),
+        bufnr = vim.api.nvim_win_get_buf(vim.api.nvim_get_current_win()),
         nodes = { node_wo_children, node_w_children },
       })
 
