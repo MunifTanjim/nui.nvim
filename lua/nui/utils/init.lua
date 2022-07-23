@@ -104,6 +104,15 @@ function _.set_buf_options(bufnr, buf_options)
 end
 
 ---@private
+---@param bufnr number
+---@param buf_variables table<string, any>
+function _.set_buf_variables(bufnr, buf_variables)
+  for name, value in pairs(buf_variables) do
+    vim.api.nvim_buf_set_var(bufnr, name, value)
+  end
+end
+
+---@private
 ---@param winid number
 ---@param win_options table<string, any>
 function _.set_win_options(winid, win_options)

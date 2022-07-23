@@ -70,6 +70,7 @@ local function merge_default_options(options)
   options.enter = defaults(options.enter, true)
 
   options.buf_options = defaults(options.buf_options, {})
+  options.buf_variables = defaults(options.buf_variables, {})
   options.win_options = vim.tbl_extend("force", {
     winfixwidth = true,
     winfixheight = true,
@@ -121,6 +122,7 @@ function Split:init(options)
   self._ = {
     enter = options.enter,
     buf_options = options.buf_options,
+    buf_variables = options.buf_variables,
     loading = false,
     mounted = false,
     layout = {
@@ -185,6 +187,9 @@ function Split:_buf_create()
   if not self.bufnr then
     self.bufnr = vim.api.nvim_create_buf(false, true)
     assert(self.bufnr, "failed to create buffer")
+
+    utils._.set_buf_variables(self.bufnr, self._.buf_variables)
+    utils._.set_buf_options(self.bufnr, self._.buf_options)
   end
 end
 
@@ -196,8 +201,6 @@ function Split:mount()
   self._.loading = true
 
   self:_buf_create()
-
-  utils._.set_buf_options(self.bufnr, self._.buf_options)
 
   self:_open_window()
 
