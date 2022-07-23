@@ -113,6 +113,15 @@ function _.set_win_options(winid, win_options)
 end
 
 ---@private
+---@param winid number
+---@param win_variables table<string, any>
+function _.set_win_variables(winid, win_variables)
+  for name, value in pairs(win_variables) do
+    vim.api.nvim_win_set_var(winid, name, value)
+  end
+end
+
+---@private
 ---@param dimension number | string
 ---@param container_dimension number
 ---@return nil | number

@@ -74,6 +74,7 @@ local function merge_default_options(options)
     winfixwidth = true,
     winfixheight = true,
   }, defaults(options.win_options, {}))
+  options.win_variables = defaults(options.win_variables, {})
 
   return options
 end
@@ -129,6 +130,7 @@ function Split:init(options)
     relative = parse_relative(options.relative, 0),
     size = {},
     win_options = options.win_options,
+    win_variables = options.win_variables,
     win_config = {},
   }
 
@@ -163,6 +165,7 @@ function Split:_open_window()
     vim.api.nvim_set_current_win(self.winid)
   end
 
+  utils._.set_win_variables(self.winid, self._.win_variables)
   utils._.set_win_options(self.winid, self._.win_options)
 end
 
