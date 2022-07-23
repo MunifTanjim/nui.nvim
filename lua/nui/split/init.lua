@@ -63,17 +63,16 @@ local function set_win_config(winid, win_config)
   end
 end
 
-local function merge_default_options(options)
+local function merge_default_options(options, default_options)
   options.relative = defaults(options.relative, "win")
   options.position = defaults(options.position, vim.go.splitbelow and "bottom" or "top")
 
   options.enter = defaults(options.enter, true)
 
   options.buf_options = defaults(options.buf_options, {})
-  options.win_options = vim.tbl_extend("force", {
-    winfixwidth = true,
-    winfixheight = true,
-  }, defaults(options.win_options, {}))
+  options.buf_variables = defaults(options.buf_variables, {})
+  options.win_options = vim.tbl_extend("force", default_options.win_options, defaults(options.win_options, {}))
+  options.win_variables = defaults(options.win_variables, {})
 
   return options
 end
@@ -112,14 +111,22 @@ end
 ---@field winid number
 local Split = Object("NuiSplit")
 
+Split.static.default_options = {
+  win_options = {
+    winfixwidth = true,
+    winfixheight = true,
+  },
+}
+
 ---@param options table
 function Split:init(options)
-  options = merge_default_options(options)
+  options = merge_default_options(options, self.class.default_options)
   options = normalize_options(options)
 
   self._ = {
     enter = options.enter,
     buf_options = options.buf_options,
+    buf_variables = options.buf_variables,
     loading = false,
     mounted = false,
     layout = {
@@ -129,6 +136,7 @@ function Split:init(options)
     relative = parse_relative(options.relative, 0),
     size = {},
     win_options = options.win_options,
+    win_variables = options.win_variables,
     win_config = {},
   }
 
@@ -163,6 +171,7 @@ function Split:_open_window()
     vim.api.nvim_set_current_win(self.winid)
   end
 
+  utils._.set_win_variables(self.winid, self._.win_variables)
   utils._.set_win_options(self.winid, self._.win_options)
 end
 
@@ -182,6 +191,9 @@ function Split:_buf_create()
   if not self.bufnr then
     self.bufnr = vim.api.nvim_create_buf(false, true)
     assert(self.bufnr, "failed to create buffer")
+
+    utils._.set_buf_variables(self.bufnr, self._.buf_variables)
+    utils._.set_buf_options(self.bufnr, self._.buf_options)
   end
 end
 
@@ -193,8 +205,6 @@ function Split:mount()
   self._.loading = true
 
   self:_buf_create()
-
-  utils._.set_buf_options(self.bufnr, self._.buf_options)
 
   self:_open_window()
 
