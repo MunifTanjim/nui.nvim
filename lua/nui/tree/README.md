@@ -8,7 +8,7 @@ NuiTree can render tree-like structured content on the buffer.
 local NuiTree = require("nui.tree")
 
 local tree = NuiTree({
-  winid = winid,
+  bufnr = bufnr,
   nodes = {
     NuiTree.Node({ text = "a" }),
     NuiTree.Node({ text = "b" }, {
@@ -23,11 +23,11 @@ tree:render()
 
 ## Options
 
-### `winid`
+### `bufnr`
 
 **Type:** `number`
 
-Id of the window where the tree will be rendered.
+Id of the buffer where the tree will be rendered.
 
 ---
 
@@ -123,24 +123,6 @@ buf_options = {
   buflisted = false,
   buftype = "nofile",
   swapfile = false,
-},
-```
-
----
-
-### `win_options`
-
-**Type:** `table`
-
-Contains all window related options (check `:h options | /local to window`).
-
-**Examples**
-
-```lua
-win_options = {
-  foldcolumn = "0",
-  foldmethod = "manual",
-  wrap = false,
 },
 ```
 
