@@ -151,11 +151,8 @@ local function calculate_buf_edge_line(internal, edge, text, align)
     content_text:set(_.truncate_text(content_text:content(), max_width))
   end
 
-  local left_gap_width, right_gap_width = _.calculate_gap_width(
-    defaults(align, "center"),
-    max_width,
-    content_text:width()
-  )
+  local left_gap_width, right_gap_width =
+    _.calculate_gap_width(defaults(align, "center"), max_width, content_text:width())
 
   local line = Line()
 
@@ -575,21 +572,14 @@ function Border:set_highlight(border_highlight)
   local internal = self._
 
   if internal.type ~= "complex" then
-    internal.winhighlight = merge_winhl(
-      vim.api.nvim_win_get_option(self.popup.winid, 'winhl'),
-      "FloatBorder",
-      border_highlight
-    )
+    internal.winhighlight =
+      merge_winhl(vim.api.nvim_win_get_option(self.popup.winid, "winhl"), "FloatBorder", border_highlight)
 
     vim.api.nvim_win_set_option(self.popup.winid, "winhl", internal.winhighlight)
     return
   end
 
-  internal.winhighlight = merge_winhl(
-    self.popup._.win_options.winhighlight,
-    "FloatBorder",
-    border_highlight
-  )
+  internal.winhighlight = merge_winhl(self.popup._.win_options.winhighlight, "FloatBorder", border_highlight)
 
   internal.highlight = nil
   internal.highlight = normalize_highlight(internal)

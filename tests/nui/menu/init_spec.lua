@@ -45,6 +45,22 @@ describe("nui.menu", function()
         "a",
       })
     end)
+
+    it("works with menu object", function()
+      local menu = Menu:new(popup_options, {
+        lines = {},
+      }):new(popup_options, {
+        lines = {
+          Menu.item("a"),
+        },
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "a",
+      })
+    end)
   end)
 
   describe("o.keymap", function()
