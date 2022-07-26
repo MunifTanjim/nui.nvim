@@ -11,7 +11,7 @@ local Text = Object("NuiText")
 function Text:init(content, extmark)
   if is_type("table", content) then
     -- cloning
-    self:set(content._content, content.extmark)
+    self:set(content._content, extmark or content.extmark)
   else
     self:set(content, extmark)
   end

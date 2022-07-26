@@ -14,19 +14,35 @@ describe("nui.text", function()
   end)
 
   it("can clone nui.text object", function()
-    local content = "42"
     local hl_group = "NuiTextTest"
 
-    local t1 = Text(content, hl_group)
+    local t1 = Text("42", hl_group)
 
+    t1.extmark.id = 42
     local t2 = Text(t1)
-    eq(t1:content(), t2:content())
-    eq(t1.extmark, t2.extmark)
+    eq(t2:content(), t1:content())
+    eq(t2.extmark, tbl_omit(t1.extmark, { "id" }))
 
     t2.extmark.id = 42
     local t3 = Text(t2)
-    eq(t2:content(), t3:content())
-    eq(tbl_omit(t2.extmark, { "id" }), t3.extmark)
+    eq(t3:content(), t2:content())
+    eq(t3.extmark, tbl_omit(t2.extmark, { "id" }))
+  end)
+
+  it("can clone nui.text object overriding extmark", function()
+    local hl_group = "NuiTextTest"
+    local hl_group_override = "NuiTextTestOverride"
+
+    local t1 = Text("42", hl_group)
+
+    t1.extmark.id = 42
+    local t2 = Text(t1, hl_group_override)
+    eq(t2:content(), t1:content())
+    eq(t2.extmark, { hl_group = hl_group_override })
+
+    local t3 = Text(t2, { id = 42, hl_group = hl_group })
+    eq(t3:content(), t2:content())
+    eq(t3.extmark, { hl_group = hl_group })
   end)
 
   describe("method :set", function()
