@@ -585,7 +585,7 @@ function Border:set_highlight(border_highlight)
   internal.highlight = normalize_highlight(internal)
 
   for _, item in pairs(internal.char) do
-    item:set_highlight(internal.highlight)
+    item:set(item:content(), internal.highlight)
   end
 
   if internal.winhighlight then
