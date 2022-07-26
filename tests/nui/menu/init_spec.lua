@@ -47,7 +47,7 @@ describe("nui.menu", function()
     end)
 
     it("works with menu object", function()
-      local menu = Menu:new(popup_options, {
+      menu = Menu:new(popup_options, {
         lines = {},
       }):new(popup_options, {
         lines = {
