@@ -1,12 +1,12 @@
 local Object = require("nui.object")
 local utils = require("nui.utils")
 local layout_utils = require("nui.layout.utils")
+local float_layout = require("nui.layout.float")
 
 local _ = utils._
 
 local defaults = utils.defaults
 local is_type = utils.is_type
-local calculate_window_size = layout_utils.calculate_window_size
 local u = {
   size = layout_utils.size,
   position = layout_utils.position,
@@ -107,137 +107,12 @@ function Layout:init(options, box)
   end
 end
 
-local function get_child_position(canvas_position, current_position, box_dir)
-  if box_dir == "row" then
-    return {
-      row = canvas_position.row,
-      col = current_position.col,
-    }
-  elseif box_dir == "col" then
-    return {
-      col = canvas_position.col,
-      row = current_position.row,
-    }
-  end
-end
-
----@param parent table Layout.Box
----@param child table Layout.Box
----@param container_size table
----@param growable_dimension_per_factor? number
-local function get_child_size(parent, child, container_size, growable_dimension_per_factor)
-  local child_size = {
-    width = child.size.width,
-    height = child.size.height,
-  }
-
-  if child.grow and growable_dimension_per_factor then
-    if parent.dir == "col" then
-      child_size.height = math.floor(growable_dimension_per_factor * child.grow)
-    else
-      child_size.width = math.floor(growable_dimension_per_factor * child.grow)
-    end
-  end
-
-  local outer_size = calculate_window_size(child_size, container_size)
-
-  local inner_size = {
-    width = outer_size.width,
-    height = outer_size.height,
-  }
-
-  if child.component then
-    if child.component.border then
-      inner_size.width = inner_size.width - child.component.border._.size_delta.width
-      inner_size.height = inner_size.height - child.component.border._.size_delta.height
-    end
-  end
-
-  return outer_size, inner_size
-end
-
-local function process_layout(box, meta)
-  if box.mount or box.component or not box.box then
-    return error("invalid paramter: box")
-  end
-
-  local canvas_size = meta.canvas_size
-  if not is_type("number", canvas_size.width) or not is_type("number", canvas_size.height) then
-    return error("invalid value: box.size")
-  end
-
-  local current_position = {
-    col = 0,
-    row = 0,
-  }
-
-  local growable_child_factor = 0
-
-  for _, child in ipairs(box.box) do
-    if meta.process_growable_child or not child.grow then
-      local position = get_child_position(meta.position, current_position, box.dir)
-      local outer_size, inner_size = get_child_size(box, child, canvas_size, meta.growable_dimension_per_factor)
-
-      if child.component then
-        child.component:set_layout({
-          size = inner_size,
-          relative = {
-            type = "win",
-            winid = meta.winid,
-          },
-          position = position,
-        })
-      else
-        process_layout(child, {
-          winid = meta.winid,
-          canvas_size = outer_size,
-          position = position,
-        })
-      end
-
-      current_position.col = current_position.col + outer_size.width
-      current_position.row = current_position.row + outer_size.height
-    end
-
-    if child.grow then
-      growable_child_factor = growable_child_factor + child.grow
-    end
-  end
-
-  if meta.process_growable_child or growable_child_factor == 0 then
-    return
-  end
-
-  local growable_width = canvas_size.width - current_position.col
-  local growable_height = canvas_size.height - current_position.row
-  local growable_dimension = box.dir == "col" and growable_height or growable_width
-  local growable_dimension_per_factor = growable_dimension / growable_child_factor
-
-  process_layout(box, {
-    winid = meta.winid,
-    canvas_size = meta.canvas_size,
-    position = meta.position,
-    process_growable_child = true,
-    growable_dimension_per_factor = growable_dimension_per_factor,
-  })
-end
-
-local function mount_box(box)
-  for _, child in ipairs(box.box) do
-    if child.component then
-      child.component:mount()
-    else
-      mount_box(child)
-    end
-  end
-end
-
 function Layout:_process_layout()
   apply_workaround_for_float_relative_position_issue_18925(self)
 
-  process_layout(self._.box, {
+  float_layout.process(self._.box, {
     winid = self.winid,
-    canvas_size = self._.size,
+    container_size = self._.size,
     position = {
       row = 0,
       col = 0,
@@ -270,20 +145,10 @@ function Layout:mount()
 
   self:_process_layout()
 
-  mount_box(self._.box)
+  float_layout.mount_box(self._.box)
 
   self._.loading = false
   self._.mounted = true
-end
-
-local function unmount_box(box)
-  for _, child in ipairs(box.box) do
-    if child.component then
-      child.component:unmount()
-    else
-      unmount_box(child)
-    end
-  end
 end
 
 function Layout:unmount()
@@ -293,9 +158,7 @@ function Layout:unmount()
 
   self._.loading = true
 
-  local root_box = self._.box
-
-  unmount_box(root_box)
+  float_layout.unmount_box(self._.box)
 
   if self.bufnr then
     if vim.api.nvim_buf_is_valid(self.bufnr) then
