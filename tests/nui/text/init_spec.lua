@@ -47,30 +47,46 @@ describe("nui.text", function()
 
   describe("method :set", function()
     it("works", function()
-      local content = "42"
       local hl_group = "NuiTextTest"
-      local text = Text(content, hl_group)
+      local hl_group_override = "NuiTextTestOverride"
 
-      eq(text:content(), content)
+      local text = Text("42", hl_group)
+
+      eq(text:content(), "42")
       eq(text:length(), 2)
       eq(text.extmark, {
         hl_group = hl_group,
       })
+
+      text.extmark.id = 42
 
       text:set("3")
       eq(text:content(), "3")
       eq(text:length(), 1)
       eq(text.extmark, {
         hl_group = hl_group,
+        id = 42,
       })
 
-      text:set("3", {
-        hl_group = hl_group,
+      text:set("9", hl_group_override)
+      eq(text:content(), "9")
+      eq(text.extmark, {
+        hl_group = hl_group_override,
+        id = 42,
       })
-      eq(text:content(), "3")
+
+      text:set("11", { hl_group = hl_group })
+      eq(text:content(), "11")
       eq(text.extmark, {
         hl_group = hl_group,
+        id = 42,
       })
+
+      text.extmark.id = nil
+
+      text:set("42", { id = 42, hl_group = hl_group })
+      eq(text:content(), "42")
+      eq(text.extmark, { hl_group = hl_group })
     end)
   end)
 

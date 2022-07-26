@@ -28,8 +28,10 @@ function Text:set(content, extmark)
   end
 
   if extmark then
+    -- preserve self.extmark.id
+    local id = self.extmark and self.extmark.id or nil
     self.extmark = is_type("string", extmark) and { hl_group = extmark } or vim.deepcopy(extmark)
-    self.extmark.id = nil
+    self.extmark.id = id
   end
 
   return self
