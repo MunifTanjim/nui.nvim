@@ -595,7 +595,7 @@ describe("nui.popup", function()
 
       popup.border:set_highlight(hl_group)
 
-      eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group)
+      eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "FloatBorder:" .. hl_group .. ",Normal:Normal")
     end)
 
     it("works for complex border", function()
@@ -624,7 +624,10 @@ describe("nui.popup", function()
 
       popup.border:set_highlight(hl_group_override)
 
-      eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group_override)
+      eq(
+        vim.api.nvim_win_get_option(popup.winid, "winhighlight"),
+        "FloatBorder:" .. hl_group_override .. ",Normal:Normal"
+      )
       eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group_override)
     end)
   end)
