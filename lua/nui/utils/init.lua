@@ -203,4 +203,26 @@ function _.normalize_layout_options(options)
   return options
 end
 
+---@param winhighlight string
+---@return table<string, string> highlight_map
+function _.parse_winhighlight(winhighlight)
+  local highlight = {}
+  local parts = vim.split(winhighlight, ",", { plain = true, trimempty = true })
+  for _, part in ipairs(parts) do
+    local key, value = part:match("(.+):(.+)")
+    highlight[key] = value
+  end
+  return highlight
+end
+
+---@param highlight_map table<string, string>
+---@return string winhighlight
+function _.serialize_winhighlight(highlight_map)
+  local parts = vim.tbl_map(function(key)
+    return key .. ":" .. highlight_map[key]
+  end, vim.tbl_keys(highlight_map))
+  table.sort(parts)
+  return table.concat(parts, ",")
+end
+
 return utils

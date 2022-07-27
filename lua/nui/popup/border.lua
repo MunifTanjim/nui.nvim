@@ -351,23 +351,6 @@ end
 
 --luacheck: push no max line length
 
----@param current_winhl string
----@param hl_name string
----@param hl_replacement string
-local function merge_winhl(current_winhl, hl_name, hl_replacement)
-  local hl_prefix = string.format("%s:", hl_name)
-
-  local current_parts = vim.split(current_winhl or "", ",")
-  local new_parts = vim.tbl_filter(function(part)
-    return not vim.startswith(part, hl_prefix) and part ~= ""
-  end, current_parts)
-  table.insert(new_parts, string.format("%s:%s", hl_name, hl_replacement))
-
-  local result = table.concat(new_parts, ",")
-
-  return result
-end
-
 ---@alias nui_t_text_align "'left'" | "'center'" | "'right'"
 ---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
 ---@alias nui_popup_border_internal_position { row: number, col: number }
@@ -581,7 +564,9 @@ end
 function Border:set_highlight(highlight)
   local internal = self._
 
-  self.popup._.win_options.winhighlight = merge_winhl(self.popup._.win_options.winhighlight, "FloatBorder", highlight)
+  local winhighlight_data = _.parse_winhighlight(self.popup._.win_options.winhighlight)
+  winhighlight_data["FloatBorder"] = highlight
+  self.popup._.win_options.winhighlight = _.serialize_winhighlight(winhighlight_data)
   if self.popup.winid then
     vim.api.nvim_win_set_option(self.popup.winid, "winhighlight", self.popup._.win_options.winhighlight)
   end
