@@ -533,4 +533,61 @@ describe("nui.popup", function()
       eq(type(popup.border.bufnr), "nil")
     end)
   end)
+
+  describe("method :set_highlight", function()
+    it("works for simple border", function()
+      local style = h.popup.create_border_style_map()
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = style,
+        },
+        win_options = {
+          winhighlight = "Normal:Normal,FloatBorder:Normal",
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(popup.border.winid, nil)
+
+      local hl_group = "NuiPopupTest"
+
+      popup.border:set_highlight(hl_group)
+
+      eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group)
+    end)
+
+    it("works for complex border", function()
+      local style = h.popup.create_border_style_map()
+
+      local hl_group = "NuiPopupTest"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = style,
+          padding = { 0 },
+        },
+        win_options = {
+          winhighlight = "Normal:Normal,FloatBorder:" .. hl_group,
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+
+      local hl_group_override = "NuiPopupTestOverride"
+
+      popup.border:set_highlight(hl_group_override)
+
+      eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group_override)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group_override)
+    end)
+  end)
 end)
