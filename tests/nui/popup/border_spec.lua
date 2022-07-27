@@ -28,6 +28,44 @@ describe("nui.popup", function()
     end
   end)
 
+  describe("(#deprecated) border.highlight", function()
+    it("works for 'hl_group'", function()
+      local hl_group = "NuiPopupTest"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          highlight = hl_group,
+          padding = { 0 },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+    end)
+
+    it("works for 'FloatBorder:hl_group'", function()
+      local hl_group = "NuiPopupTest"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          highlight = "FloatBorder:" .. hl_group,
+          padding = { 0 },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+    end)
+  end)
+
   describe("border.padding", function()
     local function assert_padding(padding, target_popup)
       local border_char_size = 1
