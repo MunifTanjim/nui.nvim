@@ -586,6 +586,26 @@ popup:update_layout({
 
 ---
 
+### `popup.border:set_highlight`
+
+_Signature:_ `popup.border:set_highlight(highlight: string) -> nil`
+
+Sets border highlight.
+
+**Parameters**
+
+| Name        | Type     | Description          |
+| ----------- | -------- | -------------------- |
+| `highlight` | `string` | highlight group name |
+
+**Examples**
+
+```lua
+popup.border:set_highlight("SpecialChar")
+```
+
+---
+
 ### `popup.border:set_text`
 
 _Signature:_ `popup.border:set_text(edge, text, align)`
