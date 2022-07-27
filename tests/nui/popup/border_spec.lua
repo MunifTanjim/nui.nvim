@@ -387,8 +387,9 @@ describe("nui.popup", function()
   end)
 
   describe("method :mount", function()
-    it("sets winhighlight from popup", function()
-      local winhighlight = "Normal:Normal,FloatBorder:FloatBorder"
+    it("sets winhighlight correctly", function()
+      local hl_group = "NuiPopupTest"
+      local winhighlight = "Normal:Normal,FloatBorder:" .. hl_group
 
       popup_options = vim.tbl_deep_extend("force", popup_options, {
         border = {
@@ -406,7 +407,7 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), winhighlight)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
     end)
 
     it("does nothing if popup mounted", function()

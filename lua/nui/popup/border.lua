@@ -81,9 +81,9 @@ local function normalize_border_char(internal)
 
   for position, item in pairs(internal.char) do
     if is_type("string", item) then
-      internal.char[position] = Text(item, internal.highlight)
+      internal.char[position] = Text(item)
     elseif not item.content then
-      internal.char[position] = Text(item[1], item[2] or internal.highlight)
+      internal.char[position] = Text(item[1], item[2])
     end
   end
 
@@ -91,18 +91,32 @@ local function normalize_border_char(internal)
 end
 
 ---@param internal nui_popup_border_internal
-local function normalize_highlight(internal)
+---@param popup_winhighlight? string
+local function calculate_winhighlight(internal, popup_winhighlight)
+  if internal.type == "simple" then
+    return
+  end
+
+  local winhl = popup_winhighlight
+
   -- @deprecated
-  if internal.highlight and string.match(internal.highlight, ":") then
-    internal.winhighlight = internal.highlight
+  if internal.highlight then
+    if not string.match(internal.highlight, ":") then
+      local highlight = internal.highlight
+      internal.highlight = nil
+      return "Normal:" .. highlight
+    end
+
+    winhl = internal.highlight
     internal.highlight = nil
   end
 
-  if not internal.highlight and internal.winhighlight then
-    internal.highlight = string.match(internal.winhighlight, "FloatBorder:([^,]+)")
+  if winhl and winhl:match("FloatBorder:") then
+    local highlight = string.match(winhl, "FloatBorder:([^,]+)")
+    return "Normal:" .. highlight
   end
 
-  return internal.highlight or "FloatBorder"
+  return "Normal:WinSeparator"
 end
 
 ---@return nui_popup_border_internal_padding|nil
@@ -382,7 +396,6 @@ function Border:init(popup, options)
     highlight = options.highlight,
     padding = parse_padding(options.padding),
     text = options.text,
-    winhighlight = self.popup._.win_options.winhighlight,
   }
 
   local internal = self._
@@ -413,7 +426,7 @@ function Border:init(popup, options)
     internal.type = "complex"
   end
 
-  internal.highlight = normalize_highlight(internal)
+  internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
 
   internal.char = normalize_border_char(internal)
 
@@ -526,27 +539,21 @@ function Border:_relayout()
   self.win_config.row = internal.position.row
   self.win_config.col = internal.position.col
 
+  internal.lines = calculate_buf_lines(internal)
+
   if self.winid then
     vim.api.nvim_win_set_config(self.winid, self.win_config)
   end
-
-  self:_render()
-
-  adjust_popup_win_config(self)
-
-  vim.api.nvim_command("redraw")
-end
-
-function Border:_render()
-  local internal = self._
-
-  internal.lines = calculate_buf_lines(internal)
 
   if self.bufnr then
     if internal.lines then
       _.render_lines(internal.lines, self.bufnr, self.popup.ns_id, 1, #internal.lines)
     end
   end
+
+  adjust_popup_win_config(self)
+
+  vim.api.nvim_command("redraw")
 end
 
 ---@param edge "'top'" | "'bottom'"
@@ -570,35 +577,19 @@ function Border:set_text(edge, text, align)
   line:render(self.bufnr, self.popup.ns_id, linenr)
 end
 
----@param border_highlight string For example, "WarningMsg"
-function Border:set_highlight(border_highlight)
+---@param highlight string highlight group
+function Border:set_highlight(highlight)
   local internal = self._
 
-  if internal.type ~= "complex" then
-    internal.winhighlight = merge_winhl(
-      vim.api.nvim_win_get_option(self.popup.winid, "winhl"),
-      "FloatBorder",
-      border_highlight
-    )
-
-    vim.api.nvim_win_set_option(self.popup.winid, "winhl", internal.winhighlight)
-    return
+  self.popup._.win_options.winhighlight = merge_winhl(self.popup._.win_options.winhighlight, "FloatBorder", highlight)
+  if self.popup.winid then
+    vim.api.nvim_win_set_option(self.popup.winid, "winhighlight", self.popup._.win_options.winhighlight)
   end
 
-  internal.winhighlight = merge_winhl(self.popup._.win_options.winhighlight, "FloatBorder", border_highlight)
-
-  internal.highlight = nil
-  internal.highlight = normalize_highlight(internal)
-
-  for _, item in pairs(internal.char) do
-    item:set(item:content(), internal.highlight)
-  end
-
-  if internal.winhighlight then
+  internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
+  if self.winid then
     vim.api.nvim_win_set_option(self.winid, "winhighlight", internal.winhighlight)
   end
-
-  self:_render()
 end
 
 function Border:get()
