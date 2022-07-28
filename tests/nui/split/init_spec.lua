@@ -7,8 +7,16 @@ local spy = require("luassert.spy")
 
 local eq, feedkeys = h.eq, h.feedkeys
 
+local function percent(number, percentage)
+  return math.floor(number * percentage / 100)
+end
+
 describe("nui.split", function()
   local split
+
+  before_each(function()
+    vim.o.winwidth = 10
+  end)
 
   after_each(function()
     split:unmount()
@@ -77,6 +85,32 @@ describe("nui.split", function()
         eq(vim.api[nvim_method](split.winid), size)
       end)
     end
+
+    it("supports table (.width)", function()
+      local size = 10
+
+      split = Split({
+        size = { width = size },
+        position = "left",
+      })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_width(split.winid), size)
+    end)
+
+    it("supports table (.height)", function()
+      local size = 10
+
+      split = Split({
+        size = { height = size },
+        position = "top",
+      })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_height(split.winid), size)
+    end)
 
     it("is optional", function()
       split = Split({
@@ -413,6 +447,118 @@ describe("nui.split", function()
       local curr_winids = vim.api.nvim_list_wins()
 
       eq(#prev_winids, #curr_winids)
+    end)
+  end)
+
+  describe("method :update_layout", function()
+    it("can change size", function()
+      split = Split({ positon = "bottom", size = 10 })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_height(split.winid), 10)
+
+      split:update_layout({ size = 20 })
+
+      eq(vim.api.nvim_win_get_height(split.winid), 20)
+    end)
+
+    it("can change position", function()
+      local winid = vim.api.nvim_get_current_win()
+
+      split = Split({ position = "bottom", size = 10 })
+
+      split:mount()
+
+      eq(vim.fn.winlayout(), {
+        "col",
+        {
+          { "leaf", winid },
+          { "leaf", split.winid },
+        },
+      })
+
+      split:update_layout({ position = "right" })
+
+      eq(vim.fn.winlayout(), {
+        "row",
+        {
+          { "leaf", winid },
+          { "leaf", split.winid },
+        },
+      })
+    end)
+
+    it("can change position and size", function()
+      local winid = vim.api.nvim_get_current_win()
+
+      split = Split({ position = "top", size = 10 })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_height(split.winid), 10)
+      eq(vim.fn.winlayout(), {
+        "col",
+        {
+          { "leaf", split.winid },
+          { "leaf", winid },
+        },
+      })
+
+      split:update_layout({ position = "left", size = 20 })
+
+      eq(vim.api.nvim_win_get_width(split.winid), 20)
+      eq(vim.fn.winlayout(), {
+        "row",
+        {
+          { "leaf", split.winid },
+          { "leaf", winid },
+        },
+      })
+    end)
+
+    it("can change relative", function()
+      local winid_one = vim.api.nvim_get_current_win()
+      local split_two = Split({ position = "right", size = 10 })
+      split_two:mount()
+
+      split = Split({ relative = "win", position = "top", size = 10 })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_height(split.winid), 10)
+      eq(vim.fn.winlayout(), {
+        "row",
+        {
+          { "leaf", winid_one },
+          {
+            "col",
+            {
+              { "leaf", split.winid },
+              { "leaf", split_two.winid },
+            },
+          },
+        },
+      })
+
+      split:update_layout({ position = "bottom", relative = "editor", size = "50%" })
+
+      eq(vim.api.nvim_win_get_height(split.winid), percent(vim.o.lines, 50))
+      eq(vim.fn.winlayout(), {
+        "col",
+        {
+          {
+            "row",
+            {
+              { "leaf", winid_one },
+              { "leaf", split_two.winid },
+            },
+          },
+          { "leaf", split.winid },
+        },
+      })
+
+      split_two:unmount()
     end)
   end)
 
