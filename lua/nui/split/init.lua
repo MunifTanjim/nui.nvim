@@ -26,6 +26,45 @@ local split_direction_command_map = {
   },
 }
 
+local function move_split_window(winid, win_config)
+  if win_config.relative == "editor" then
+    vim.api.nvim_win_call(winid, function()
+      vim.cmd("wincmd " .. ({ top = "K", right = "L", bottom = "J", left = "H" })[win_config.position])
+    end)
+  elseif win_config.relative == "win" then
+    local move_options = {
+      vertical = win_config.position == "left" or win_config.position == "right",
+      rightbelow = win_config.position == "bottom" or win_config.position == "right",
+    }
+
+    vim.cmd(
+      string.format(
+        "noautocmd call win_splitmove(%s, %s, #{ vertical: %s, rightbelow: %s })",
+        winid,
+        win_config.win,
+        move_options.vertical and 1 or 0,
+        move_options.rightbelow and 1 or 0
+      )
+    )
+  end
+end
+
+local function set_win_config(winid, win_config)
+  if win_config.pending_changes.position then
+    move_split_window(winid, win_config)
+  end
+
+  if win_config.pending_changes.size then
+    if win_config.width then
+      vim.api.nvim_win_set_width(winid, win_config.width)
+    elseif win_config.height then
+      vim.api.nvim_win_set_height(winid, win_config.height)
+    end
+  end
+
+  win_config.pending_changes = {}
+end
+
 --luacheck: push no max line length
 
 ---@alias nui_split_internal_position "'top'"|"'right'"|"'bottom'"|"'left'"
@@ -52,24 +91,30 @@ function Split:init(options)
     buf_options = options.buf_options,
     loading = false,
     mounted = false,
-    layout = {
-      size = options.size,
-    },
+    layout = {},
     position = options.position,
-    relative = u.split.parse_relative(options.relative, 0),
     size = {},
     win_options = options.win_options,
-    win_config = {},
+    win_config = {
+      pending_changes = {},
+    },
   }
 
   self.ns_id = u.normalize_namespace_id(options.ns_id)
 
   self:_buf_create()
 
-  local container_info = u.split.get_container_info(self._.relative)
-  self._.size = u.split.calculate_window_size(self._.position, self._.layout.size, container_info.size)
-  self._.win_config.width = self._.size.width
-  self._.win_config.height = self._.size.height
+  self:update_layout(options)
+end
+
+function Split:update_layout(config)
+  config = config or {}
+
+  u.split.update_layout_config(self._, config)
+
+  if self.winid then
+    set_win_config(self.winid, self._.win_config)
+  end
 end
 
 function Split:_open_window()
@@ -96,6 +141,8 @@ function Split:_open_window()
   end
 
   utils._.set_win_options(self.winid, self._.win_options)
+
+  self._.win_config.pending_changes = {}
 end
 
 function Split:_close_window()
