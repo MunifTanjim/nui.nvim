@@ -3,7 +3,12 @@ local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
+local layout_utils = require("nui.layout.utils")
+
 local defaults = utils.defaults
+local u = {
+  size = layout_utils.size,
+}
 
 local split_direction_command_map = {
   editor = {
@@ -78,12 +83,18 @@ local function merge_default_options(options)
   return options
 end
 
-local function normalize_options(options)
+local function normalize_layout_options(options)
   if utils.is_type("string", options.relative) then
     options.relative = {
       type = options.relative,
     }
   end
+
+  return options
+end
+
+local function normalize_options(options)
+  options = normalize_layout_options(options)
 
   return options
 end
@@ -122,11 +133,8 @@ function Split:init(options)
     buf_options = options.buf_options,
     loading = false,
     mounted = false,
-    layout = {
-      size = options.size,
-    },
+    layout = {},
     position = options.position,
-    relative = parse_relative(options.relative, 0),
     size = {},
     win_options = options.win_options,
     win_config = {},
@@ -134,10 +142,40 @@ function Split:init(options)
 
   self:_buf_create()
 
-  local container_info = get_container_info(self._.relative)
-  self._.size = calculate_window_size(self._.position, self._.layout.size, container_info)
-  self._.win_config.width = self._.size.width
-  self._.win_config.height = self._.size.height
+  self:update_layout(options)
+end
+
+function Split:update_layout(config)
+  config = config or {}
+
+  local options = normalize_layout_options({
+    relative = config.relative,
+    position = config.position,
+    size = config.size,
+  })
+
+  if options.relative then
+    local fallback_winid = self._.relative and self._.relative.win or 0
+    self._.relative = parse_relative(options.relative, fallback_winid)
+  end
+
+  if options.size or u.size.contains_percentage_string({ width = self._.layout.size }) then
+    self._.layout.size = options.size or self._.layout.size
+
+    local container_info = get_container_info(self._.relative)
+    self._.size = calculate_window_size(self._.position, self._.layout.size, container_info)
+
+    self._.win_config.width = self._.size.width
+    self._.win_config.height = self._.size.height
+  end
+
+  if options.position then
+    self._.position = options.position
+  end
+
+  if self.winid then
+    set_win_config(self.winid, self._.win_config)
+  end
 end
 
 function Split:_open_window()
