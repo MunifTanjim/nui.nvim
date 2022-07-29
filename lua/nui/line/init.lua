@@ -27,6 +27,15 @@ function Line:content()
   end, self._texts))
 end
 
+---@return number
+function Line:width()
+  local width = 0
+  for _, text in ipairs(self._texts) do
+    width = width + text:width()
+  end
+  return width
+end
+
 ---@param bufnr number buffer number
 ---@param ns_id number namespace id
 ---@param linenr number line number (1-indexed)
