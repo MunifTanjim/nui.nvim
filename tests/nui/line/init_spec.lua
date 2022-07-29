@@ -31,7 +31,18 @@ describe("nui.line", function()
       eq(type(ret_text.content), "function")
     end)
 
-    it("stores and returns nui.text with same reference", function()
+    it("returns nui.line for nui.line parameter", function()
+      local line = Line()
+
+      local content_line = Line({ Text("One"), Text("Two") })
+
+      local ret_content_line = line:append(content_line)
+
+      eq(content_line == ret_content_line, true)
+      eq(type(ret_content_line.append), "function")
+    end)
+
+    it("stores and returns block with same reference", function()
       local line = Line()
 
       local text_one = line:append("One")
@@ -44,6 +55,15 @@ describe("nui.line", function()
       eq(text_two == ret_text_two, true)
       eq(line._texts[2] == text_two, true)
       eq(line._texts[2] == ret_text_two, true)
+
+      local text_three = Text("Three")
+      local text_four = Text("Four")
+      local content_line = Line({ text_three, text_four })
+      local ret_content_line = line:append(content_line)
+
+      eq(content_line == ret_content_line, true)
+      eq(line._texts[3] == content_line._texts[1], true)
+      eq(line._texts[4] == content_line._texts[2], true)
     end)
   end)
 
