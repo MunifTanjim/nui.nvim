@@ -57,6 +57,16 @@ describe("nui.line", function()
     end)
   end)
 
+  describe("method :width", function()
+    it("returns whole text width", function()
+      local line = Line()
+      line:append("One")
+      line:append("Two")
+
+      eq(line:width(), 6)
+    end)
+  end)
+
   describe("method", function()
     local winid, bufnr
 
