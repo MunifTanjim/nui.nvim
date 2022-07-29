@@ -65,39 +65,38 @@ You can manipulate the assocciated buffer and window using the
 
 List of menu items.
 
-**`Menu.item(text, data)`**
+**`Menu.item(content, data?)`**
 
-`Menu.item` is used to create an item object for the `Menu`. You also get this
-object when `on_submit` is called.
+`Menu.item` is used to create an item object for the `Menu`.
 
-| Usage                                  | Result                       |
-| -------------------------------------- | ---------------------------- |
-| `Menu.item("Name")`                    | `{ text = "Name" }`          |
-| `Menu.item(NuiText("Name"))`           | `{ text = NuiText("Name") }` |
-| `Menu.item("Name", { id = 1 })`        | `{ id = 1, text = "Name" }`  |
-| `Menu.item({ id = 1, text = "Name" })` | `{ id = 1, text = "Name" }`  |
+**Parameters**
 
-The result is what you get as the argument of `on_submit` callback function.
+| Name      | Type                             |
+| --------- | -------------------------------- |
+| `content` | `string` / `NuiText` / `NuiLine` |
+| `data`    | `table` / `nil`                  |
+
+**Example**
+
+```lua
+Menu.item("One") --> { text = "One" }
+
+Menu.item("Two", { id = 2 }) --> { id = 2, text = "Two" }
+```
+
+This is what you get as the argument of `on_submit` callback function.
 You can include whatever you want in the item object.
 
-**`Menu.separator(text, options?)`**
+**`Menu.separator(content?, options?)`**
 
 `Menu.separator` is used to create a menu item that can't be focused.
 
-Parameter `text` can be `string` or `NuiText`.
+**Parameters**
 
-Parameter `options` is an optional `table`. Key `options.char` can be `string` or
-`NuiText` (containing a single character). Key `options.text_align` can be
-`"left"` / `"right"`/ `"center"`.
-
-**Examples:**
-
-```lua
-separator = {
-  char = "-",
-  text_align = "right",
-},
-```
+| Name      | Type                                                                               |
+| --------- | ---------------------------------------------------------------------------------- |
+| `content` | `string` / `NuiText` / `NuiLine` / `nil`                                           |
+| `options` | `{ char?: string\|NuiText, text_align?: "'left'"\|"'center'"\|"'right'" }` / `nil` |
 
 You can just use `Menu.item` only and implement `Menu.separator`'s behavior
 by providing a custom `should_skip_item` function.
@@ -110,7 +109,9 @@ _Signature:_ `prepare_item(item)`
 
 If provided, this function is used for preparing each menu item.
 
-The return value should be a `NuiLine` object or `string`.
+The return value should be a `NuiLine` object or `string` or a list containing either of them.
+
+If return value is `nil`, that node will not be rendered.
 
 ### `should_skip_item`
 

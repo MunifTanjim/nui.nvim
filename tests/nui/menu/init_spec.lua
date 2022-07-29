@@ -1,6 +1,7 @@
 pcall(require, "luacov")
 
 local Menu = require("nui.menu")
+local Line = require("nui.line")
 local Text = require("nui.text")
 local h = require("tests.nui")
 local spy = require("luassert.spy")
@@ -373,7 +374,7 @@ describe("nui.menu", function()
       })
     end)
 
-    it("supports NuiText", function()
+    it("supports nui.text", function()
       local hl_group = "NuiMenuTest"
       local text = "text"
       local items = {
@@ -391,6 +392,51 @@ describe("nui.menu", function()
       })
 
       h.assert_highlight(menu.bufnr, menu.ns_id, 1, text, hl_group)
+    end)
+
+    it("supports nui.line", function()
+      local hl_group = "NuiMenuTest"
+      local text = "text"
+      local items = {
+        Menu.item(Line({ Text(text, hl_group) })),
+      }
+
+      menu = Menu(popup_options, {
+        lines = items,
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        text,
+      })
+
+      h.assert_highlight(menu.bufnr, menu.ns_id, 1, text, hl_group)
+    end)
+
+    it("content longer than max_width is truncated", function()
+      local items = {
+        Menu.item({ text = "Item 10 -" }),
+        Menu.item(Text("Item 20 -")),
+        Menu.item(Line({ Text("Item 30 -") })),
+        Menu.item(Line({ Text("Item 40"), Text(" -") })),
+        Menu.item(Line({ Text("Item 50 -"), Text(" -") })),
+      }
+
+      menu = Menu(popup_options, {
+        max_width = 7,
+        lines = items,
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "Item 1…",
+        "Item 2…",
+        "Item 3…",
+        "Item 4…",
+        "Item 5…",
+      })
     end)
   end)
 
@@ -412,7 +458,7 @@ describe("nui.menu", function()
       })
     end)
 
-    it("text longer than max_width is truncated", function()
+    it("content longer than max_width is truncated", function()
       menu = Menu(popup_options, {
         lines = {
           Menu.item("A"),
@@ -446,6 +492,28 @@ describe("nui.menu", function()
       h.assert_buf_lines(menu.bufnr, {
         "A",
         " Group    ",
+      })
+
+      h.assert_highlight(menu.bufnr, menu.ns_id, 2, text, hl_group)
+    end)
+
+    it("text supports nui.line", function()
+      local hl_group = "NuiMenuTest"
+      local text = "Group"
+
+      menu = Menu(popup_options, {
+        lines = {
+          Menu.item("A"),
+          Menu.separator(Line({ Text(text, hl_group), Text(" nui.text") })),
+        },
+        min_width = 10,
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "A",
+        " Group nui.t… ",
       })
 
       h.assert_highlight(menu.bufnr, menu.ns_id, 2, text, hl_group)

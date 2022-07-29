@@ -141,6 +141,39 @@ function _.truncate_text(text, max_length)
   return text
 end
 
+---@param text NuiText
+---@param max_width number
+function _.truncate_nui_text(text, max_width)
+  text:set(_.truncate_text(text:content(), max_width))
+end
+
+---@param line NuiLine
+---@param max_width number
+function _.truncate_nui_line(line, max_width)
+  local width = line:width()
+  local last_part_idx = #line._texts
+
+  while width > max_width do
+    local extra_width = width - max_width
+    local last_part = line._texts[last_part_idx]
+
+    if last_part:width() <= extra_width then
+      width = width - last_part:width()
+      line._texts[last_part_idx] = nil
+      last_part_idx = last_part_idx - 1
+
+      -- need to add truncate indicator in previous part
+      if last_part:width() == extra_width then
+        last_part = line._texts[last_part_idx]
+        last_part:set(_.truncate_text(last_part:content() .. " ", last_part:width()))
+      end
+    else
+      last_part:set(_.truncate_text(last_part:content(), last_part:width() - extra_width))
+      width = width - extra_width
+    end
+  end
+end
+
 ---@param align "'left'" | "'center'" | "'right'"
 ---@param total_width number
 ---@param text_width number

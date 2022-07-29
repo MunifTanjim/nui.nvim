@@ -83,14 +83,25 @@ local function make_default_prepare_node(menu)
 
   ---@type nui_menu_prepare_item
   local function default_prepare_node(node)
-    local text = is_type("string", node.text) and Text(node.text) or node.text
+    ---@type NuiText|NuiLine
+    local content = is_type("string", node.text) and Text(node.text) or node.text
 
     if node._type == "item" then
-      if text:width() > max_width then
-        text:set(_.truncate_text(text:content(), max_width))
+      if content:width() > max_width then
+        if is_type("function", content.set) then
+          ---@cast content NuiText
+          _.truncate_nui_text(content, max_width)
+        else
+          ---@cast content NuiLine
+          _.truncate_nui_line(content, max_width)
+        end
       end
 
-      return Line({ text })
+      local line = Line()
+
+      line:append(content)
+
+      return line
     end
 
     if node._type == "separator" then
@@ -99,14 +110,20 @@ local function make_default_prepare_node(menu)
 
       local sep_max_width = max_width - sep_char:width() * 2
 
-      if text:width() > sep_max_width then
-        text:set(_.truncate_text(text:content(), sep_max_width))
+      if content:width() > sep_max_width then
+        if is_type("function", content.set) then
+          ---@cast content NuiText
+          _.truncate_nui_text(content, sep_max_width)
+        else
+          ---@cast content NuiLine
+          _.truncate_nui_line(content, sep_max_width)
+        end
       end
 
       local left_gap_width, right_gap_width = _.calculate_gap_width(
         defaults(sep_text_align, "center"),
         sep_max_width,
-        text:width()
+        content:width()
       )
 
       local line = Line()
@@ -117,7 +134,7 @@ local function make_default_prepare_node(menu)
         line:append(Text(sep_char):set(string.rep(sep_char:content(), left_gap_width)))
       end
 
-      line:append(text)
+      line:append(content)
 
       if right_gap_width > 0 then
         line:append(Text(sep_char):set(string.rep(sep_char:content(), right_gap_width)))
@@ -178,31 +195,33 @@ end
 ---@field private _ nui_menu_internal
 local Menu = Popup:extend("NuiMenu")
 
----@param text? string|NuiText
----@returns table NuiTreeNode
-function Menu.separator(text, options)
+---@param content? string|NuiText|NuiLine
+---@param options? { char?: string|NuiText, text_align?: nui_t_text_align }
+---@return NuiTreeNode
+function Menu.separator(content, options)
   options = options or {}
   return Tree.Node({
     _type = "separator",
     _char = options.char,
     _text_align = options.text_align,
-    text = defaults(text, ""),
+    text = defaults(content, ""),
   })
 end
 
----@param text string|NuiText
+---@param content string|NuiText|NuiLine
 ---@param data? table
----@returns table NuiTreeNode
-function Menu.item(text, data)
+---@return NuiTreeNode
+function Menu.item(content, data)
   if not data then
     ---@diagnostic disable-next-line: undefined-field
-    if is_type("table", text) and text.text then
-      data = text
+    if is_type("table", content) and content.text then
+      ---@cast content table
+      data = content
     else
-      data = { text = text }
+      data = { text = content }
     end
   else
-    data.text = text
+    data.text = content
   end
 
   data._type = "item"
