@@ -44,21 +44,21 @@ local line = NuiLine({ text_one, text_two })
 
 ### `line:append`
 
-_Signature:_ `line:append(text, highlight?)`
+_Signature:_ `line:append(content, highlight?)`
 
-Adds a chunk of text to the line.
+Adds a chunk of content to the line.
 
 **Parameters**
 
-| Name        | Type                  | Description           |
-| ----------- | --------------------- | --------------------- |
-| `text`      | `string` or `NuiText` | text content          |
-| `highlight` | `string` or `table`   | highlight information |
+| Name        | Type                             | Description           |
+| ----------- | -------------------------------- | --------------------- |
+| `content`   | `string` / `NuiText` / `NuiLine` | content               |
+| `highlight` | `string` or `table`              | highlight information |
 
 If `text` is `string`, these parameters are passed to `NuiText`
 and a `NuiText` object is returned.
 
-It `text` is already a `NuiText` object, it is returned unchanged.
+It `content` is a `NuiText`/`NuiLine` object, it is returned unchanged.
 
 ### `line:content`
 

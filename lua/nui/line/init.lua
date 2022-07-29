@@ -4,6 +4,7 @@ local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
 ---@class NuiLine
+---@field _texts NuiText[]
 local Line = Object("NuiLine")
 
 ---@param texts? table[] NuiText objects
@@ -11,13 +12,21 @@ function Line:init(texts)
   self._texts = defaults(texts, {})
 end
 
----@param text string|table text content or NuiText object
+---@param content string|NuiText|NuiLine
 ---@param highlight? string|table data for highlight
----@return table NuiText
-function Line:append(text, highlight)
-  local nui_text = is_type("string", text) and NuiText(text, highlight) or text
-  table.insert(self._texts, nui_text)
-  return nui_text
+---@return NuiText|NuiLine
+function Line:append(content, highlight)
+  local block = is_type("string", content) and NuiText(content, highlight) or content
+  if block._texts then
+    ---@cast block NuiLine
+    for _, text in ipairs(block._texts) do
+      table.insert(self._texts, text)
+    end
+  else
+    ---@cast block NuiText
+    table.insert(self._texts, block)
+  end
+  return block
 end
 
 ---@return string
