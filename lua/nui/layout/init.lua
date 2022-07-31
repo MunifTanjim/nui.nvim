@@ -54,10 +54,28 @@ local function get_layout_config_relative_to_component(component)
   }
 end
 
+local function is_box_empty(box)
+  for _, child in ipairs(box.box) do
+    if child.component then
+      return false
+    end
+    if not is_box_empty(child) then
+      return false
+    end
+  end
+  return true
+end
+
 ---@class NuiLayout
 local Layout = Object("NuiLayout")
 
 function Layout:init(options, box)
+  box = Layout.Box(box)
+
+  if is_box_empty(box) then
+    error("unexpected empty box")
+  end
+
   local container
   if is_component(options) then
     container = options
@@ -68,7 +86,7 @@ function Layout:init(options, box)
   end
 
   self._ = {
-    box = Layout.Box(box),
+    box = box,
     container = container,
     layout = {},
     loading = false,
