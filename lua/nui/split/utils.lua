@@ -120,6 +120,14 @@ function mod.update_layout_config(component_internal, config)
     size = config.size,
   })
 
+  if internal.relative and internal.relative.win and not vim.api.nvim_win_is_valid(internal.relative.win) then
+    internal.relative.win = vim.api.nvim_get_current_win()
+
+    internal.win_config.win = internal.relative.win
+
+    internal.win_config.pending_changes.relative = true
+  end
+
   if options.relative then
     local fallback_winid = internal.relative and internal.relative.win or vim.api.nvim_get_current_win()
     internal.relative = parse_relative(options.relative, fallback_winid)
