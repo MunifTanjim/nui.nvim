@@ -291,7 +291,7 @@ end
 function Popup:update_layout(config)
   config = config or {}
 
-  u.update_layout_config(self, config)
+  u.update_layout_config(self._, config)
 
   self.border:_relayout()
 

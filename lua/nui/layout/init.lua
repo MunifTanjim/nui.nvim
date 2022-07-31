@@ -303,7 +303,7 @@ function Layout:update(config, box)
     config = {}
   end
 
-  u.update_layout_config(self, config)
+  u.update_layout_config(self._, config)
 
   if box then
     self._.box = Layout.Box(box)
