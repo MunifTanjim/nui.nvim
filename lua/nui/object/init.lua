@@ -56,16 +56,37 @@ local function declare_instance_property(class, key, value)
   propagate_instance_property(class, key, value)
 end
 
+local function is_subclass(subclass, class)
+  if not subclass.super then
+    return false
+  end
+  if subclass.super == class then
+    return true
+  end
+  return is_subclass(subclass.super, class)
+end
+
+local function is_instance(instance, class)
+  if instance.class == class then
+    return true
+  end
+  return is_subclass(instance.class, class)
+end
+
 local function create_class(name, super)
   assert(name, "missing name")
 
-  local meta = {}
+  local meta = {
+    is_instance_of = is_instance,
+  }
   meta.__index = meta
 
   local class = {
     super = super,
     name = name,
-    static = {},
+    static = {
+      is_subclass_of = is_subclass,
+    },
 
     [idx.subclasses] = setmetatable({}, { __mode = "k" }),
 
@@ -95,7 +116,7 @@ local function create_class(name, super)
 end
 
 ---@param name string
-local function Object(name)
+local function create_object(_, name)
   local Class = create_class(name)
 
   ---@return string
@@ -133,5 +154,17 @@ local function Object(name)
 
   return Class
 end
+
+--luacheck: push no max line length
+
+---@type (fun(name: string): table)|{ is_subclass: (fun(subclass: table, class: table): boolean), is_instance: (fun(instance: table, class: table): boolean) }
+local Object = setmetatable({
+  is_subclass = is_subclass,
+  is_instance = is_instance,
+}, {
+  __call = create_object,
+})
+
+--luacheck: pop
 
 return Object

@@ -96,6 +96,28 @@ describe("nui.object", function()
             assert_class(SubClass, Class, "SubClass")
           end)
         end)
+
+        describe(":is_subclass_of", function()
+          it("works", function()
+            local A, B, C = create_classes("A", { "B", "A" }, { "C", "B" })
+
+            for _, class in ipairs({ A, B, C }) do
+              h.eq(class.is_subclass_of, Object.is_subclass)
+            end
+
+            h.eq(A:is_subclass_of(A), false)
+            h.eq(A:is_subclass_of(B), false)
+            h.eq(A:is_subclass_of(C), false)
+
+            h.eq(B:is_subclass_of(A), true)
+            h.eq(B:is_subclass_of(B), false)
+            h.eq(B:is_subclass_of(C), false)
+
+            h.eq(C:is_subclass_of(A), true)
+            h.eq(C:is_subclass_of(B), true)
+            h.eq(C:is_subclass_of(C), false)
+          end)
+        end)
       end)
 
       local function define_static_say_level(A)
@@ -189,6 +211,38 @@ describe("nui.object", function()
       end)
 
       describe("method", function()
+        describe(":is_instance_of", function()
+          it("works", function()
+            local A, B, C, D = create_classes("A", { "B", "A" }, { "C", "B" }, "D")
+
+            local a, b, c, d = A:new(), B:new(), C:new(), D:new()
+
+            for _, instance in ipairs({ a, b, c, d }) do
+              h.eq(instance.is_instance_of, Object.is_instance)
+            end
+
+            h.eq(a:is_instance_of(A), true)
+            h.eq(a:is_instance_of(B), false)
+            h.eq(a:is_instance_of(C), false)
+            h.eq(a:is_instance_of(D), false)
+
+            h.eq(b:is_instance_of(A), true)
+            h.eq(b:is_instance_of(B), true)
+            h.eq(b:is_instance_of(C), false)
+            h.eq(b:is_instance_of(D), false)
+
+            h.eq(c:is_instance_of(A), true)
+            h.eq(c:is_instance_of(B), true)
+            h.eq(c:is_instance_of(C), true)
+            h.eq(c:is_instance_of(D), false)
+
+            h.eq(d:is_instance_of(A), false)
+            h.eq(d:is_instance_of(B), false)
+            h.eq(d:is_instance_of(C), false)
+            h.eq(d:is_instance_of(D), true)
+          end)
+        end)
+
         it("can be defined", function()
           local A = create_classes("A")
 
