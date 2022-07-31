@@ -1,18 +1,26 @@
 local Object = require("nui.object")
 local Popup = require("nui.popup")
+local Split = require("nui.split")
 local utils = require("nui.utils")
 local layout_utils = require("nui.layout.utils")
 local float_layout = require("nui.layout.float")
+local split_layout = require("nui.layout.split")
+local split_utils = require("nui.split.utils")
 
 local _ = utils._
 
 local defaults = utils.defaults
 local is_type = utils.is_type
 local u = {
-  size = layout_utils.size,
+  get_id_generator = utils.get_id_generator,
   position = layout_utils.position,
+  safe_del_augroup = _.safe_del_augroup,
+  size = layout_utils.size,
+  split = split_utils,
   update_layout_config = layout_utils.update_layout_config,
 }
+
+local get_next_id = u.get_id_generator("nui_layout_")
 
 -- GitHub Issue: https://github.com/neovim/neovim/issues/18925
 local function apply_workaround_for_float_relative_position_issue_18925(layout)
@@ -55,10 +63,50 @@ local function get_layout_config_relative_to_component(component)
   }
 end
 
+---@param layout NuiLayout
+---@param box table Layout.Box
+local function wire_up_layout_components(layout, box)
+  for _, child in ipairs(box.box) do
+    if child.component then
+      vim.api.nvim_create_autocmd("QuitPre", {
+        group = layout._.augroup.unmount,
+        buffer = child.component.bufnr,
+        callback = function()
+          layout:unmount()
+        end,
+      })
+
+      vim.api.nvim_create_autocmd("BufUnload", {
+        group = layout._.augroup.unmount,
+        buffer = child.component.bufnr,
+        callback = function()
+          layout:unmount()
+        end,
+      })
+
+      vim.api.nvim_create_autocmd("BufWinEnter", {
+        group = layout._.augroup.unmount,
+        buffer = child.component.bufnr,
+        callback = function()
+          vim.api.nvim_create_autocmd("WinClosed", {
+            group = layout._.augroup.hide,
+            pattern = tostring(child.component.winid),
+            callback = function()
+              layout:hide()
+            end,
+          })
+        end,
+      })
+    else
+      wire_up_layout_components(layout, child)
+    end
+  end
+end
+
 ---@class NuiLayout
 local Layout = Object("NuiLayout")
 
----@return '"float"' layout_type
+---@return '"float"'|'"split"' layout_type
 local function get_layout_type(box)
   for _, child in ipairs(box.box) do
     if child.component and child.type then
@@ -75,6 +123,8 @@ local function get_layout_type(box)
 end
 
 function Layout:init(options, box)
+  self.id = get_next_id()
+
   box = Layout.Box(box)
 
   local type = get_layout_type(box)
@@ -84,6 +134,10 @@ function Layout:init(options, box)
     box = box,
     loading = false,
     mounted = false,
+    augroup = {
+      hide = string.format("%s_hide", self.id),
+      unmount = string.format("%s_unmount", self.id),
+    },
   }
 
   if type == "float" then
@@ -114,6 +168,22 @@ function Layout:init(options, box)
       self:update(options)
     end
   end
+
+  if type == "split" then
+    options = u.split.merge_default_options(options)
+    options = u.split.normalize_options(options)
+
+    self._[type] = {
+      layout = {},
+      position = options.position,
+      size = {},
+      win_config = {
+        pending_changes = {},
+      },
+    }
+
+    self:update(options)
+  end
 end
 
 function Layout:_process_layout()
@@ -131,6 +201,18 @@ function Layout:_process_layout()
         row = 0,
         col = 0,
       },
+    })
+
+    return
+  end
+
+  if type == "split" then
+    local info = self._.split
+
+    split_layout.process(self._.box, {
+      position = info.position,
+      container_size = info.size,
+      container_fallback_size = info.container_info.size,
     })
   end
 end
@@ -170,6 +252,10 @@ function Layout:mount()
     float_layout.mount_box(self._.box)
   end
 
+  if type == "split" then
+    split_layout.mount_box(self._.box)
+  end
+
   self._.loading = false
   self._.mounted = true
 end
@@ -178,6 +264,9 @@ function Layout:unmount()
   if self._.loading or not self._.mounted then
     return
   end
+
+  u.safe_del_augroup(self._.augroup.hide)
+  u.safe_del_augroup(self._.augroup.unmount)
 
   self._.loading = true
 
@@ -199,8 +288,58 @@ function Layout:unmount()
     self.winid = nil
   end
 
+  if type == "split" then
+    split_layout.unmount_box(self._.box)
+  end
+
   self._.loading = false
   self._.mounted = false
+end
+
+function Layout:hide()
+  if self._.loading or not self._.mounted then
+    return
+  end
+
+  self._.loading = true
+
+  u.safe_del_augroup(self._.augroup.hide)
+
+  local type = self._.type
+
+  if type == "float" then
+    error("not implemented")
+  end
+
+  if type == "split" then
+    split_layout.hide_box(self._.box)
+  end
+
+  self._.loading = false
+end
+
+function Layout:show()
+  if self._.loading or not self._.mounted then
+    return
+  end
+
+  self._.loading = true
+
+  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+
+  self:_process_layout()
+
+  local type = self._.type
+
+  if type == "float" then
+    error("not implemented")
+  end
+
+  if type == "split" then
+    split_layout.show_box(self._.box)
+  end
+
+  self._.loading = false
 end
 
 function Layout:update(config, box)
@@ -210,6 +349,9 @@ function Layout:update(config, box)
     box = config
     config = {}
   end
+
+  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+  vim.api.nvim_create_augroup(self._.augroup.unmount, { clear = true })
 
   if box then
     self._.box = Layout.Box(box)
@@ -226,6 +368,18 @@ function Layout:update(config, box)
       self:_process_layout()
     end
   end
+
+  if self._.type == "split" then
+    local info = self._.split
+
+    self:hide()
+
+    u.split.update_layout_config(info, config)
+
+    self:show()
+
+    wire_up_layout_components(self, self._.box)
+  end
 end
 
 function Layout.Box(box, options)
@@ -239,6 +393,8 @@ function Layout.Box(box, options)
     local type
     if box:is_instance_of(Popup) then
       type = "float"
+    elseif box:is_instance_of(Split) then
+      type = "split"
     end
 
     if not type then

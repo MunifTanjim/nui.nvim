@@ -59,6 +59,17 @@ function utils.parse_number_input(v)
   return parsed
 end
 
+---@param prefix? string
+---@return (fun(): string) get_next_id
+function utils.get_id_generator(prefix)
+  prefix = prefix or ""
+  local id = 0
+  return function()
+    id = id + 1
+    return prefix .. id
+  end
+end
+
 ---@private
 ---@param bufnr number
 ---@param linenr number line number (1-indexed)
@@ -270,6 +281,15 @@ function _.serialize_winhighlight(highlight_map)
   end, vim.tbl_keys(highlight_map))
   table.sort(parts)
   return table.concat(parts, ",")
+end
+
+---@param augroup integer|string
+function _.safe_del_augroup(augroup)
+  local method = "nvim_del_augroup_by_id"
+  if utils.is_type("string", augroup) then
+    method = "nvim_del_augroup_by_name"
+  end
+  pcall(vim.api[method], augroup)
 end
 
 return utils
