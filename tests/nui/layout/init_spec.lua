@@ -50,10 +50,67 @@ describe("nui.layout", function()
   local layout
 
   after_each(function()
-    layout:unmount()
+    if layout then
+      layout:unmount()
+      layout = nil
+    end
+  end)
+
+  describe("param box", function()
+    it("throws if empty table", function()
+      local ok, err = pcall(function()
+        Layout({}, {})
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(err, "unexpected empty box")), "string")
+    end)
+
+    it("throws if empty box", function()
+      local ok, err = pcall(function()
+        Layout(
+          {},
+          Layout.Box({
+            Layout.Box({
+              Layout.Box({}, { size = "50%" }),
+              Layout.Box({}, { size = "50%" }),
+            }, { size = "100%" }),
+          })
+        )
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(err, "unexpected empty box")), "string")
+    end)
+
+    it("does not throw if non-empty", function()
+      local p1 = unpack(create_popups({}))
+
+      local ok, err = pcall(function()
+        Layout(
+          { position = "50%", size = "100%" },
+          Layout.Box({
+            Layout.Box({
+              Layout.Box(p1, { size = "50%" }),
+              Layout.Box({}, { size = "50%" }),
+            }, { size = "100%" }),
+          })
+        )
+      end)
+
+      eq(ok, true)
+      eq(err, nil)
+    end)
   end)
 
   describe("o.size", function()
+    local box
+
+    before_each(function()
+      local p1 = unpack(create_popups({}))
+      box = Layout.Box({ Layout.Box(p1, { size = "100%" }) })
+    end)
+
     local function assert_size(size)
       local win_config = vim.api.nvim_win_get_config(layout.winid)
 
@@ -69,7 +126,7 @@ describe("nui.layout", function()
       layout = Layout({
         position = "50%",
         size = size,
-      }, {})
+      }, box)
 
       layout:mount()
 
@@ -82,7 +139,7 @@ describe("nui.layout", function()
       layout = Layout({
         position = "50%",
         size = string.format("%s%%", percentage),
-      }, {})
+      }, box)
 
       local winid = vim.api.nvim_get_current_win()
       local win_width = vim.api.nvim_win_get_width(winid)
@@ -106,7 +163,7 @@ describe("nui.layout", function()
           width = width,
           height = string.format("%s%%", height_percentage),
         },
-      }, {})
+      }, box)
 
       local winid = vim.api.nvim_get_current_win()
       local win_height = vim.api.nvim_win_get_height(winid)
@@ -121,6 +178,13 @@ describe("nui.layout", function()
   end)
 
   describe("o.position", function()
+    local box
+
+    before_each(function()
+      local p1 = unpack(create_popups({}))
+      box = Layout.Box({ Layout.Box(p1, { size = "100%" }) })
+    end)
+
     local function assert_position(position)
       local row, col = unpack(vim.api.nvim_win_get_position(layout.winid))
 
@@ -134,7 +198,7 @@ describe("nui.layout", function()
       layout = Layout({
         position = position,
         size = 10,
-      }, {})
+      }, box)
 
       layout:mount()
 
@@ -148,7 +212,7 @@ describe("nui.layout", function()
       layout = Layout({
         position = string.format("%s%%", percentage),
         size = size,
-      }, {})
+      }, box)
 
       layout:mount()
 
@@ -173,7 +237,7 @@ describe("nui.layout", function()
           col = string.format("%s%%", col_percentage),
         },
         size = size,
-      }, {})
+      }, box)
 
       layout:mount()
 
@@ -279,8 +343,10 @@ describe("nui.layout", function()
     end)
 
     it("throws if missing config 'size'", function()
+      local p1 = unpack(create_popups({}, {}))
+
       local ok, result = pcall(function()
-        layout = Layout({}, {})
+        layout = Layout({}, { Layout.Box(p1, { size = "100%" }) })
       end)
 
       eq(ok, false)
@@ -288,10 +354,12 @@ describe("nui.layout", function()
     end)
 
     it("throws if missing config 'position'", function()
+      local p1 = unpack(create_popups({}, {}))
+
       local ok, result = pcall(function()
         layout = Layout({
           size = "50%",
-        }, {})
+        }, { Layout.Box(p1, { size = "100%" }) })
       end)
 
       eq(ok, false)
