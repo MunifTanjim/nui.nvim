@@ -50,8 +50,10 @@ Pressing `<C-c>` runs the `on_close` callback function and closes the window.
 Of course, you can override the default keymaps and add more. For example:
 
 ```lua
--- close the input window by pressing `<Esc>` on normal mode
-input:map("n", "<Esc>", input.input_props.on_close, { noremap = true })
+-- unmount input by pressing `<Esc>` in normal mode
+input:map("n", "<Esc>", function()
+  input:unmount()
+end, { noremap = true })
 ```
 
 You can manipulate the assocciated buffer and window using the

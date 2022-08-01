@@ -240,9 +240,6 @@ local menu = Menu({
 
 -- mount the component
 menu:mount()
-
--- close menu when cursor leaves buffer
-menu:on(event.BufLeave, menu.menu_props.on_close, { once = true })
 ```
 
 **[Check Detailed Documentation for `nui.menu`](lua/nui/menu)**
