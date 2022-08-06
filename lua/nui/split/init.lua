@@ -55,14 +55,6 @@ local function calculate_window_size(position, size, container)
   }
 end
 
-local function set_win_config(winid, win_config)
-  if win_config.width then
-    vim.api.nvim_win_set_width(winid, win_config.width)
-  elseif win_config.height then
-    vim.api.nvim_win_set_height(winid, win_config.height)
-  end
-end
-
 local function merge_default_options(options)
   options.relative = defaults(options.relative, "win")
   options.position = defaults(options.position, vim.go.splitbelow and "bottom" or "top")
@@ -148,16 +140,15 @@ function Split:_open_window()
   self.winid = vim.api.nvim_win_call(self._.relative.win, function()
     vim.api.nvim_command(
       string.format(
-        "silent noswapfile %s sbuffer %s",
+        "silent noswapfile %s %ssplit | %sbuffer",
         split_direction_command_map[self._.relative.type][self._.position],
+        self._.size.width or self._.size.height or "",
         self.bufnr
       )
     )
 
     return vim.api.nvim_get_current_win()
   end)
-
-  set_win_config(self.winid, self._.win_config)
 
   if self._.enter then
     vim.api.nvim_set_current_win(self.winid)
