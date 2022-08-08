@@ -17,6 +17,12 @@ You can manipulate the assocciated buffer and window using the
 
 ## Options
 
+### `ns_id`
+
+**Type:** `number` or `string`
+
+Namespace id (`number`) or name (`string`).
+
 ### `relative`
 
 **Type:** `string` or `table`
