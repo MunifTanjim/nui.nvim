@@ -5,6 +5,10 @@ local _ = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
+local u = {
+  clear_namespace = _.clear_namespace,
+}
+
 local has_nvim_0_5_1 = vim.fn.has("nvim-0.5.1") == 1
 
 local index_name = {
@@ -361,7 +365,7 @@ end
 --luacheck: pop
 
 ---@class NuiPopupBorder
----@field bufnr number
+---@field bufnr integer
 ---@field private _ nui_popup_border_internal
 ---@field private popup NuiPopup
 ---@field win_config nui_popup_win_config
@@ -493,6 +497,8 @@ function Border:unmount()
   end
 
   if self.bufnr then
+    u.clear_namespace(self.bufnr, self.popup.ns_id)
+
     if vim.api.nvim_buf_is_valid(self.bufnr) then
       vim.api.nvim_buf_delete(self.bufnr, { force = true })
     end
