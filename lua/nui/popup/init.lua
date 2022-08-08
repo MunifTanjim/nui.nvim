@@ -11,6 +11,7 @@ local is_type = utils.is_type
 
 local layout_utils = require("nui.layout.utils")
 local u = {
+  clear_namespace = _.clear_namespace,
   size = layout_utils.size,
   position = layout_utils.position,
   update_layout_config = layout_utils.update_layout_config,
@@ -64,8 +65,8 @@ end
 
 ---@class NuiPopup
 ---@field border NuiPopupBorder
----@field bufnr number
----@field ns_id number
+---@field bufnr integer
+---@field ns_id integer
 ---@field private _ nui_popup_internal
 ---@field win_config nui_popup_win_config
 ---@field winid number
@@ -204,6 +205,8 @@ end
 
 function Popup:_buf_destory()
   buf_storage.cleanup(self.bufnr)
+
+  u.clear_namespace(self.bufnr, self.ns_id)
 
   if self._.unmanaged_bufnr or not self.bufnr then
     return
