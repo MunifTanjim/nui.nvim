@@ -4,6 +4,11 @@ local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 local tree_util = require("nui.tree.util")
 
+local u = {
+  clear_namespace = _.clear_namespace,
+  normalize_namespace_id = _.normalize_namespace_id,
+}
+
 ---@param bufnr number
 ---@param linenr_range { [1]: integer, [2]: integer }
 local function clear_buf_lines(bufnr, linenr_range)
@@ -149,9 +154,9 @@ end
 --luacheck: pop
 
 ---@class NuiTree
----@field bufnr number
+---@field bufnr integer
 ---@field nodes { by_id: table<string,NuiTreeNode>, root_ids: string[] }
----@field ns_id number
+---@field ns_id integer
 ---@field private _ nui_tree_internal
 ---@field winid number # @deprecated
 local Tree = Object("NuiTree")
@@ -180,10 +185,7 @@ function Tree:init(options)
     error("missing bufnr")
   end
 
-  self.ns_id = defaults(options.ns_id, -1)
-  if is_type("string", self.ns_id) then
-    self.ns_id = vim.api.nvim_create_namespace(self.ns_id)
-  end
+  self.ns_id = u.normalize_namespace_id(options.ns_id)
 
   self._ = {
     buf_options = vim.tbl_extend("force", {
@@ -427,6 +429,8 @@ function Tree:render(linenr_start)
   end, self._content.lines)
 
   if self._.track_tree_linenr then
+    u.clear_namespace(self.bufnr, self.ns_id, prev_linenr[1], prev_linenr[2])
+
     -- if linenr_start was shifted downwards, clear the
     -- previously rendered buffer lines above the tree.
     clear_buf_lines(self.bufnr, {
@@ -447,6 +451,8 @@ function Tree:render(linenr_start)
 
     vim.api.nvim_buf_set_lines(self.bufnr, content_linenr_range[1] - 1, content_linenr_range[2], false, buf_lines)
   else
+    u.clear_namespace(self.bufnr, self.ns_id)
+
     vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, buf_lines)
   end
 
