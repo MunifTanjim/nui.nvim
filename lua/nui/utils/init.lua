@@ -75,23 +75,37 @@ function _.char_to_byte_range(bufnr, linenr, char_start, char_end)
   return { byte_start, byte_end }
 end
 
+---@type integer
 local fallback_namespace_id = vim.api.nvim_create_namespace("nui.nvim")
 
 ---@private
----@param ns_id number
----@return number
+---@param ns_id integer
+---@return integer
 function _.ensure_namespace_id(ns_id)
   return ns_id == -1 and fallback_namespace_id or ns_id
 end
 
 ---@private
----@param ns_id? number
----@return number ns_id namespace id
+---@param ns_id? integer|string
+---@return integer ns_id namespace id
 function _.normalize_namespace_id(ns_id)
   if utils.is_type("string", ns_id) then
+    ---@cast ns_id string
     return vim.api.nvim_create_namespace(ns_id)
   end
+  ---@cast ns_id integer
   return ns_id or fallback_namespace_id
+end
+
+---@private
+---@param bufnr integer
+---@param ns_id integer
+---@param linenr_start? integer (1-indexed)
+---@param linenr_end? integer (1-indexed,inclusive)
+function _.clear_namespace(bufnr, ns_id, linenr_start, linenr_end)
+  linenr_start = linenr_start or 1
+  linenr_end = linenr_end and linenr_end + 1 or 0
+  vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr_start - 1, linenr_end - 1)
 end
 
 ---@private
