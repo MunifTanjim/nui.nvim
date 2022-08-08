@@ -5,6 +5,11 @@ local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
 local defaults = utils.defaults
 
+local u = {
+  clear_namespace = utils._.clear_namespace,
+  normalize_namespace_id = utils._.normalize_namespace_id,
+}
+
 local split_direction_command_map = {
   editor = {
     top = "topleft",
@@ -100,7 +105,8 @@ end
 
 ---@class NuiSplit
 ---@field private _ nui_split_internal
----@field bufnr number
+---@field bufnr integer
+---@field ns_id integer
 ---@field winid number
 local Split = Object("NuiSplit")
 
@@ -123,6 +129,8 @@ function Split:init(options)
     win_options = options.win_options,
     win_config = {},
   }
+
+  self.ns_id = u.normalize_namespace_id(options.ns_id)
 
   self:_buf_create()
 
@@ -219,6 +227,8 @@ end
 
 function Split:_buf_destroy()
   buf_storage.cleanup(self.bufnr)
+
+  u.clear_namespace(self.bufnr, self.ns_id)
 
   if self.bufnr then
     if vim.api.nvim_buf_is_valid(self.bufnr) then
