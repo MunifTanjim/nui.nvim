@@ -3,7 +3,7 @@ pcall(require, "luacov")
 local Layout = require("nui.layout")
 local Popup = require("nui.popup")
 local Split = require("nui.split")
-local h = require("tests.nui")
+local h = require("tests.helpers")
 local spy = require("luassert.spy")
 
 local eq, tbl_pick = h.eq, h.tbl_pick

@@ -2,7 +2,7 @@ pcall(require, "luacov")
 
 local Split = require("nui.split")
 local event = require("nui.utils.autocmd").event
-local h = require("tests.nui")
+local h = require("tests.helpers")
 local spy = require("luassert.spy")
 
 local eq, feedkeys = h.eq, h.feedkeys

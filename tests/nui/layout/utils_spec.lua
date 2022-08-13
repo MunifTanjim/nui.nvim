@@ -1,7 +1,7 @@
 pcall(require, "luacov")
 
 local utils = require("nui.layout.utils")
-local h = require("tests.nui")
+local h = require("tests.helpers")
 
 local eq = h.eq
 
