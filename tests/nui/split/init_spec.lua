@@ -203,6 +203,26 @@ describe("nui.split", function()
 
       eq(#new_winids, 0)
     end)
+
+    it("sets buffer after creating window", function()
+      local ok, winid = false, nil
+
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      split:on(event.BufWinEnter, function()
+        ok, winid = true, split.winid
+      end)
+
+      split:mount()
+
+      eq(type(split.winid), "number")
+
+      eq(ok, true)
+      eq(winid, split.winid)
+    end)
   end)
 
   describe("method :unmount", function()
