@@ -3,7 +3,7 @@ pcall(require, "luacov")
 local Menu = require("nui.menu")
 local Line = require("nui.line")
 local Text = require("nui.text")
-local h = require("tests.nui")
+local h = require("tests.helpers")
 local spy = require("luassert.spy")
 
 local eq, feedkeys = h.eq, h.feedkeys

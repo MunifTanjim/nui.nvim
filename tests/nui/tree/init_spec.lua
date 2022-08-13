@@ -2,7 +2,7 @@ pcall(require, "luacov")
 
 local Text = require("nui.text")
 local Tree = require("nui.tree")
-local h = require("tests.nui")
+local h = require("tests.helpers")
 
 local eq = h.eq
 

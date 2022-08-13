@@ -1,6 +1,6 @@
 pcall(require, "luacov")
 
-local h = require("tests.nui")
+local h = require("tests.helpers")
 local Object = require("nui.object")
 local spy = require("luassert.spy")
 

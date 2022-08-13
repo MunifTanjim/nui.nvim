@@ -1,7 +1,7 @@
 pcall(require, "luacov")
 
 local Text = require("nui.text")
-local h = require("tests.nui")
+local h = require("tests.helpers")
 local spy = require("luassert.spy")
 
 local eq, tbl_omit = h.eq, h.tbl_omit

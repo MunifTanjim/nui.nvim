@@ -2,7 +2,7 @@ pcall(require, "luacov")
 
 local Input = require("nui.input")
 local Text = require("nui.text")
-local h = require("tests.nui")
+local h = require("tests.helpers")
 
 local eq, feedkeys = h.eq, h.feedkeys
 

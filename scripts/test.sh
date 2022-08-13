@@ -26,7 +26,7 @@ function setup_environment() {
   echo "[test] setting up environment"
   echo
 
-  local plugins_dir="./.testcache/plugins"
+  local plugins_dir="./.testcache/site/pack/deps/start"
   if [[ ! -d "${plugins_dir}" ]]; then
     mkdir -p "${plugins_dir}"
   fi
@@ -44,27 +44,35 @@ function setup_environment() {
   echo
 }
 
+function luacov_start() {
+  luacov_dir="$(dirname "$(luarocks which luacov 2>/dev/null | head -1)")"
+  if [[ "${luacov_dir}" == "." ]]; then
+    luacov_dir=""
+  fi
+
+  if test -n "${luacov_dir}"; then
+    rm -f luacov.*.out
+    export LUA_PATH=";;${luacov_dir}/?.lua"
+  fi
+}
+
+function luacov_end() {
+  if test -n "${luacov_dir}"; then
+    luacov
+
+    echo
+    tail -n +$(($(grep -n "^Summary$" luacov.report.out | cut -d":" -f1) - 1)) luacov.report.out
+  fi
+}
+
 setup_environment
 
-luacov_dir="$(dirname "$(luarocks which luacov 2>/dev/null | head -1)")"
-if [[ "${luacov_dir}" == "." ]]; then
-  luacov_dir=""
-fi
-
-if test -n "${luacov_dir}"; then
-  rm -f luacov.*.out
-  export LUA_PATH=";;${luacov_dir}/?.lua"
-fi
+luacov_start
 
 if [[ -d "./tests/${test_scope}/" ]]; then
-  nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory ./tests/${test_scope}/ { minimal_init = 'tests/minimal_init.vim'; sequential = true }"
+  nvim --headless --noplugin -u tests/minimal_init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/minimal_init.lua', sequential = true })"
 elif [[ -f "./tests/${test_scope}_spec.lua" ]]; then
-  nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedFile ./tests/${test_scope}_spec.lua"
+  nvim --headless --noplugin -u tests/minimal_init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')"
 fi
 
-if test -n "${luacov_dir}"; then
-  luacov
-
-  echo
-  tail -n +$(($(grep -n "^Summary$" luacov.report.out | cut -d":" -f1) - 1)) luacov.report.out
-fi
+luacov_end
