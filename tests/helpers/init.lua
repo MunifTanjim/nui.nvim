@@ -14,8 +14,15 @@ local popup = {}
 
 local mod = {}
 
-mod.eq = assert.are.same
 mod.popup = popup
+
+function mod.eq(...)
+  return assert.are.same(...)
+end
+
+function mod.neq(...)
+  return assert["not"].are.same(...)
+end
 
 ---@param keys string
 ---@param mode string
