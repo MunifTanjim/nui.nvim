@@ -148,15 +148,16 @@ function Split:_open_window()
   self.winid = vim.api.nvim_win_call(self._.relative.win, function()
     vim.api.nvim_command(
       string.format(
-        "silent noswapfile %s %ssplit | %sbuffer",
+        "silent noswapfile %s %ssplit",
         split_direction_command_map[self._.relative.type][self._.position],
-        self._.size.width or self._.size.height or "",
-        self.bufnr
+        self._.size.width or self._.size.height or ""
       )
     )
 
     return vim.api.nvim_get_current_win()
   end)
+
+  vim.api.nvim_win_set_buf(self.winid, self.bufnr)
 
   if self._.enter then
     vim.api.nvim_set_current_win(self.winid)
