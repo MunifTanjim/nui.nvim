@@ -20,8 +20,19 @@ function mod.eq(...)
   return assert.are.same(...)
 end
 
+function mod.approx(...)
+  return assert.are.near(...)
+end
+
 function mod.neq(...)
   return assert["not"].are.same(...)
+end
+
+---@param fn fun(): nil
+---@param error string
+---@param is_plain boolean
+function mod.errors(fn, error, is_plain)
+  assert.matches_error(fn, error, 1, is_plain)
 end
 
 ---@param keys string
