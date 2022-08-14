@@ -3,11 +3,12 @@ local buf_storage = require("nui.utils.buf_storage")
 local autocmd = require("nui.utils.autocmd")
 local keymap = require("nui.utils.keymap")
 local utils = require("nui.utils")
-local defaults = utils.defaults
+local split_utils = require("nui.split.utils")
 
 local u = {
   clear_namespace = utils._.clear_namespace,
   normalize_namespace_id = utils._.normalize_namespace_id,
+  split = split_utils,
 }
 
 local split_direction_command_map = {
@@ -24,75 +25,6 @@ local split_direction_command_map = {
     left = "vertical leftabove",
   },
 }
-
----@param relative nui_split_internal_relative
-local function get_container_info(relative)
-  if relative.type == "editor" then
-    return {
-      size = utils.get_editor_size(),
-      type = "editor",
-    }
-  end
-
-  if relative.type == "win" then
-    return {
-      size = utils.get_window_size(relative.win),
-      type = "window",
-    }
-  end
-end
-
----@param position nui_split_internal_position
----@param size number|string
-local function calculate_window_size(position, size, container)
-  if not size then
-    return {}
-  end
-
-  if position == "left" or position == "right" then
-    return {
-      width = utils._.normalize_dimension(size, container.size.width),
-    }
-  end
-
-  return {
-    height = utils._.normalize_dimension(size, container.size.height),
-  }
-end
-
-local function merge_default_options(options)
-  options.relative = defaults(options.relative, "win")
-  options.position = defaults(options.position, vim.go.splitbelow and "bottom" or "top")
-
-  options.enter = defaults(options.enter, true)
-
-  options.buf_options = defaults(options.buf_options, {})
-  options.win_options = vim.tbl_extend("force", {
-    winfixwidth = true,
-    winfixheight = true,
-  }, defaults(options.win_options, {}))
-
-  return options
-end
-
-local function normalize_options(options)
-  if utils.is_type("string", options.relative) then
-    options.relative = {
-      type = options.relative,
-    }
-  end
-
-  return options
-end
-
-local function parse_relative(relative, fallback_winid)
-  local winid = defaults(relative.winid, fallback_winid)
-
-  return {
-    type = relative.type,
-    win = winid,
-  }
-end
 
 --luacheck: push no max line length
 
@@ -112,8 +44,8 @@ local Split = Object("NuiSplit")
 
 ---@param options table
 function Split:init(options)
-  options = merge_default_options(options)
-  options = normalize_options(options)
+  options = u.split.merge_default_options(options)
+  options = u.split.normalize_options(options)
 
   self._ = {
     enter = options.enter,
@@ -124,7 +56,7 @@ function Split:init(options)
       size = options.size,
     },
     position = options.position,
-    relative = parse_relative(options.relative, 0),
+    relative = u.split.parse_relative(options.relative, 0),
     size = {},
     win_options = options.win_options,
     win_config = {},
@@ -134,8 +66,8 @@ function Split:init(options)
 
   self:_buf_create()
 
-  local container_info = get_container_info(self._.relative)
-  self._.size = calculate_window_size(self._.position, self._.layout.size, container_info)
+  local container_info = u.split.get_container_info(self._.relative)
+  self._.size = u.split.calculate_window_size(self._.position, self._.layout.size, container_info.size)
   self._.win_config.width = self._.size.width
   self._.win_config.height = self._.size.height
 end
