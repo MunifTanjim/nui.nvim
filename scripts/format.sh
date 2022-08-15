@@ -16,4 +16,4 @@ if test ${v_major} -ne ${r_v_major} || test ${v_minor} -lt ${r_v_minor} || test 
   exit 1
 fi
 
-stylua --color always ${1} lua/nui/ lua/tests/nui/ tests/nui/
+stylua --color always ${1} lua/nui/ tests/
