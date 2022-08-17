@@ -367,6 +367,8 @@ function Layout:update(config, box)
       vim.api.nvim_win_set_config(self.winid, info.win_config)
       self:_process_layout()
     end
+
+    wire_up_layout_components(self, self._.box)
   end
 
   if self._.type == "split" then

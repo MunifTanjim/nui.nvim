@@ -481,6 +481,56 @@ describe("nui.layout", function()
       end)
     end)
 
+    describe("method :unmount", function()
+      it("is called if any popup is unmounted", function()
+        local p1, p2 = unpack(create_popups({}, {}, {}))
+
+        layout = Layout(
+          {
+            position = '50%',
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "50%" }),
+            Layout.Box(p2, { size = "50%" }),
+          })
+        )
+
+        local layout_unmount = spy.on(layout, "unmount")
+
+        layout:mount()
+
+        p2:unmount()
+
+        assert.spy(layout_unmount).was_called()
+      end)
+
+      it("is called if any popup is quitted", function()
+        local p1, p2 = unpack(create_popups({}, {}))
+
+        layout = Layout(
+          {
+            position = "50%",
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "50%" }),
+            Layout.Box(p2, { size = "50%" }),
+          })
+        )
+
+        local layout_unmount = spy.on(layout, "unmount")
+
+        layout:mount()
+
+        vim.api.nvim_buf_call(p2.bufnr, function()
+          vim.cmd([[quit]])
+        end)
+
+        assert.spy(layout_unmount).was_called()
+      end)
+    end)
+
     describe("method :hide", function()
       it("is not implemented", function()
         local p1 = unpack(create_popups({}))
