@@ -133,12 +133,34 @@ function mod.mount_box(box)
   end
 end
 
+---@param box table Layout.Box
+function mod.show_box(box)
+  for _, child in ipairs(box.box) do
+    if child.component then
+      child.component:show()
+    else
+      mod.show_box(child)
+    end
+  end
+end
+
 function mod.unmount_box(box)
   for _, child in ipairs(box.box) do
     if child.component then
       child.component:unmount()
     else
       mod.unmount_box(child)
+    end
+  end
+end
+
+---@param box table Layout.Box
+function mod.hide_box(box)
+  for _, child in ipairs(box.box) do
+    if child.component then
+      child.component:hide()
+    else
+      mod.hide_box(child)
     end
   end
 end

@@ -88,9 +88,19 @@ local function wire_up_layout_components(layout, box)
         group = layout._.augroup.unmount,
         buffer = child.component.bufnr,
         callback = function()
+          local winid = child.component.winid
+          if layout._.type == "float" and not winid then
+            --[[
+              `BufWinEnter` does not contain window id and
+              it is fired before `nvim_open_win` returns
+              the window id.
+            --]]
+            winid = vim.fn.bufwinid(child.component.bufnr)
+          end
+
           vim.api.nvim_create_autocmd("WinClosed", {
             group = layout._.augroup.hide,
-            pattern = tostring(child.component.winid),
+            pattern = tostring(winid),
             callback = function()
               layout:hide()
             end,
@@ -217,6 +227,29 @@ function Layout:_process_layout()
   end
 end
 
+function Layout:_open_window()
+  if self._.type == "float" then
+    local info = self._.float
+
+    self.winid = vim.api.nvim_open_win(self.bufnr, info.win_enter, info.win_config)
+    assert(self.winid, "failed to create popup window")
+
+    _.set_win_options(self.winid, info.win_options)
+  end
+end
+
+function Layout:_close_window()
+  if not self.winid then
+    return
+  end
+
+  if vim.api.nvim_win_is_valid(self.winid) then
+    vim.api.nvim_win_close(self.winid, true)
+  end
+
+  self.winid = nil
+end
+
 function Layout:mount()
   if self._.loading or self._.mounted then
     return
@@ -240,10 +273,7 @@ function Layout:mount()
       assert(self.bufnr, "failed to create buffer")
     end
 
-    self.winid = vim.api.nvim_open_win(self.bufnr, info.win_enter, info.win_config)
-    assert(self.winid, "failed to create popup window")
-
-    _.set_win_options(self.winid, info.win_options)
+    self:_open_window()
   end
 
   self:_process_layout()
@@ -282,10 +312,7 @@ function Layout:unmount()
       self.bufnr = nil
     end
 
-    if vim.api.nvim_win_is_valid(self.winid) then
-      vim.api.nvim_win_close(self.winid, true)
-    end
-    self.winid = nil
+    self:_close_window()
   end
 
   if type == "split" then
@@ -308,7 +335,9 @@ function Layout:hide()
   local type = self._.type
 
   if type == "float" then
-    error("not implemented")
+    float_layout.hide_box(self._.box)
+
+    self:_close_window()
   end
 
   if type == "split" then
@@ -327,12 +356,16 @@ function Layout:show()
 
   vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
 
-  self:_process_layout()
-
   local type = self._.type
 
   if type == "float" then
-    error("not implemented")
+    self:_open_window()
+  end
+
+  self:_process_layout()
+
+  if type == "float" then
+    float_layout.show_box(self._.box)
   end
 
   if type == "split" then

@@ -487,7 +487,7 @@ describe("nui.layout", function()
 
         layout = Layout(
           {
-            position = '50%',
+            position = "50%",
             size = 10,
           },
           Layout.Box({
@@ -532,36 +532,146 @@ describe("nui.layout", function()
     end)
 
     describe("method :hide", function()
-      it("is not implemented", function()
+      it("does nothing if not mounted", function()
         local p1 = unpack(create_popups({}))
 
-        layout = Layout({
-          position = "50%",
-          size = "50%",
-        }, { Layout.Box(p1, { size = "100%" }) })
+        local p1_hide = spy.on(p1, "hide")
+
+        layout = Layout(
+          {
+            position = "50%",
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "100%" }),
+          })
+        )
+
+        layout:hide()
+
+        assert.spy(p1_hide).was_not_called()
+      end)
+
+      it("hides all components", function()
+        local p1, p2, p3 = unpack(create_popups({}, {}, {}))
+
+        local p1_hide = spy.on(p1, "hide")
+        local p2_hide = spy.on(p2, "hide")
+        local p3_hide = spy.on(p3, "hide")
+
+        layout = Layout(
+          {
+            position = "50%",
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "50%" }),
+            Layout.Box({
+              Layout.Box(p2, { size = "50%" }),
+              Layout.Box({
+                Layout.Box(p3, { size = "100%" }),
+              }, { size = "50%" }),
+            }, { size = "50%" }),
+          })
+        )
 
         layout:mount()
 
-        h.errors(function()
-          layout:hide()
-        end, "not implemented", true)
+        eq(type(layout.winid), "number")
+
+        layout:hide()
+
+        eq(type(layout.winid), "nil")
+
+        assert.spy(p1_hide).was_called()
+        assert.spy(p2_hide).was_called()
+        assert.spy(p3_hide).was_called()
+      end)
+
+      it("is called if any popup is hidden", function()
+        local p1, p2, p3 = unpack(create_popups({}, {}, {}))
+
+        layout = Layout(
+          {
+            position = "50%",
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "50%" }),
+            Layout.Box({
+              Layout.Box(p2, { size = "50%" }),
+              Layout.Box({
+                Layout.Box(p3, { size = "100%" }),
+              }, { size = "50%" }),
+            }, { size = "50%" }),
+          })
+        )
+
+        local layout_hide = spy.on(layout, "hide")
+
+        layout:mount()
+
+        p2:hide()
+
+        assert.spy(layout_hide).was_called()
       end)
     end)
 
     describe("method :show", function()
-      it("is not implemented", function()
+      it("does nothing if not mounted", function()
         local p1 = unpack(create_popups({}))
 
-        layout = Layout({
-          position = "50%",
-          size = "50%",
-        }, { Layout.Box(p1, { size = "100%" }) })
+        local p1_show = spy.on(p1, "show")
+
+        layout = Layout(
+          {
+            position = "50%",
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "100%" }),
+          })
+        )
+
+        layout:hide()
+        layout:show()
+
+        assert.spy(p1_show).was_not_called()
+      end)
+
+      it("shows all components", function()
+        local p1, p2, p3 = unpack(create_popups({}, {}, {}))
+
+        local p1_show = spy.on(p1, "show")
+        local p2_show = spy.on(p2, "show")
+        local p3_show = spy.on(p3, "show")
+
+        layout = Layout(
+          {
+            position = "50%",
+            size = 10,
+          },
+          Layout.Box({
+            Layout.Box(p1, { size = "50%" }),
+            Layout.Box({
+              Layout.Box(p2, { size = "50%" }),
+              Layout.Box({
+                Layout.Box(p3, { size = "100%" }),
+              }, { size = "50%" }),
+            }, { size = "50%" }),
+          })
+        )
 
         layout:mount()
 
-        h.errors(function()
-          layout:show()
-        end, "not implemented", true)
+        layout:hide()
+        layout:show()
+
+        eq(type(layout.winid), "number")
+
+        assert.spy(p1_show).was_called()
+        assert.spy(p2_show).was_called()
+        assert.spy(p3_show).was_called()
       end)
     end)
 
