@@ -180,6 +180,42 @@ _Signature:_ `Layout.Box(box, options)`
 
 ## Methods
 
+### `layout:mount`
+
+_Signature:_ `layout:mount()`
+
+Mounts the layout with all the components.
+
+**Examples**
+
+```lua
+layout:mount()
+```
+
+### `layout:unmount`
+
+_Signature:_ `layout:unmount()`
+
+Unmounts the layout with all the components.
+
+**Examples**
+
+```lua
+layout:unmount()
+```
+
+### `layout:hide`
+
+_Signature:_ `layout:hide()`
+
+Hides the layout with all the components. Preserves the buffer (related content, autocmds and keymaps).
+
+### `layout:show`
+
+_Signature:_ `layout:show()`
+
+Shows the hidden layout with all the components.
+
 ### `layout:update`
 
 _Signature:_ `layout:update(config, box?)` or `layout:update(box?)`
