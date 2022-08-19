@@ -61,7 +61,7 @@ end
 
 ---@param prefix? string
 ---@return (fun(): string) get_next_id
-function utils.get_id_generator(prefix)
+local function get_id_generator(prefix)
   prefix = prefix or ""
   local id = 0
   return function()
@@ -69,6 +69,8 @@ function utils.get_id_generator(prefix)
     return prefix .. id
   end
 end
+
+_.get_next_id = get_id_generator("nui_")
 
 ---@private
 ---@param bufnr number

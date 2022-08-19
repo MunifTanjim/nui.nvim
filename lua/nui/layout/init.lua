@@ -12,15 +12,13 @@ local _ = utils._
 local defaults = utils.defaults
 local is_type = utils.is_type
 local u = {
-  get_id_generator = utils.get_id_generator,
+  get_next_id = _.get_next_id,
   position = layout_utils.position,
   safe_del_augroup = _.safe_del_augroup,
   size = layout_utils.size,
   split = split_utils,
   update_layout_config = layout_utils.update_layout_config,
 }
-
-local get_next_id = u.get_id_generator("nui_layout_")
 
 -- GitHub Issue: https://github.com/neovim/neovim/issues/18925
 local function apply_workaround_for_float_relative_position_issue_18925(layout)
@@ -68,15 +66,7 @@ end
 local function wire_up_layout_components(layout, box)
   for _, child in ipairs(box.box) do
     if child.component then
-      vim.api.nvim_create_autocmd("QuitPre", {
-        group = layout._.augroup.unmount,
-        buffer = child.component.bufnr,
-        callback = function()
-          layout:unmount()
-        end,
-      })
-
-      vim.api.nvim_create_autocmd("BufUnload", {
+      vim.api.nvim_create_autocmd({ "BufWipeout", "QuitPre" }, {
         group = layout._.augroup.unmount,
         buffer = child.component.bufnr,
         callback = function()
@@ -133,20 +123,21 @@ local function get_layout_type(box)
 end
 
 function Layout:init(options, box)
-  self.id = get_next_id()
+  local id = u.get_next_id()
 
   box = Layout.Box(box)
 
   local type = get_layout_type(box)
 
   self._ = {
+    id = id,
     type = type,
     box = box,
     loading = false,
     mounted = false,
     augroup = {
-      hide = string.format("%s_hide", self.id),
-      unmount = string.format("%s_unmount", self.id),
+      hide = string.format("%s_hide", id),
+      unmount = string.format("%s_unmount", id),
     },
   }
 
