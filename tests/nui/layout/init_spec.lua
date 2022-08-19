@@ -481,7 +481,11 @@ describe("nui.layout", function()
       end)
     end)
 
-    describe("method :unmount", function()
+    h.describe_flipping_feature("lua_autocmd", "method :unmount", function(is_available)
+      if not is_available then
+        return
+      end
+
       it("is called if any popup is unmounted", function()
         local p1, p2 = unpack(create_popups({}, {}, {}))
 
@@ -531,7 +535,7 @@ describe("nui.layout", function()
       end)
     end)
 
-    describe("method :hide", function()
+    h.describe_flipping_feature("lua_autocmd", "method :hide", function(is_available)
       it("does nothing if not mounted", function()
         local p1 = unpack(create_popups({}))
 
@@ -587,6 +591,10 @@ describe("nui.layout", function()
         assert.spy(p2_hide).was_called()
         assert.spy(p3_hide).was_called()
       end)
+
+      if not is_available then
+        return
+      end
 
       it("is called if any popup is hidden", function()
         local p1, p2, p3 = unpack(create_popups({}, {}, {}))
