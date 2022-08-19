@@ -12,6 +12,7 @@ local _ = utils._
 local defaults = utils.defaults
 local is_type = utils.is_type
 local u = {
+  feature = _.feature,
   get_next_id = _.get_next_id,
   position = layout_utils.position,
   safe_del_augroup = _.safe_del_augroup,
@@ -64,6 +65,10 @@ end
 ---@param layout NuiLayout
 ---@param box table Layout.Box
 local function wire_up_layout_components(layout, box)
+  if not u.feature.lua_autocmd then
+    return
+  end
+
   for _, child in ipairs(box.box) do
     if child.component then
       vim.api.nvim_create_autocmd({ "BufWipeout", "QuitPre" }, {
@@ -286,8 +291,10 @@ function Layout:unmount()
     return
   end
 
-  u.safe_del_augroup(self._.augroup.hide)
-  u.safe_del_augroup(self._.augroup.unmount)
+  if u.feature.lua_autocmd then
+    u.safe_del_augroup(self._.augroup.hide)
+    u.safe_del_augroup(self._.augroup.unmount)
+  end
 
   self._.loading = true
 
@@ -321,7 +328,9 @@ function Layout:hide()
 
   self._.loading = true
 
-  u.safe_del_augroup(self._.augroup.hide)
+  if u.feature.lua_autocmd then
+    u.safe_del_augroup(self._.augroup.hide)
+  end
 
   local type = self._.type
 
@@ -345,7 +354,9 @@ function Layout:show()
 
   self._.loading = true
 
-  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+  if u.feature.lua_autocmd then
+    vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+  end
 
   local type = self._.type
 
@@ -374,8 +385,10 @@ function Layout:update(config, box)
     config = {}
   end
 
-  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
-  vim.api.nvim_create_augroup(self._.augroup.unmount, { clear = true })
+  if u.feature.lua_autocmd then
+    vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+    vim.api.nvim_create_augroup(self._.augroup.unmount, { clear = true })
+  end
 
   if box then
     self._.box = Layout.Box(box)

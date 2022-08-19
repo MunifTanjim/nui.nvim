@@ -163,17 +163,22 @@ function mod.assert_highlight(bufnr, ns_id, linenr, text, hl_group)
   mod.assert_extmark(extmarks[1], linenr, text, hl_group)
 end
 
+---@param feature_name string
+---@param desc string
+---@param func fun(is_available: boolean):nil
 function mod.describe_flipping_feature(feature_name, desc, func)
+  local initial_value = require("nui.utils")._.feature[feature_name]
+
   describe(string.format("(w/ %s) %s", feature_name, desc), function()
     require("nui.utils")._.feature[feature_name] = true
-    func()
-    require("nui.utils")._.feature[feature_name] = true
+    func(true)
+    require("nui.utils")._.feature[feature_name] = initial_value
   end)
 
   describe(string.format("(w/o %s) %s", feature_name, desc), function()
     require("nui.utils")._.feature[feature_name] = false
-    func()
-    require("nui.utils")._.feature[feature_name] = true
+    func(false)
+    require("nui.utils")._.feature[feature_name] = initial_value
   end)
 end
 
