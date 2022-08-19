@@ -7,7 +7,9 @@ local split_utils = require("nui.split.utils")
 
 local u = {
   clear_namespace = utils._.clear_namespace,
+  get_next_id = utils._.get_next_id,
   normalize_namespace_id = utils._.normalize_namespace_id,
+  safe_del_augroup = utils._.safe_del_augroup,
   split = split_utils,
 }
 
@@ -83,6 +85,8 @@ local Split = Object("NuiSplit")
 
 ---@param options table
 function Split:init(options)
+  local id = u.get_next_id()
+
   options = u.split.merge_default_options(options)
   options = u.split.normalize_options(options)
 
@@ -97,6 +101,10 @@ function Split:init(options)
     win_options = options.win_options,
     win_config = {
       pending_changes = {},
+    },
+    augroup = {
+      hide = string.format("%s_hide", id),
+      unmount = string.format("%s_unmount", id),
     },
   }
 
@@ -171,6 +179,30 @@ function Split:mount()
 
   self._.loading = true
 
+  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+  vim.api.nvim_create_augroup(self._.augroup.unmount, { clear = true })
+  vim.api.nvim_create_autocmd("QuitPre", {
+    group = self._.augroup.unmount,
+    buffer = self.bufnr,
+    callback = function()
+      self:unmount()
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufWinEnter", {
+    group = self._.augroup.unmount,
+    buffer = self.bufnr,
+    callback = function()
+      local winid = vim.api.nvim_get_current_win()
+      vim.api.nvim_create_autocmd("WinClosed", {
+        group = self._.augroup.hide,
+        pattern = tostring(winid),
+        callback = function()
+          self:hide()
+        end,
+      })
+    end,
+  })
+
   self:_buf_create()
 
   utils._.set_buf_options(self.bufnr, self._.buf_options)
@@ -188,6 +220,8 @@ function Split:hide()
 
   self._.loading = true
 
+  u.safe_del_augroup(self._.augroup.hide)
+
   self:_close_window()
 
   self._.loading = false
@@ -199,6 +233,8 @@ function Split:show()
   end
 
   self._.loading = true
+
+  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
 
   self:_open_window()
 
@@ -225,6 +261,9 @@ function Split:unmount()
   end
 
   self._.loading = true
+
+  u.safe_del_augroup(self._.augroup.hide)
+  u.safe_del_augroup(self._.augroup.unmount)
 
   self:_buf_destroy()
 

@@ -300,6 +300,23 @@ describe("nui.split", function()
 
       eq(#closed_winids, 0)
     end)
+
+    it("is called when quitted", function()
+      split = Split({
+        size = 10,
+        position = "bottom",
+      })
+
+      local split_unmount = spy.on(split, "unmount")
+
+      split:mount()
+
+      vim.api.nvim_buf_call(split.bufnr, function()
+        vim.cmd([[quit]])
+      end)
+
+      assert.spy(split_unmount).was_called()
+    end)
   end)
 
   describe("method :hide", function()
@@ -364,6 +381,23 @@ describe("nui.split", function()
       local curr_winids = vim.api.nvim_list_wins()
 
       eq(#prev_winids, #curr_winids)
+    end)
+
+    it("is called when window is closed", function()
+      split = Split({
+        size = 20,
+        position = "bottom",
+      })
+
+      local split_hide = spy.on(split, "hide")
+
+      split:mount()
+
+      vim.api.nvim_buf_call(split.bufnr, function()
+        vim.cmd([[:bdelete]])
+      end)
+
+      assert.spy(split_hide).was_called()
     end)
   end)
 
