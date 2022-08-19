@@ -864,6 +864,25 @@ describe("nui.popup", function()
     end)
   end)
 
+  describe("method :unmount", function()
+    it("is called when quitted", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      local popup_unmount = spy.on(popup, "unmount")
+
+      popup:mount()
+
+      vim.api.nvim_buf_call(popup.bufnr, function()
+        vim.cmd([[quit]])
+      end)
+
+      assert.spy(popup_unmount).was_called()
+    end)
+  end)
+
   describe("method :hide", function()
     it("works", function()
       popup = Popup({
@@ -924,6 +943,23 @@ describe("nui.popup", function()
       local curr_winids = vim.api.nvim_list_wins()
 
       eq(#prev_winids, #curr_winids)
+    end)
+
+    it("is called when window is closed", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      local popup_hide = spy.on(popup, "hide")
+
+      popup:mount()
+
+      vim.api.nvim_buf_call(popup.bufnr, function()
+        vim.cmd([[:bdelete]])
+      end)
+
+      assert.spy(popup_hide).was_called()
     end)
   end)
 
