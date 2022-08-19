@@ -864,7 +864,11 @@ describe("nui.popup", function()
     end)
   end)
 
-  describe("method :unmount", function()
+  h.describe_flipping_feature("lua_autocmd", "method :unmount", function(is_available)
+    if not is_available then
+      return
+    end
+
     it("is called when quitted", function()
       popup = Popup({
         position = 0,
@@ -883,7 +887,7 @@ describe("nui.popup", function()
     end)
   end)
 
-  describe("method :hide", function()
+  h.describe_flipping_feature("lua_autocmd", "method :hide", function(is_available)
     it("works", function()
       popup = Popup({
         position = 0,
@@ -944,6 +948,10 @@ describe("nui.popup", function()
 
       eq(#prev_winids, #curr_winids)
     end)
+
+    if not is_available then
+      return
+    end
 
     it("is called when window is closed", function()
       popup = Popup({
