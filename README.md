@@ -8,7 +8,13 @@ UI Component Library for Neovim.
 
 ## Requirements
 
+**Minimum**:
+
 - [Neovim 0.5.0](https://github.com/neovim/neovim/releases/tag/v0.5.0)
+
+**Recommended**:
+
+- [Neovim 0.7.0](https://github.com/neovim/neovim/releases/tag/v0.7.0)
 
 ## Installation
 
