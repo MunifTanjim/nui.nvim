@@ -259,7 +259,7 @@ describe("nui.split", function()
     end)
   end)
 
-  describe("method :unmount", function()
+  h.describe_flipping_feature("lua_autocmd", "method :unmount", function(is_available)
     it("closes win if mounted", function()
       split = Split({
         size = 20,
@@ -301,6 +301,10 @@ describe("nui.split", function()
       eq(#closed_winids, 0)
     end)
 
+    if not is_available then
+      return
+    end
+
     it("is called when quitted", function()
       split = Split({
         size = 10,
@@ -319,7 +323,7 @@ describe("nui.split", function()
     end)
   end)
 
-  describe("method :hide", function()
+  h.describe_flipping_feature("lua_autocmd", "method :hide", function(is_available)
     it("works", function()
       local winid = vim.api.nvim_get_current_win()
 
@@ -382,6 +386,10 @@ describe("nui.split", function()
 
       eq(#prev_winids, #curr_winids)
     end)
+
+    if not is_available then
+      return
+    end
 
     it("is called when window is closed", function()
       split = Split({

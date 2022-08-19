@@ -7,6 +7,7 @@ local split_utils = require("nui.split.utils")
 
 local u = {
   clear_namespace = utils._.clear_namespace,
+  feature = utils._.feature,
   get_next_id = utils._.get_next_id,
   normalize_namespace_id = utils._.normalize_namespace_id,
   safe_del_augroup = utils._.safe_del_augroup,
@@ -179,29 +180,31 @@ function Split:mount()
 
   self._.loading = true
 
-  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
-  vim.api.nvim_create_augroup(self._.augroup.unmount, { clear = true })
-  vim.api.nvim_create_autocmd("QuitPre", {
-    group = self._.augroup.unmount,
-    buffer = self.bufnr,
-    callback = function()
-      self:unmount()
-    end,
-  })
-  vim.api.nvim_create_autocmd("BufWinEnter", {
-    group = self._.augroup.unmount,
-    buffer = self.bufnr,
-    callback = function()
-      local winid = vim.api.nvim_get_current_win()
-      vim.api.nvim_create_autocmd("WinClosed", {
-        group = self._.augroup.hide,
-        pattern = tostring(winid),
-        callback = function()
-          self:hide()
-        end,
-      })
-    end,
-  })
+  if u.feature.lua_autocmd then
+    vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+    vim.api.nvim_create_augroup(self._.augroup.unmount, { clear = true })
+    vim.api.nvim_create_autocmd("QuitPre", {
+      group = self._.augroup.unmount,
+      buffer = self.bufnr,
+      callback = function()
+        self:unmount()
+      end,
+    })
+    vim.api.nvim_create_autocmd("BufWinEnter", {
+      group = self._.augroup.unmount,
+      buffer = self.bufnr,
+      callback = function()
+        local winid = vim.api.nvim_get_current_win()
+        vim.api.nvim_create_autocmd("WinClosed", {
+          group = self._.augroup.hide,
+          pattern = tostring(winid),
+          callback = function()
+            self:hide()
+          end,
+        })
+      end,
+    })
+  end
 
   self:_buf_create()
 
@@ -220,7 +223,9 @@ function Split:hide()
 
   self._.loading = true
 
-  u.safe_del_augroup(self._.augroup.hide)
+  if u.feature.lua_autocmd then
+    u.safe_del_augroup(self._.augroup.hide)
+  end
 
   self:_close_window()
 
@@ -234,7 +239,9 @@ function Split:show()
 
   self._.loading = true
 
-  vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+  if u.feature.lua_autocmd then
+    vim.api.nvim_create_augroup(self._.augroup.hide, { clear = true })
+  end
 
   self:_open_window()
 
@@ -262,8 +269,10 @@ function Split:unmount()
 
   self._.loading = true
 
-  u.safe_del_augroup(self._.augroup.hide)
-  u.safe_del_augroup(self._.augroup.unmount)
+  if u.feature.lua_autocmd then
+    u.safe_del_augroup(self._.augroup.hide)
+    u.safe_del_augroup(self._.augroup.unmount)
+  end
 
   self:_buf_destroy()
 
