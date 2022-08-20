@@ -1236,6 +1236,91 @@ describe("nui.layout", function()
           height = percent(20, 100),
         })
       end)
+
+      it("can include current window as component", function()
+        local winid = vim.api.nvim_get_current_win()
+        local base_size = {
+          width = vim.api.nvim_win_get_width(winid),
+          height = vim.api.nvim_win_get_height(winid),
+        }
+
+        local s1, s2, s3, s4, s5 = unpack(create_splits({}, {}, { winid = winid }, {}, {}))
+
+        layout = Layout(
+          {
+            position = "bottom",
+            size = "100%",
+          },
+          Layout.Box({
+            Layout.Box(s1, { size = "25%" }),
+            Layout.Box({
+              Layout.Box({
+                Layout.Box(s2, { size = "100%" }),
+              }, { dir = "col", size = "60%" }),
+              Layout.Box({
+                Layout.Box(s3, { size = "40%" }),
+                Layout.Box(s4, { size = "60%" }),
+              }, { dir = "row", size = "40%" }),
+              Layout.Box({}, { size = "0%" }),
+            }, { dir = "col", size = "40%" }),
+            Layout.Box(s5, { size = "35%" }),
+          })
+        )
+
+        layout:mount()
+
+        eq(vim.fn.winlayout(), {
+          "col",
+          {
+            { "leaf", winid },
+            {
+              "row",
+              {
+                { "leaf", s1.winid },
+                {
+                  "col",
+                  {
+                    { "leaf", s2.winid },
+                    {
+                      "row",
+                      {
+                        { "leaf", s3.winid },
+                        { "leaf", s4.winid },
+                      },
+                    },
+                  },
+                },
+                { "leaf", s5.winid },
+              },
+            },
+          },
+        })
+
+        -- assert_size(s1.winid, {
+        --   width = percent(base_size.width, 25),
+        --   height = percent(20, 100),
+        -- }, 2)
+        --
+        -- assert_size(s2.winid, {
+        --   width = percent(base_size.width, 40),
+        --   height = percent(20, 60),
+        -- }, 1)
+        --
+        -- assert_size(s3.winid, {
+        --   width = percent(percent(base_size.width, 40), 40),
+        --   height = percent(20, 40),
+        -- }, 1)
+        --
+        -- assert_size(s4.winid, {
+        --   width = percent(percent(base_size.width, 40), 60),
+        --   height = percent(20, 40),
+        -- }, 1)
+        --
+        -- assert_size(s5.winid, {
+        --   width = percent(base_size.width, 35),
+        --   height = percent(20, 100),
+        -- })
+      end)
     end)
 
     describe("method :unmount", function()
