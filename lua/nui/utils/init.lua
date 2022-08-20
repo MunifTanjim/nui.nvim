@@ -285,13 +285,4 @@ function _.serialize_winhighlight(highlight_map)
   return table.concat(parts, ",")
 end
 
----@param augroup integer|string
-function _.safe_del_augroup(augroup)
-  local method = "nvim_del_augroup_by_id"
-  if utils.is_type("string", augroup) then
-    method = "nvim_del_augroup_by_name"
-  end
-  pcall(vim.api[method], augroup)
-end
-
 return utils
