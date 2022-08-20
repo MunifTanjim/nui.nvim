@@ -157,7 +157,7 @@ function Split:_close_window()
     return
   end
 
-  if vim.api.nvim_win_is_valid(self.winid) then
+  if vim.api.nvim_win_is_valid(self.winid) and not self._.pending_quit then
     vim.api.nvim_win_close(self.winid, true)
   end
 
@@ -184,7 +184,9 @@ function Split:mount()
     group = self._.augroup.unmount,
     buffer = self.bufnr,
     callback = function()
+      self._.pending_quit = true
       self:unmount()
+      self._.pending_quit = nil
     end,
   }, self.bufnr)
   autocmd.create("BufWinEnter", {
@@ -247,7 +249,7 @@ function Split:_buf_destroy()
 
   u.clear_namespace(self.bufnr, self.ns_id)
 
-  if vim.api.nvim_buf_is_valid(self.bufnr) then
+  if vim.api.nvim_buf_is_valid(self.bufnr) and not self._.pending_quit then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
 
