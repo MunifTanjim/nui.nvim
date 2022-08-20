@@ -249,17 +249,19 @@ function Split:show()
 end
 
 function Split:_buf_destroy()
-  buf_storage.cleanup(self.bufnr)
+  if not self.bufnr then
+    return
+  end
 
   u.clear_namespace(self.bufnr, self.ns_id)
 
-  if self.bufnr then
-    if vim.api.nvim_buf_is_valid(self.bufnr) then
-      vim.api.nvim_buf_delete(self.bufnr, { force = true })
-    end
-
-    self.bufnr = nil
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
+
+  buf_storage.cleanup(self.bufnr)
+
+  self.bufnr = nil
 end
 
 function Split:unmount()
