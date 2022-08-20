@@ -1,5 +1,4 @@
 local buf_storage = require("nui.utils.buf_storage")
-local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 local feature = require("nui.utils")._.feature
 
@@ -252,67 +251,137 @@ local autocmd = {
     FileEncoding = "EncodingChanged",
   },
   buf = {
-    storage = buf_storage.create("nui.utils.autocmd.buf", { _next_handler_id = 1 }),
+    storage = buf_storage.create("nui.utils.autocmd", { _next_handler_id = 1 }),
   },
 }
 
----@param group_name string
----@param auto_clear boolean
----@param statements string[]
----@return string
-local function autocmd_statements_grouped(group_name, auto_clear, statements)
-  if not is_type("boolean", auto_clear) then
-    error("invalid param type: auto_clear, expected boolean")
-  end
+---@param callback fun(event: table): nil
+---@param bufnr integer
+local function to_stored_handler(callback, bufnr)
+  local handler_id = autocmd.buf.storage[bufnr]._next_handler_id
+  autocmd.buf.storage[bufnr]._next_handler_id = handler_id + 1
 
-  local grouped_statements = {}
+  autocmd.buf.storage[bufnr][handler_id] = callback
 
-  table.insert(grouped_statements, "augroup " .. group_name)
+  local command = string.format(":lua require('nui.utils.autocmd').execute_stored_handler(%s, %s)", bufnr, handler_id)
 
-  if auto_clear then
-    table.insert(grouped_statements, "autocmd!")
-  end
-
-  table.insert(grouped_statements, table.concat(statements, "\n"))
-
-  table.insert(grouped_statements, "augroup end")
-
-  return table.concat(grouped_statements, "\n")
+  return command
 end
 
----@param event string | string[]
----@param pattern string | string[]
----@param cmd string
----@param options nil | table<"'once'" | "'nested'", boolean>
----@return string
-local function autocmd_statement(event, pattern, cmd, options)
+---@param bufnr integer
+---@param handler_id number
+function autocmd.execute_stored_handler(bufnr, handler_id)
+  local handler = autocmd.buf.storage[bufnr][handler_id]
+  if is_type("function", handler) then
+    handler()
+  end
+end
+
+---@param name string
+---@param opts { clear?: boolean }
+function autocmd.create_group(name, opts)
+  if feature.lua_autocmd then
+    return vim.api.nvim_create_augroup(name, opts)
+  end
+
+  vim.cmd(string.format(
+    [[
+      augroup %s
+        %s
+      augroup end
+    ]],
+    name,
+    opts.clear and "autocmd!" or ""
+  ))
+end
+
+---@param name string
+function autocmd.delete_group(name)
+  if feature.lua_autocmd then
+    return vim.api.nvim_del_augroup_by_name(name)
+  end
+
+  vim.cmd(string.format(
+    [[
+      autocmd! %s
+      augroup! %s
+    ]],
+    name,
+    name
+  ))
+end
+
+---@param event string|string[]
+---@param opts table
+---@param bufnr? integer # to store callback if lua autocmd is not available
+function autocmd.create(event, opts, bufnr)
+  if feature.lua_autocmd then
+    return vim.api.nvim_create_autocmd(event, opts)
+  end
+
   event = is_type("table", event) and table.concat(event, ",") or event
-  pattern = is_type("table", pattern) and table.concat(pattern, ",") or pattern
-  options = defaults(options, {})
-
-  local args = {}
-
-  if options.once then
-    table.insert(args, "++once")
+  local pattern = is_type("table", opts.pattern) and table.concat(opts.pattern, ",") or opts.pattern
+  if opts.buffer then
+    pattern = string.format("<buffer=%s>", opts.buffer)
   end
 
-  if options.nested then
-    table.insert(args, "++nested")
+  if opts.callback then
+    local buffer = opts.buffer or bufnr
+    if not buffer then
+      error("[nui.utils.autocmd] missing param: bufnr")
+    end
+    opts.command = to_stored_handler(opts.callback, buffer)
   end
 
-  local statement = string.format("autocmd %s %s %s %s", event, pattern, table.concat(args), cmd)
-
-  return statement
+  vim.cmd(
+    string.format(
+      "autocmd %s %s %s %s %s %s",
+      opts.group or "",
+      event,
+      pattern,
+      opts.once and "++once" or "",
+      opts.nested and "++nested" or "",
+      opts.command
+    )
+  )
 end
 
+---@param opts table
+function autocmd.delete(opts)
+  if feature.lua_autocmd then
+    for _, item in ipairs(vim.api.nvim_get_autocmds(opts)) do
+      if item.id then
+        vim.api.nvim_del_autocmd(item.id)
+      end
+    end
+
+    return
+  end
+
+  local event = is_type("table", opts.event) and table.concat(opts.event, ",") or opts.event
+  local pattern = is_type("table", opts.pattern) and table.concat(opts.pattern, ",") or opts.pattern
+  if opts.buffer then
+    pattern = string.format("<buffer=%s>", opts.buffer)
+  end
+
+  vim.cmd(string.format("autocmd! %s %s %s", opts.group or "", event or "*", pattern or ""))
+end
+
+-- @deprecated
+---@deprecated
 ---@param event string | string[]
 ---@param pattern string | string[]
 ---@param cmd string
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function autocmd.define(event, pattern, cmd, options)
-  vim.api.nvim_exec(autocmd_statement(event, pattern, cmd, options), false)
+  local opts = options or {}
+  opts.pattern = pattern
+  opts.command = cmd
+  autocmd.create(event, opts)
 end
 
+-- @deprecated
+---@deprecated
 ---@param group_name string
 ---@param auto_clear boolean
 ---@param definitions table<"'event'" | "'pattern'" | "'cmd'" | "'options'", any>
@@ -321,40 +390,24 @@ function autocmd.define_grouped(group_name, auto_clear, definitions)
     error("invalid param type: auto_clear, expected boolean")
   end
 
-  local statements = {}
+  autocmd.create_group(group_name, { clear = auto_clear })
 
   for _, definition in ipairs(definitions) do
-    table.insert(
-      statements,
-      autocmd_statement(definition.event, definition.pattern, definition.cmd, definition.options)
-    )
+    autocmd.define(definition.event, definition.pattern, definition.cmd, definition.options)
   end
-
-  vim.api.nvim_exec(autocmd_statements_grouped(group_name, auto_clear, statements), false)
 end
 
+-- @deprecated
+---@deprecated
 ---@param group_name nil | string
 ---@param event nil | string | string[]
 ---@param pattern nil | string | string[]
 function autocmd.remove(group_name, event, pattern)
-  event = is_type("table", event) and table.concat(event, ",") or event
-  pattern = is_type("table", pattern) and table.concat(pattern, ",") or pattern
-
-  local statement = "autocmd!"
-
-  if group_name then
-    statement = statement .. " " .. group_name
-  end
-
-  if event then
-    statement = statement .. " " .. event
-
-    if pattern then
-      statement = statement .. " " .. pattern
-    end
-  end
-
-  vim.api.nvim_exec(statement, false)
+  autocmd.delete({
+    event = event,
+    group = group_name,
+    pattern = pattern,
+  })
 end
 
 ---@param bufnr number
@@ -362,24 +415,6 @@ end
 ---@param handler string | function
 ---@param options nil | table<"'once'" | "'nested'", boolean>
 function autocmd.buf.define(bufnr, event, handler, options)
-  if not feature.lua_autocmd then
-    local pattern = string.format("<buffer=%s>", bufnr)
-
-    local cmd = handler
-
-    if is_type("function", cmd) then
-      local handler_id = autocmd.buf.storage[bufnr]._next_handler_id
-      autocmd.buf.storage[bufnr]._next_handler_id = handler_id + 1
-
-      autocmd.buf.storage[bufnr][handler_id] = handler
-
-      cmd = string.format(":lua require('nui.utils.autocmd').buf.execute(%s, %s)", bufnr, handler_id)
-    end
-
-    autocmd.define(event, pattern, cmd, options)
-    return
-  end
-
   local opts = options or {}
 
   opts.buffer = bufnr
@@ -390,40 +425,18 @@ function autocmd.buf.define(bufnr, event, handler, options)
     opts.command = handler
   end
 
-  vim.api.nvim_create_autocmd(event, opts)
+  autocmd.create(event, opts, bufnr)
 end
 
 ---@param bufnr number
 ---@param group_name nil | string
 ---@param event nil | string | string[]
 function autocmd.buf.remove(bufnr, group_name, event)
-  if not feature.lua_autocmd then
-    event = defaults(event, "*")
-    local pattern = string.format("<buffer=%s>", bufnr)
-    autocmd.remove(group_name, event, pattern)
-    return
-  end
-
-  for _, item in
-    ipairs(vim.api.nvim_get_autocmds({
-      buffer = bufnr,
-      event = event,
-      group = group_name,
-    }))
-  do
-    if item.id then
-      vim.api.nvim_del_autocmd(item.id)
-    end
-  end
-end
-
----@param bufnr number
----@param handler_id number
-function autocmd.buf.execute(bufnr, handler_id)
-  local handler = autocmd.buf.storage[bufnr][handler_id]
-  if is_type("function", handler) then
-    handler()
-  end
+  autocmd.delete({
+    buffer = bufnr,
+    event = event,
+    group = group_name,
+  })
 end
 
 return autocmd
