@@ -244,10 +244,11 @@ function Popup:_buf_destory()
     return
   end
 
-  u.clear_namespace(self.bufnr, self.ns_id)
-
-  if not self._.unmanaged_bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    u.clear_namespace(self.bufnr, self.ns_id)
+    if not self._.unmanaged_bufnr then
+      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
   end
 
   buf_storage.cleanup(self.bufnr)
