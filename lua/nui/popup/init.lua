@@ -185,13 +185,20 @@ function Popup:mount()
     buffer = self.bufnr,
     callback = function()
       local winid = vim.api.nvim_get_current_win()
-      autocmd.create("WinClosed", {
-        group = self._.augroup.hide,
-        pattern = tostring(winid),
-        callback = function()
-          self:hide()
-        end,
-      }, self.bufnr)
+      -- either `self.winid` is not set yet, because
+      -- the autocmd fired before that assignment...
+      -- or `self.winid` is already assigned, in that
+      -- case, filter out the `BufWinEnter` event if
+      -- the buffer is used with a different window.
+      if not self.winid or self.winid == winid then
+        autocmd.create("WinClosed", {
+          group = self._.augroup.hide,
+          pattern = tostring(winid),
+          callback = function()
+            self:hide()
+          end,
+        }, self.bufnr)
+      end
     end,
   }, self.bufnr)
 
