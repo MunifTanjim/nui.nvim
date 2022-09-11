@@ -961,6 +961,30 @@ describe("nui.popup", function()
 
       assert.spy(popup_hide).was_called()
     end)
+
+    it("is not called when other popup using same buffer is hidden", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      local another_popup = Popup({
+        bufnr = popup.bufnr,
+        position = 11,
+        size = 5,
+      })
+
+      local popup_hide = spy.on(popup, "hide")
+
+      popup:mount()
+
+      another_popup:mount()
+      another_popup:hide()
+
+      assert.spy(popup_hide).was_not_called()
+
+      another_popup:unmount()
+    end)
   end)
 
   describe("method :show", function()
