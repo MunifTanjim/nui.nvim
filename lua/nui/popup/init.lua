@@ -135,7 +135,17 @@ function Popup:_open_window()
     return
   end
 
+  self.win_config.noautocmd = true
   self.winid = vim.api.nvim_open_win(self.bufnr, self._.win_enter, self.win_config)
+  self.win_config.noautocmd = nil
+
+  vim.api.nvim_win_call(self.winid, function()
+    autocmd.exec("BufWinEnter", {
+      group = self._.augroup.unmount,
+      modeline = false,
+    })
+  end)
+
   assert(self.winid, "failed to create popup window")
 
   _.set_win_options(self.winid, self._.win_options)
@@ -184,21 +194,13 @@ function Popup:mount()
     group = self._.augroup.unmount,
     buffer = self.bufnr,
     callback = function()
-      local winid = vim.api.nvim_get_current_win()
-      -- either `self.winid` is not set yet, because
-      -- the autocmd fired before that assignment...
-      -- or `self.winid` is already assigned, in that
-      -- case, filter out the `BufWinEnter` event if
-      -- the buffer is used with a different window.
-      if not self.winid or self.winid == winid then
-        autocmd.create("WinClosed", {
-          group = self._.augroup.hide,
-          pattern = tostring(winid),
-          callback = function()
-            self:hide()
-          end,
-        }, self.bufnr)
-      end
+      autocmd.create("WinClosed", {
+        group = self._.augroup.hide,
+        pattern = tostring(self.winid),
+        callback = function()
+          self:hide()
+        end,
+      }, self.bufnr)
     end,
   }, self.bufnr)
 

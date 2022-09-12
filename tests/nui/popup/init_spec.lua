@@ -987,7 +987,7 @@ describe("nui.popup", function()
     end)
   end)
 
-  describe("method :show", function()
+  h.describe_flipping_feature("lua_autocmd", "method :show", function()
     it("works", function()
       popup = Popup({
         position = 0,
@@ -1069,6 +1069,54 @@ describe("nui.popup", function()
       local curr_winids = vim.api.nvim_list_wins()
 
       eq(#prev_winids, #curr_winids)
+    end)
+
+    it("can show popups using the same buffer", function()
+      popup = Popup({
+        position = 0,
+        size = 10,
+      })
+
+      vim.api.nvim_buf_set_lines(popup.bufnr, 0, -1, false, {
+        "42",
+      })
+
+      local another_popup = Popup({
+        bufnr = popup.bufnr,
+        position = 11,
+        size = 5,
+      })
+
+      popup:mount()
+      another_popup:mount()
+
+      local bufnr, winid = popup.bufnr, popup.winid
+      eq(type(bufnr), "number")
+      eq(type(winid), "number")
+
+      local another_bufnr, another_winid = another_popup.bufnr, another_popup.winid
+      eq(type(another_bufnr), "number")
+      eq(type(another_winid), "number")
+
+      eq(bufnr, another_bufnr)
+
+      popup:hide()
+      another_popup:hide()
+
+      popup:show()
+      another_popup:show()
+
+      eq(bufnr, popup.bufnr)
+      eq(type(popup.winid), "number")
+      eq(winid ~= popup.winid, true)
+
+      eq(another_bufnr, another_popup.bufnr)
+      eq(type(another_popup.winid), "number")
+      eq(another_winid ~= another_popup.winid, true)
+
+      h.assert_buf_lines(bufnr, {
+        "42",
+      })
     end)
   end)
 end)
