@@ -193,10 +193,9 @@ function Split:mount()
     group = self._.augroup.unmount,
     buffer = self.bufnr,
     callback = function()
-      local winid = vim.api.nvim_get_current_win()
       autocmd.create("WinClosed", {
         group = self._.augroup.hide,
-        pattern = tostring(winid),
+        pattern = tostring(self.winid),
         callback = function()
           self:hide()
         end,
