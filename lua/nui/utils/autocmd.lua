@@ -367,6 +367,42 @@ function autocmd.delete(opts)
   vim.cmd(string.format("autocmd! %s %s %s", opts.group or "", event or "*", pattern or ""))
 end
 
+---@param event string|string[]
+---@param opts table
+function autocmd.exec(event, opts)
+  local events = is_type("table", event) and event or { event }
+
+  if feature.lua_autocmd then
+    vim.api.nvim_exec_autocmds(events, {
+      group = opts.group,
+      pattern = opts.pattern,
+      buffer = opts.buffer,
+      modeline = opts.modeline,
+      data = opts.data,
+    })
+
+    return
+  end
+
+  for _, event_name in ipairs(events) do
+    local command = string.format(
+      [[doautocmd %s %s %s %s]],
+      opts.modeline == false and "<nomodeline>" or "",
+      opts.group or "",
+      event_name,
+      opts.pattern or ""
+    )
+
+    if opts.buffer then
+      vim.api.nvim_buf_call(opts.buffer, function()
+        vim.cmd(command)
+      end)
+    else
+      vim.cmd(command)
+    end
+  end
+end
+
 -- @deprecated
 ---@deprecated
 ---@param event string | string[]
