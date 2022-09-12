@@ -246,10 +246,12 @@ function Split:_buf_destroy()
     return
   end
 
-  u.clear_namespace(self.bufnr, self.ns_id)
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    u.clear_namespace(self.bufnr, self.ns_id)
 
-  if vim.api.nvim_buf_is_valid(self.bufnr) and not self._.pending_quit then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    if not self._.pending_quit then
+      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
   end
 
   buf_storage.cleanup(self.bufnr)
