@@ -436,7 +436,9 @@ function Border:_open_window()
     return
   end
 
+  self.win_config.noautocmd = true
   self.winid = vim.api.nvim_open_win(self.bufnr, false, self.win_config)
+  self.win_config.noautocmd = nil
   assert(self.winid, "failed to create border window")
 
   if self._.winhighlight then
