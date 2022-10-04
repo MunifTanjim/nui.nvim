@@ -141,7 +141,7 @@ function Popup:_open_window()
 
   vim.api.nvim_win_call(self.winid, function()
     autocmd.exec("BufWinEnter", {
-      group = self._.augroup.unmount,
+      buffer = self.bufnr,
       modeline = false,
     })
   end)
@@ -194,13 +194,21 @@ function Popup:mount()
     group = self._.augroup.unmount,
     buffer = self.bufnr,
     callback = function()
-      autocmd.create("WinClosed", {
-        group = self._.augroup.hide,
-        pattern = tostring(self.winid),
-        callback = function()
-          self:hide()
-        end,
-      }, self.bufnr)
+      -- When two popup using the same buffer and both of them
+      -- are hiddden, calling `:show` for one of them fires
+      -- `BufWinEnter` for both of them. And in that scenario
+      -- one of them will not have `self.winid`.
+      if self.winid then
+        -- @todo skip registering `WinClosed` multiple times
+        --       for the same popup
+        autocmd.create("WinClosed", {
+          group = self._.augroup.hide,
+          pattern = tostring(self.winid),
+          callback = function()
+            self:hide()
+          end,
+        }, self.bufnr)
+      end
     end,
   }, self.bufnr)
 
