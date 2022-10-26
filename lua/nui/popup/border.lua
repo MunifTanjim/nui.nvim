@@ -347,6 +347,8 @@ local function adjust_popup_win_config(border)
   end
 
   popup.win_config.relative = "win"
+  -- anchor to the border window instead
+  popup.win_config.anchor = "NW"
   popup.win_config.win = border.winid
   popup.win_config.bufpos = nil
   popup.win_config.row = popup_position.row
@@ -428,6 +430,7 @@ function Border:init(popup, options)
     border = "none",
     focusable = false,
     zindex = self.popup.win_config.zindex - 1,
+    anchor = self.popup.win_config.anchor,
   }
 end
 
