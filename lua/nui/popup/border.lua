@@ -299,6 +299,8 @@ end
 ---@return nui_popup_border_internal_position
 local function calculate_position(border)
   local position = vim.deepcopy(border.popup._.position)
+  position.col = position.col - math.floor(border._.size_delta.width / 2 + 0.5)
+  position.row = position.row - math.floor(border._.size_delta.height / 2 + 0.5)
   return position
 end
 
