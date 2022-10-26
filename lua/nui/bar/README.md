@@ -24,7 +24,7 @@ The context table looks like this:
   ctx?: boolean | number | string | table,
   bufnr: integer,
   winid: integer,
-  tabnr: integer,
+  tabid: integer,
   is_focused: boolean
 }
 ```

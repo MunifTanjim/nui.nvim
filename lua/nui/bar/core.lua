@@ -2,7 +2,7 @@ local mod = {}
 
 --luacheck: push no max line length
 
----@alias nui_bar_core_expression_context { ctx?: boolean|number|string|table, bufnr: integer, winid: integer, tabnr: integer, is_focused: boolean }
+---@alias nui_bar_core_expression_context { ctx?: boolean|number|string|table, bufnr: integer, winid: integer, tabid: integer, is_focused: boolean }
 ---@alias nui_bar_core_click_handler fun(handler_id: integer, click_count: integer, mouse_button: string, modifiers: string, context: nui_bar_core_expression_context):nil
 ---@alias nui_bar_core_expression_fn fun(context: nui_bar_core_expression_context):string
 
@@ -65,7 +65,7 @@ local function create_expression_context(ctx)
     ctx = ctx,
     bufnr = vim.api.nvim_get_current_buf(),
     winid = vim.api.nvim_get_current_win(),
-    tabnr = vim.api.nvim_get_current_tabpage(),
+    tabid = vim.api.nvim_get_current_tabpage(),
   }
   context.is_focused = tostring(context.winid) == vim.g.actual_curwin
 
@@ -103,7 +103,7 @@ local function create_generator_context(ctx)
     ctx = ctx,
     bufnr = vim.api.nvim_win_get_buf(winid),
     winid = winid,
-    tabnr = vim.api.nvim_win_get_tabpage(winid),
+    tabid = vim.api.nvim_win_get_tabpage(winid),
   }
   context.is_focused = winid == vim.api.nvim_get_current_win()
 
