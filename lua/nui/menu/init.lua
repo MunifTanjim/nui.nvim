@@ -156,20 +156,20 @@ local function focus_item(menu, direction, current_linenr)
   local next_linenr = nil
 
   if direction == "next" then
-    if curr_linenr == #menu._tree.nodes.root_ids then
+    if curr_linenr == #menu.tree.nodes.root_ids then
       next_linenr = 1
     else
       next_linenr = curr_linenr + 1
     end
   elseif direction == "prev" then
     if curr_linenr == 1 then
-      next_linenr = #menu._tree.nodes.root_ids
+      next_linenr = #menu.tree.nodes.root_ids
     else
       next_linenr = curr_linenr - 1
     end
   end
 
-  local next_node = menu._tree:get_node(next_linenr)
+  local next_node = menu.tree:get_node(next_linenr)
 
   if menu._.should_skip_item(next_node) then
     return focus_item(menu, direction, next_linenr)
@@ -273,7 +273,7 @@ function Menu:init(popup_options, options)
   local props = self.menu_props
 
   props.on_submit = function()
-    local item = self._tree:get_node()
+    local item = self.tree:get_node()
 
     self:unmount()
 
@@ -320,7 +320,7 @@ function Menu:mount()
     self:map("n", key, props.on_submit, { noremap = true, nowait = true })
   end
 
-  self._tree = Tree({
+  self.tree = Tree({
     winid = self.winid,
     ns_id = self.ns_id,
     nodes = self._.items,
@@ -330,11 +330,14 @@ function Menu:mount()
     prepare_node = self._.prepare_item,
   })
 
-  self._tree:render()
+  ---@deprecated
+  self._tree = self.tree
+
+  self.tree:render()
 
   -- focus first item
-  for linenr = 1, #self._tree.nodes.root_ids do
-    local node, target_linenr = self._tree:get_node(linenr)
+  for linenr = 1, #self.tree.nodes.root_ids do
+    local node, target_linenr = self.tree:get_node(linenr)
     if not self._.should_skip_item(node) then
       vim.api.nvim_win_set_cursor(self.winid, { target_linenr, 0 })
       self._.on_change(node)
