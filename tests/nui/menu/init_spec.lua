@@ -116,6 +116,30 @@ describe("nui.menu", function()
     end)
   end)
 
+  describe("focus", function()
+    it("focusses the specified index", function()
+      local min_width = 3
+
+      local items = {
+        Menu.item("A"),
+        Menu.separator("*"),
+        Menu.item("B"),
+      }
+
+      menu = Menu(popup_options, {
+        lines = items,
+        min_width = min_width,
+      })
+
+      menu:mount()
+
+      eq(vim.api.nvim_win_get_cursor(menu.winid)[1], 1)
+
+      menu:focus(2)
+      eq(vim.api.nvim_win_get_cursor(menu.winid)[1], 3)
+    end)
+  end)
+
   describe("size", function()
     it("respects o.min_width", function()
       local min_width = 3
