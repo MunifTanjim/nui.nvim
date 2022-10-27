@@ -195,6 +195,13 @@ Callback function, called when menu is submitted.
 
 Methods from `nui.popup` are also available for `nui.menu`.
 
+## Properties
+
+### `menu.tree`
+
+The underlying `NuiTree` object used for rendering the menu. You can use it to
+manipulate the menu items on-the-fly and access all the `NuiTree` methods.
+
 ## Wiki Page
 
 You can find additional documentation/examples/guides/tips-n-tricks in [nui.menu wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.menu).
