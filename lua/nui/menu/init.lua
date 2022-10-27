@@ -333,12 +333,22 @@ function Menu:mount()
   self._tree:render()
 
   -- focus first item
+  self:focus(1)
+end
+
+-- focus the item at given index, skipping items when needed
+---@return boolean? true when index was found and focused
+function Menu:focus(item_idx)
+  local idx = 0
   for _, node_id in ipairs(self._tree.nodes.root_ids) do
     local node = self._tree:get_node(node_id)
     if not self._.should_skip_item(node) then
-      vim.api.nvim_win_set_cursor(self.winid, { node_id, 0 })
-      self._.on_change(node)
-      break
+      idx = idx + 1
+      if idx == item_idx then
+        vim.api.nvim_win_set_cursor(self.winid, { node_id, 0 })
+        self._.on_change(node)
+        return true
+      end
     end
   end
 end
