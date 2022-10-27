@@ -6,12 +6,10 @@ local _ = require("nui.utils")._
 local defaults = require("nui.utils").defaults
 local is_type = require("nui.utils").is_type
 
-local function prepare_items(items)
+local function calculate_initial_max_width(items)
   local max_width = 0
 
-  for index, item in ipairs(items) do
-    item._index = index
-
+  for _, item in ipairs(items) do
     local width = 0
     if is_type("string", item.text) then
       width = vim.api.nvim_strwidth(item.text)
@@ -24,7 +22,7 @@ local function prepare_items(items)
     end
   end
 
-  return items, max_width
+  return max_width
 end
 
 local default_keymap = {
@@ -201,6 +199,7 @@ local Menu = Popup:extend("NuiMenu")
 function Menu.separator(content, options)
   options = options or {}
   return Tree.Node({
+    _id = tostring(math.random()),
     _type = "separator",
     _char = options.char,
     _text_align = options.text_align,
@@ -225,6 +224,7 @@ function Menu.item(content, data)
   end
 
   data._type = "item"
+  data._id = data.id or tostring(math.random())
 
   return Tree.Node(data)
 end
@@ -232,10 +232,10 @@ end
 ---@param popup_options table
 ---@param options table
 function Menu:init(popup_options, options)
-  local items, max_width = prepare_items(options.lines)
+  local max_width = calculate_initial_max_width(options.lines)
 
   local width = math.max(math.min(max_width, defaults(options.max_width, 256)), defaults(options.min_width, 4))
-  local height = math.max(math.min(#items, defaults(options.max_height, 256)), defaults(options.min_height, 1))
+  local height = math.max(math.min(#options.lines, defaults(options.max_height, 256)), defaults(options.min_height, 1))
 
   popup_options = vim.tbl_deep_extend("force", {
     enter = true,
@@ -252,7 +252,7 @@ function Menu:init(popup_options, options)
 
   Menu.super.init(self, popup_options)
 
-  self._.items = items
+  self._.items = options.lines
   self._.keymap = parse_keymap(options.keymap)
 
   ---@param node NuiTreeNode
@@ -325,7 +325,7 @@ function Menu:mount()
     ns_id = self.ns_id,
     nodes = self._.items,
     get_node_id = function(node)
-      return node._index
+      return node._id
     end,
     prepare_node = self._.prepare_item,
   })
@@ -333,10 +333,10 @@ function Menu:mount()
   self._tree:render()
 
   -- focus first item
-  for _, node_id in ipairs(self._tree.nodes.root_ids) do
-    local node = self._tree:get_node(node_id)
+  for linenr = 1, #self._tree.nodes.root_ids do
+    local node, target_linenr = self._tree:get_node(linenr)
     if not self._.should_skip_item(node) then
-      vim.api.nvim_win_set_cursor(self.winid, { node_id, 0 })
+      vim.api.nvim_win_set_cursor(self.winid, { target_linenr, 0 })
       self._.on_change(node)
       break
     end
