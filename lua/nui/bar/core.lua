@@ -292,7 +292,7 @@ function mod.ruler()
   })
 end
 
----@param generator string|fun():string
+---@param generator string|nui_bar_core_expression_fn
 ---@param opts? { context?: nui_bar_core_item_options_context, id?: string }
 function mod.generator(generator, opts)
   if type(generator) == "function" then
