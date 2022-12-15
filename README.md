@@ -1,4 +1,4 @@
-![GitHub Workflow Status: CI](https://img.shields.io/github/workflow/status/MunifTanjim/nui.nvim/CI/main?label=CI&style=for-the-badge)
+![GitHub Workflow Status: CI](https://img.shields.io/github/actions/workflow/status/MunifTanjim/nui.nvim/ci.yml?branch=main&label=CI&style=for-the-badge)
 [![Coverage](https://img.shields.io/codecov/c/gh/MunifTanjim/nui.nvim/master?style=for-the-badge)](https://codecov.io/gh/MunifTanjim/nui.nvim)
 ![License](https://img.shields.io/github/license/MunifTanjim/nui.nvim?color=%23000080&style=for-the-badge)
 
