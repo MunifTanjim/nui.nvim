@@ -85,9 +85,13 @@ local function normalize_border_char(internal)
 
   for position, item in pairs(internal.char) do
     if is_type("string", item) then
-      internal.char[position] = Text(item)
+      internal.char[position] = Text(item, "FloatBorder")
     elseif not item.content then
-      internal.char[position] = Text(item[1], item[2])
+      internal.char[position] = Text(item[1], item[2] or "FloatBorder")
+    elseif item.extmark then
+      item.extmark.hl_group = item.extmark.hl_group or "FloatBorder"
+    else
+      item.extmark = { hl_group = "FloatBorder" }
     end
   end
 
@@ -106,21 +110,14 @@ local function calculate_winhighlight(internal, popup_winhighlight)
   -- @deprecated
   if internal.highlight then
     if not string.match(internal.highlight, ":") then
-      local highlight = internal.highlight
-      internal.highlight = nil
-      return "Normal:" .. highlight
+      internal.highlight = "FloatBorder:" .. internal.highlight
     end
 
     winhl = internal.highlight
     internal.highlight = nil
   end
 
-  if winhl and winhl:match("FloatBorder:") then
-    local highlight = string.match(winhl, "FloatBorder:([^,]+)")
-    return "Normal:" .. highlight
-  end
-
-  return "Normal:WinSeparator"
+  return winhl
 end
 
 ---@return nui_popup_border_internal_padding|nil
