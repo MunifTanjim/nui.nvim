@@ -431,6 +431,10 @@ function Border:init(popup, options)
     zindex = self.popup.win_config.zindex - 1,
     anchor = self.popup.win_config.anchor,
   }
+
+  if type(internal.char) == "string" then
+    self.win_config.border = internal.char
+  end
 end
 
 function Border:_open_window()
