@@ -44,7 +44,7 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "FloatBorder:" .. hl_group)
     end)
 
     it("works for 'FloatBorder:hl_group'", function()
@@ -62,7 +62,7 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "FloatBorder:" .. hl_group)
     end)
   end)
 
@@ -149,6 +149,80 @@ describe("nui.popup", function()
 
   describe("border.style", function()
     describe("for complex border", function()
+      it("is normalized", function()
+        local index_name = {
+          "top_left",
+          "top",
+          "top_right",
+          "right",
+          "bottom_right",
+          "bottom",
+          "bottom_left",
+          "left",
+        }
+
+        local char_map
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            padding = { 0 },
+          },
+        })
+
+        popup = Popup(popup_options)
+        char_map = popup.border._.char
+        eq(char_map, "none")
+
+        popup_options.border.style = "shadow"
+        popup = Popup(popup_options)
+        char_map = popup.border._.char
+        eq(char_map, "shadow")
+
+        popup_options.border.style = "rounded"
+        popup = Popup(popup_options)
+        char_map = popup.border._.char
+        for _, name in ipairs(index_name) do
+          eq(type(char_map[name]:content()), "string")
+          eq(char_map[name].extmark.hl_group, "FloatBorder")
+        end
+
+        popup_options.border.style = h.popup.create_border_style_list()
+        popup_options.border.style[1] = { popup_options.border.style[1], "TopLeft" }
+        popup_options.border.style[2] = Text(popup_options.border.style[2])
+        popup_options.border.style[3] = Text(popup_options.border.style[3], "TopRight")
+        popup_options.border.style[6] = { popup_options.border.style[6] }
+        popup = Popup(popup_options)
+        char_map = popup.border._.char
+        for _, name in ipairs(index_name) do
+          eq(type(char_map[name]:content()), "string")
+          if name == "top_left" then
+            eq(char_map[name].extmark.hl_group, "TopLeft")
+          elseif name == "top_right" then
+            eq(char_map[name].extmark.hl_group, "TopRight")
+          else
+            eq(char_map[name].extmark.hl_group, "FloatBorder")
+          end
+        end
+
+        popup_options.border.style = h.popup.create_border_style_map()
+        popup_options.border.style.top_left = { popup_options.border.style.top_left, "TopLeft" }
+        popup_options.border.style.top = Text(popup_options.border.style.top)
+        popup_options.border.style.top_right = Text(popup_options.border.style.top_right, "TopRight")
+        popup_options.border.style.bottom = { popup_options.border.style.bottom }
+        popup = Popup(popup_options)
+        char_map = popup.border._.char
+        for _, name in ipairs(index_name) do
+          eq(type(char_map[name]:content()), "string")
+          if name == "top_left" then
+            eq(char_map[name].extmark.hl_group, "TopLeft")
+          elseif name == "top_right" then
+            eq(char_map[name].extmark.hl_group, "TopRight")
+          else
+            eq(char_map[name].extmark.hl_group, "FloatBorder")
+          end
+        end
+      end)
+
       it("supports string name", function()
         popup_options = vim.tbl_deep_extend("force", popup_options, {
           border = {
@@ -445,7 +519,7 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), winhighlight)
     end)
 
     it("does nothing if popup mounted", function()
@@ -618,7 +692,7 @@ describe("nui.popup", function()
       popup:mount()
 
       eq(vim.api.nvim_win_get_option(popup.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group)
-      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group)
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:Normal,FloatBorder:" .. hl_group)
 
       local hl_group_override = "NuiPopupTestOverride"
 
@@ -628,7 +702,10 @@ describe("nui.popup", function()
         vim.api.nvim_win_get_option(popup.winid, "winhighlight"),
         "FloatBorder:" .. hl_group_override .. ",Normal:Normal"
       )
-      eq(vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"), "Normal:" .. hl_group_override)
+      eq(
+        vim.api.nvim_win_get_option(popup.border.winid, "winhighlight"),
+        "FloatBorder:" .. hl_group_override .. ",Normal:Normal"
+      )
     end)
   end)
 end)
