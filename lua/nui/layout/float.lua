@@ -165,4 +165,55 @@ function mod.hide_box(box)
   end
 end
 
+---@param box table Layout.Box
+---@return table<string, table>
+local function collect_box_components(box, components)
+  if not components then
+    components = {}
+  end
+
+  for _, child in ipairs(box.box) do
+    if child.component then
+      components[child.component._.id] = child.component
+    else
+      collect_box_components(child, components)
+    end
+  end
+
+  return components
+end
+
+---@param curr_box table Layout.Box
+---@param prev_box table Layout.Box
+function mod.process_box_change(curr_box, prev_box)
+  if curr_box == prev_box then
+    return
+  end
+
+  local curr_components = collect_box_components(curr_box)
+  local prev_components = collect_box_components(prev_box)
+
+  for id, component in pairs(curr_components) do
+    if not prev_components[id] then
+      if not component.winid then
+        if component._.mounted then
+          component:show()
+        else
+          component:mount()
+        end
+      end
+    end
+  end
+
+  for id, component in pairs(prev_components) do
+    if not curr_components[id] then
+      if component._.mounted then
+        if component.winid then
+          component:hide()
+        end
+      end
+    end
+  end
+end
+
 return mod

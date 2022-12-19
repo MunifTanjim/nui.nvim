@@ -377,6 +377,8 @@ function Layout:update(config, box)
   autocmd.create_group(self._.augroup.hide, { clear = true })
   autocmd.create_group(self._.augroup.unmount, { clear = true })
 
+  local prev_box = self._.box
+
   if box then
     self._.box = Layout.Box(box)
     self._.type = get_layout_type(self._.box)
@@ -389,7 +391,10 @@ function Layout:update(config, box)
 
     if self.winid then
       vim.api.nvim_win_set_config(self.winid, info.win_config)
+
       self:_process_layout()
+
+      float_layout.process_box_change(self._.box, prev_box)
     end
 
     wire_up_layout_components(self, self._.box)

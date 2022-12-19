@@ -804,7 +804,7 @@ describe("nui.layout", function()
         assert_initial_layout_components()
       end)
 
-      it("can update layout win_config w/o changing boxes", function()
+      it("can update layout win_config w/o rearranging boxes", function()
         layout = get_initial_layout({ position = 0, size = "100%" })
 
         layout:mount()
@@ -839,7 +839,7 @@ describe("nui.layout", function()
         assert_initial_layout_components()
       end)
 
-      it("can update boxes w/o changing layout win_config", function()
+      it("can rearrange boxes w/o changing layout win_config", function()
         layout = get_initial_layout({ position = 0, size = "100%" })
 
         layout:mount()
@@ -1049,6 +1049,136 @@ describe("nui.layout", function()
           size = {
             width = percent(win_width, 100 - 20 - 60),
             height = win_height,
+          },
+        })
+      end)
+
+      it("can change boxes", function()
+        layout = Layout(
+          { position = 0, size = "100%" },
+          Layout.Box({
+            Layout.Box(p1, { size = "40%" }),
+            Layout.Box(p2, { size = "60%" }),
+          }, { dir = "col" })
+        )
+
+        layout:mount()
+
+        assert_component = get_assert_component(layout)
+
+        assert_component(p1, {
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = percent(win_height, 40),
+          },
+        })
+
+        assert_component(p2, {
+          position = {
+            row = percent(win_height, 40),
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = percent(win_height, 60),
+          },
+        })
+
+        layout:update(Layout.Box({
+          Layout.Box({
+            Layout.Box(p1, { size = "40%" }),
+            Layout.Box(p2, { size = "60%" }),
+          }, { dir = "col", size = "60%" }),
+          Layout.Box(p3, { size = "40%" }),
+        }, { dir = "row" }))
+
+        assert_component = get_assert_component(layout)
+
+        assert_component(p1, {
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = percent(win_width, 60),
+            height = percent(win_height, 40),
+          },
+        })
+
+        assert_component(p2, {
+          position = {
+            row = percent(win_height, 40),
+            col = 0,
+          },
+          size = {
+            width = percent(win_width, 60),
+            height = percent(win_height, 60),
+          },
+        })
+
+        assert_component(p3, {
+          position = {
+            row = 0,
+            col = percent(win_width, 60),
+          },
+          size = {
+            width = percent(win_width, 40),
+            height = win_height,
+          },
+        })
+
+        layout:update(Layout.Box({
+          Layout.Box({
+            Layout.Box(p1, { size = "40%" }),
+            Layout.Box(p2, { size = "60%" }),
+          }, { dir = "col", size = "60%" }),
+          Layout.Box(p4, { size = "40%" }),
+        }, { dir = "row" }))
+
+        assert_component(p4, {
+          position = {
+            row = 0,
+            col = percent(win_width, 60),
+          },
+          size = {
+            width = percent(win_width, 40),
+            height = win_height,
+          },
+        })
+
+        eq(p3.winid, nil)
+
+        layout:update(Layout.Box({
+          Layout.Box(p3, { size = "40%" }),
+          Layout.Box(p4, { size = "60%" }),
+        }, { dir = "col" }))
+
+        eq(p1.winid, nil)
+        eq(p2.winid, nil)
+
+        assert_component(p3, {
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = percent(win_height, 40),
+          },
+        })
+
+        assert_component(p4, {
+          position = {
+            row = percent(win_height, 40),
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = percent(win_height, 60),
           },
         })
       end)
