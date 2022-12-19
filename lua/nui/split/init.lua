@@ -90,6 +90,7 @@ function Split:init(options)
   options = u.split.normalize_options(options)
 
   self._ = {
+    id = id,
     enter = options.enter,
     buf_options = options.buf_options,
     loading = false,
