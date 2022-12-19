@@ -403,7 +403,10 @@ function Layout:update(config, box)
   if self._.type == "split" then
     local info = self._.split
 
+    local curr_box = self._.box
+    self._.box = prev_box
     self:hide()
+    self._.box = curr_box
 
     u.split.update_layout_config(info, config)
 
