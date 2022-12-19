@@ -1625,7 +1625,7 @@ describe("nui.layout", function()
         )
       end
 
-      it("can update layout win_config w/o changing boxes", function()
+      it("can update layout win_config w/o rearranging boxes", function()
         layout = get_initial_layout({
           position = "bottom",
           size = 10,
@@ -1712,6 +1712,90 @@ describe("nui.layout", function()
           width = ((base_size.width - 20) / (2 + 1)) * 1,
           height = 10,
         })
+      end)
+
+      it("can change boxes", function()
+        layout = Layout(
+          { position = "bottom", size = 10 },
+          Layout.Box({
+            Layout.Box(s1, { size = "40%" }),
+            Layout.Box(s2, { size = "60%" }),
+          }, { dir = "row" })
+        )
+
+        layout:mount()
+
+        eq(vim.fn.winlayout(), {
+          "col",
+          {
+            { "leaf", winid },
+            {
+              "row",
+              {
+                { "leaf", s1.winid },
+                { "leaf", s2.winid },
+              },
+            },
+          },
+        })
+
+        layout:update(Layout.Box({
+          Layout.Box({
+            Layout.Box(s1, { size = "40%" }),
+            Layout.Box(s2, { size = "60%" }),
+          }, { dir = "col", size = "60%" }),
+          Layout.Box(s3, { size = "40%" }),
+        }, { dir = "row" }))
+
+        eq(vim.fn.winlayout(), {
+          "col",
+          {
+            { "leaf", winid },
+            {
+              "row",
+              {
+                {
+                  "col",
+                  {
+                    { "leaf", s1.winid },
+                    { "leaf", s2.winid },
+                  },
+                },
+                { "leaf", s3.winid },
+              },
+            },
+          },
+        })
+
+        layout:update(Layout.Box({
+          Layout.Box({
+            Layout.Box(s1, { size = "40%" }),
+            Layout.Box(s2, { size = "60%" }),
+          }, { dir = "col", size = "60%" }),
+          Layout.Box(s4, { size = "40%" }),
+        }, { dir = "row" }))
+
+        eq(vim.fn.winlayout(), {
+          "col",
+          {
+            { "leaf", winid },
+            {
+              "row",
+              {
+                {
+                  "col",
+                  {
+                    { "leaf", s1.winid },
+                    { "leaf", s2.winid },
+                  },
+                },
+                { "leaf", s4.winid },
+              },
+            },
+          },
+        })
+
+        eq(s3.winid, nil)
       end)
     end)
   end)

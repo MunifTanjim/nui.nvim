@@ -173,6 +173,10 @@ local function do_action(box, action, meta)
         end
 
         child.component[action](child.component)
+
+        if action == "show" and not child.component._.mounted then
+          child.component:mount()
+        end
       else
         do_action(child, action, {
           initial_pass = true,
