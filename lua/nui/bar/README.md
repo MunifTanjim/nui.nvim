@@ -186,6 +186,14 @@ The `function` signature is: `(context: table) -> string`.
 | `id`      | `string`                                               | generator function id      |
 | `context` | `boolean` / `number` / `string` / `table` / `function` | generator function context |
 
+### `core.add_*`
+
+_Signature:_ `core.add_*(..., parts: string[], parts_len?: integer) -> integer`
+
+Some of the core functions has lower-level `add_*` counterparts, that takes 2 extra
+parameters: `parts` and `parts_len`. It adds string parts to the `parts` table and returns
+the length of `parts` table after adding all the new parts.
+
 ## Wiki Page
 
 You can find additional documentation/examples/guides/tips-n-tricks in [nui.bar wiki page](https://github.com/MunifTanjim/nui.nvim/wiki/nui.bar).
