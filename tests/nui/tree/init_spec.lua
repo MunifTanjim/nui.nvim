@@ -681,7 +681,6 @@ describe("nui.tree", function()
                 return node.text
             end,
         })
-        
         h.neq(tree:get_node('a'), nil)
         h.neq(tree:get_node('a-1'), nil)
         tree:remove_node('a')
