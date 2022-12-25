@@ -345,7 +345,8 @@ local function remove_node(tree, node_id)
   if node:has_children() then
     for _, child_id in ipairs(node._child_ids) do
       -- We might want to store the nodes and return them with the node itself?
-      tree.nodes.by_id[child_id] = nil
+      -- We should _really_ not be doing this recursively, but it will work for now
+      remove_node(tree, child_id)
     end
   end
   tree.nodes.by_id[node_id] = nil
