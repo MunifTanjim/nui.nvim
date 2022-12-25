@@ -355,6 +355,34 @@ end
 -- - `nil`|`0`  : reset highlight
 -- - `1-9`    : treat as `hl-User1..9`
 -- - `string` : highlight group name
+--
+-- Always adds 3 parts, 2nd part is the name.
+--
+---@param highlight? integer|string
+---@param _? nil
+---@param parts string[]
+---@param parts_len? integer
+---@return integer parts_len
+function mod.add_highlight(highlight, _, parts, parts_len)
+  local idx = parts_len or #parts
+
+  if type(highlight) == "string" then
+    parts[idx + 1] = "%#"
+    parts[idx + 2] = highlight
+    parts[idx + 3] = "#"
+  else
+    parts[idx + 1] = "%"
+    parts[idx + 2] = highlight or 0 --[[@as string]]
+    parts[idx + 3] = "*"
+  end
+
+  return idx + 3
+end
+
+-- `highlight` can be:
+-- - `nil`|`0`  : reset highlight
+-- - `1-9`    : treat as `hl-User1..9`
+-- - `string` : highlight group name
 ---@param highlight? integer|string
 ---@return string highlight_item
 function mod.highlight(highlight)
