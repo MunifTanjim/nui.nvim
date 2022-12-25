@@ -344,6 +344,11 @@ end
 ---@return NuiTreeNode
 function Tree:remove_node(node_id)
   local node = self.nodes.by_id[node_id]
+  for _, child_id in ipairs(node._child_ids) do
+    -- We might want to store the nodes and return them with the node itself?
+    -- We should _really_ not be doing this recursively, but it will work for now
+    Tree:remove_node(child_id)
+  end
   self.nodes.by_id[node_id] = nil
   local parent_id = node._parent_id
   if parent_id then

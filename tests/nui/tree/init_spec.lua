@@ -667,6 +667,27 @@ describe("nui.tree", function()
         "  c",
       })
     end)
+
+    it("does not return any children after parent removal", function()
+        local nodes = {
+            Tree.Node({ text = "a"}, {
+                Tree.Node({ text = "a-1"})
+            })
+        }
+        local tree = Tree({
+            bufnr = bufnr,
+            nodes = nodes,
+            get_node_id = function(node)
+                return node.text
+            end,
+        })
+
+        tree:remove_node('a')
+        tree:render()
+        eq(tree:get_node('a'), nil)
+        eq(tree:get_node('a-1'), nil)
+
+    end)
   end)
 
   describe("method :render", function()
