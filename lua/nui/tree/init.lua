@@ -340,11 +340,23 @@ function Tree:add_node(node, parent_id)
   self:_add_nodes({ node }, parent_node)
 end
 
+local function remove_node(tree, node_id)
+  local node = tree.nodes.by_id[node_id]
+  if node:has_children() then
+    for _, child_id in ipairs(node._child_ids) do
+      -- We might want to store the nodes and return them with the node itself?
+      -- We should _really_ not be doing this recursively, but it will work for now
+      remove_node(tree, child_id)
+    end
+  end
+  tree.nodes.by_id[node_id] = nil
+  return node
+end
+
 ---@param node_id string
 ---@return NuiTreeNode
 function Tree:remove_node(node_id)
-  local node = self.nodes.by_id[node_id]
-  self.nodes.by_id[node_id] = nil
+  local node = remove_node(self, node_id)
   local parent_id = node._parent_id
   if parent_id then
     local parent_node = self.nodes.by_id[parent_id]

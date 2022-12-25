@@ -667,6 +667,32 @@ describe("nui.tree", function()
         "  c",
       })
     end)
+
+    it("removes children nodes recursively", function()
+      local nodes = {
+        Tree.Node({ text = "a" }, {
+          Tree.Node({ text = "a-1" }, {
+            Tree.Node({ text = "a-1-x" }),
+          }),
+        }),
+      }
+      local tree = Tree({
+        bufnr = bufnr,
+        nodes = nodes,
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+      h.neq(tree:get_node("a"), nil)
+      h.neq(tree:get_node("a-1"), nil)
+      h.neq(tree:get_node("a-1-x"), nil)
+
+      tree:remove_node("a")
+
+      eq(tree:get_node("a"), nil)
+      eq(tree:get_node("a-1"), nil)
+      eq(tree:get_node("a-1-x"), nil)
+    end)
   end)
 
   describe("method :render", function()
