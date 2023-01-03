@@ -8,18 +8,24 @@ local u = {
 
 local mod = {}
 
-local function get_child_position(canvas_position, current_position, box_dir)
-  if box_dir == "row" then
-    return {
-      row = canvas_position.row,
-      col = current_position.col,
-    }
-  elseif box_dir == "col" then
-    return {
-      col = canvas_position.col,
-      row = current_position.row,
-    }
+local function get_child_position(box, child, current_position, canvas_position)
+  local position = box.dir == "row" and {
+    row = canvas_position.row,
+    col = current_position.col,
+  } or {
+    col = canvas_position.col,
+    row = current_position.row,
+  }
+
+  if child.component then
+    local border = child.component.border
+    if border and border._.type == "complex" then
+      position.col = position.col + math.floor(border._.size_delta.width / 2 + 0.5)
+      position.row = position.row + math.floor(border._.size_delta.height / 2 + 0.5)
+    end
   end
+
+  return position
 end
 
 ---@param parent table Layout.Box
@@ -76,7 +82,7 @@ function mod.process(box, meta)
 
   for _, child in ipairs(box.box) do
     if meta.process_growable_child or not child.grow then
-      local position = get_child_position(meta.position, current_position, box.dir)
+      local position = get_child_position(box, child, current_position, meta.position)
       local outer_size, inner_size = get_child_size(box, child, container_size, meta.growable_dimension_per_factor)
 
       if child.component then
