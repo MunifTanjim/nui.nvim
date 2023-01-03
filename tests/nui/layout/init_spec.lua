@@ -29,20 +29,40 @@ local function percent(number, percentage)
 end
 
 local function get_assert_component(layout)
-  local expected_winid = layout.winid
-  assert(expected_winid, "missing layout.winid, forgot to mount it?")
+  local layout_winid = layout.winid
+  assert(layout_winid, "missing layout.winid, forgot to mount it?")
 
   return function(component, expected)
     eq(type(component.bufnr), "number")
     eq(type(component.winid), "number")
 
-    local win_config = vim.api.nvim_win_get_config(component.winid)
-    eq(win_config.relative, "win")
-    eq(win_config.win, expected_winid)
+    local win_config, border_win_config =
+      vim.api.nvim_win_get_config(component.winid),
+      component.border.winid and vim.api.nvim_win_get_config(component.border.winid)
+    if border_win_config then
+      eq(border_win_config.relative, "win")
+      eq(border_win_config.win, layout_winid)
 
-    local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
-    eq(row, expected.position.row)
-    eq(col, expected.position.col)
+      eq(win_config.relative, "win")
+      eq(win_config.win, component.border.winid)
+    else
+      eq(win_config.relative, "win")
+      eq(win_config.win, layout_winid)
+    end
+
+    if border_win_config then
+      local border_row, border_col = border_win_config.row[vim.val_idx], border_win_config.col[vim.val_idx]
+      eq(border_row, expected.position.row)
+      eq(border_col, expected.position.col)
+
+      local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+      eq(row, border_row + math.floor(component.border._.size_delta.width / 2 + 0.5))
+      eq(col, border_col + math.floor(component.border._.size_delta.height / 2 + 0.5))
+    else
+      local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+      eq(row, expected.position.row)
+      eq(col, expected.position.col)
+    end
 
     local expected_width, expected_height = expected.size.width, expected.size.height
     if component.border then
@@ -1179,6 +1199,40 @@ describe("nui.layout", function()
           size = {
             width = win_width,
             height = percent(win_height, 60),
+          },
+        })
+      end)
+
+      it("positions popup with complex border correctly", function()
+        p1 = unpack(create_popups({
+          border = {
+            style = "single",
+            text = {
+              top = "text",
+            },
+            padding = { 1 },
+          },
+        }))
+
+        layout = Layout(
+          { position = 0, size = "100%" },
+          Layout.Box({
+            Layout.Box(p1, { size = "100%" }),
+          }, { dir = "col" })
+        )
+
+        layout:mount()
+
+        assert_component = get_assert_component(layout)
+
+        assert_component(p1, {
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = percent(win_height, 100),
           },
         })
       end)
