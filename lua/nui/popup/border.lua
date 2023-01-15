@@ -505,9 +505,8 @@ function Border:unmount()
   end
 
   if self.bufnr then
-    u.clear_namespace(self.bufnr, self.popup.ns_id)
-
     if vim.api.nvim_buf_is_valid(self.bufnr) then
+      u.clear_namespace(self.bufnr, self.popup.ns_id)
       vim.api.nvim_buf_delete(self.bufnr, { force = true })
     end
     self.bufnr = nil
