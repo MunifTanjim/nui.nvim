@@ -34,8 +34,10 @@ function setup_environment() {
   if [[ ! -d "${plugins_dir}/plenary.nvim" ]]; then
     echo "[plugins] plenary.nvim: installing..."
     git clone https://github.com/nvim-lua/plenary.nvim "${plugins_dir}/plenary.nvim"
-    # this commit broke luacov
-    git -C "${plugins_dir}/plenary.nvim" revert --no-commit 9069d14a120cadb4f6825f76821533f2babcab92
+    # commit 9069d14a120cadb4f6825f76821533f2babcab92 broke luacov
+    # issue: https://github.com/nvim-lua/plenary.nvim/issues/353
+    local -r plenary_353_patch="$(pwd)/scripts/plenary-353.patch"
+    git -C "${plugins_dir}/plenary.nvim" apply "${plenary_353_patch}"
     echo "[plugins] plenary.nvim: installed"
     echo
   fi
