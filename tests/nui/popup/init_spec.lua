@@ -883,6 +883,10 @@ describe("nui.popup", function()
         vim.cmd([[quit]])
       end)
 
+      vim.wait(100, function()
+        return not popup._.mounted
+      end, 10)
+
       assert.spy(popup_unmount).was_called()
     end)
   end)

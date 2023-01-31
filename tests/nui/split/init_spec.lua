@@ -315,6 +315,10 @@ describe("nui.split", function()
         vim.cmd([[quit]])
       end)
 
+      vim.wait(100, function()
+        return not split._.mounted
+      end, 10)
+
       assert.spy(split_unmount).was_called()
     end)
   end)

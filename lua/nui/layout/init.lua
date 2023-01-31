@@ -69,9 +69,9 @@ local function wire_up_layout_components(layout, box)
       autocmd.create({ "BufWipeout", "QuitPre" }, {
         group = layout._.augroup.unmount,
         buffer = child.component.bufnr,
-        callback = function()
+        callback = vim.schedule_wrap(function()
           layout:unmount()
-        end,
+        end),
       }, child.component.bufnr)
 
       autocmd.create("BufWinEnter", {
