@@ -187,9 +187,9 @@ function Popup:mount()
   autocmd.create("QuitPre", {
     group = self._.augroup.unmount,
     buffer = self.bufnr,
-    callback = function()
+    callback = vim.schedule_wrap(function()
       self:unmount()
-    end,
+    end),
   }, self.bufnr)
   autocmd.create("BufWinEnter", {
     group = self._.augroup.unmount,

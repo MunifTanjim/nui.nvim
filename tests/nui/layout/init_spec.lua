@@ -522,6 +522,10 @@ describe("nui.layout", function()
 
         p2:unmount()
 
+        vim.wait(100, function()
+          return not layout._.mounted
+        end, 10)
+
         assert.spy(layout_unmount).was_called()
       end)
 
@@ -546,6 +550,10 @@ describe("nui.layout", function()
         vim.api.nvim_buf_call(p2.bufnr, function()
           vim.cmd([[quit]])
         end)
+
+        vim.wait(100, function()
+          return not layout._.mounted
+        end, 10)
 
         assert.spy(layout_unmount).was_called()
       end)
@@ -1479,6 +1487,10 @@ describe("nui.layout", function()
 
         s2:unmount()
 
+        vim.wait(100, function()
+          return not layout._.mounted
+        end, 10)
+
         assert.spy(layout_unmount).was_called()
       end)
 
@@ -1508,6 +1520,10 @@ describe("nui.layout", function()
         vim.api.nvim_buf_call(s2.bufnr, function()
           vim.cmd([[quit]])
         end)
+
+        vim.wait(100, function()
+          return not layout._.mounted
+        end, 10)
 
         assert.spy(layout_unmount).was_called()
       end)

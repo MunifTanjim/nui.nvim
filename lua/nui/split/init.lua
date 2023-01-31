@@ -186,8 +186,10 @@ function Split:mount()
     buffer = self.bufnr,
     callback = function()
       self._.pending_quit = true
-      self:unmount()
-      self._.pending_quit = nil
+      vim.schedule(function()
+        self:unmount()
+        self._.pending_quit = nil
+      end)
     end,
   }, self.bufnr)
   autocmd.create("BufWinEnter", {
