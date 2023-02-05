@@ -1,0 +1,18 @@
+name: "Publish"
+on:
+  push:
+    tags:
+      - '[0-1].[0-9]+.[0-9]+'
+
+jobs:
+  luarocks:
+    name: LuaRocks
+    environment: luarocks
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Publish
+        uses: nvim-neorocks/luarocks-tag-release@v2.1.0
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
