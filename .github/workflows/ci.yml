@@ -91,3 +91,22 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           verbose: true
+
+  release:
+    name: release
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs:
+      - lint
+      - format
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          release-type: simple
+          package-name: nui.nvim
+          bump-minor-pre-major: true
+          pull-request-title-pattern: "chore: release ${version}"
+          include-v-in-tag: false
+      - uses: actions/checkout@v2
