@@ -471,6 +471,7 @@ describe("nui.popup", function()
       h.assert_buf_lines(popup.border.bufnr, {
         "┌─popup──┐",
       }, 1, 1)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, text, "FloatTitle")
     end)
 
     it("supports nui.text", function()
@@ -481,7 +482,8 @@ describe("nui.popup", function()
         border = {
           style = "single",
           text = {
-            top = Text(text, hl_group),
+            top = Text(text),
+            bottom = Text(text, hl_group),
           },
         },
       })
@@ -493,8 +495,12 @@ describe("nui.popup", function()
       h.assert_buf_lines(popup.border.bufnr, {
         "┌─popup──┐",
       }, 1, 1)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, text, "FloatTitle")
 
-      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, text, hl_group)
+      h.assert_buf_lines(popup.border.bufnr, {
+        "└─popup──┘",
+      }, 4, 4)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 4, text, hl_group)
     end)
   end)
 
