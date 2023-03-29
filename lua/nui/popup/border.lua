@@ -98,6 +98,23 @@ local function normalize_border_char(internal)
   return internal.char
 end
 
+---@param text? nil | string | NuiText
+local function normalize_border_text(text)
+  if not text then
+    return text
+  end
+
+  if is_type("string", text) then
+    return Text(text, "FloatTitle")
+  end
+
+  text.extmark = vim.tbl_deep_extend("keep", text.extmark or {}, {
+    hl_group = "FloatTitle",
+  })
+
+  return text
+end
+
 ---@param internal nui_popup_border_internal
 ---@param popup_winhighlight? string
 local function calculate_winhighlight(internal, popup_winhighlight)
@@ -139,7 +156,7 @@ local function parse_padding(padding)
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
+---@param text? nil | string | NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 ---@return table NuiLine
 local function calculate_buf_edge_line(internal, edge, text, align)
@@ -360,7 +377,7 @@ end
 ---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
 ---@alias nui_popup_border_internal_position { row: number, col: number }
 ---@alias nui_popup_border_internal_size { width: number, height: number }
----@alias nui_popup_border_internal_text { top?: string, top_align?: nui_t_text_align, bottom?: string, bottom_align?: nui_t_text_align }
+---@alias nui_popup_border_internal_text { top?: string|NuiText, top_align?: nui_t_text_align, bottom?: string|NuiText, bottom_align?: nui_t_text_align }
 ---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
 
 --luacheck: pop
@@ -387,6 +404,11 @@ function Border:init(popup, options)
   }
 
   local internal = self._
+
+  if internal.text then
+    internal.text.top = normalize_border_text(internal.text.top)
+    internal.text.bottom = normalize_border_text(internal.text.bottom)
+  end
 
   local style = internal.style
 
@@ -562,7 +584,7 @@ function Border:set_text(edge, text, align)
     return
   end
 
-  internal.text[edge] = text
+  internal.text[edge] = normalize_border_text(text)
   internal.text[edge .. "_align"] = defaults(align, internal.text[edge .. "_align"])
 
   local line = calculate_buf_edge_line(internal, edge, internal.text[edge], internal.text[edge .. "_align"])
