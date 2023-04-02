@@ -361,7 +361,12 @@ function Popup:update_layout(config)
   self._.layout_ready = true
 
   if self.winid then
+    -- upstream issue: https://github.com/neovim/neovim/issues/20370
+    local win_config_style = self.win_config.style
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    self.win_config.style = ""
     vim.api.nvim_win_set_config(self.winid, self.win_config)
+    self.win_config.style = win_config_style
   end
 end
 
