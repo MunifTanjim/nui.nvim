@@ -9,6 +9,7 @@ local u = {
   clear_namespace = utils._.clear_namespace,
   get_next_id = utils._.get_next_id,
   normalize_namespace_id = utils._.normalize_namespace_id,
+  set_win_options = utils._.set_win_options,
   split = split_utils,
 }
 
@@ -38,6 +39,15 @@ local function move_split_window(winid, win_config)
       rightbelow = win_config.position == "bottom" or win_config.position == "right",
     }
 
+    print(
+      string.format(
+        "noautocmd call win_splitmove(%s, %s, #{ vertical: %s, rightbelow: %s })",
+        winid,
+        win_config.win,
+        move_options.vertical and 1 or 0,
+        move_options.rightbelow and 1 or 0
+      )
+    )
     vim.cmd(
       string.format(
         "noautocmd call win_splitmove(%s, %s, #{ vertical: %s, rightbelow: %s })",
@@ -110,6 +120,11 @@ function Split:init(options)
 
   self.ns_id = u.normalize_namespace_id(options.ns_id)
 
+  if options.winid then
+    self.winid = options.winid
+    self._.skip = true
+  end
+
   self:_buf_create()
 
   self:update_layout(options)
@@ -120,35 +135,41 @@ function Split:update_layout(config)
 
   u.split.update_layout_config(self._, config)
 
-  if self.winid then
+  if self.winid and not self._.skip then
     set_win_config(self.winid, self._.win_config)
   end
 end
 
 function Split:_open_window()
-  if self.winid or not self.bufnr then
-    return
-  end
+  local should_set_win_config = true
 
-  self.winid = vim.api.nvim_win_call(self._.relative.win, function()
-    vim.api.nvim_command(
-      string.format(
-        "silent noswapfile %s %ssplit",
-        split_direction_command_map[self._.relative.type][self._.position],
-        self._.size.width or self._.size.height or ""
+  if not self.winid and self.bufnr then
+    self.winid = vim.api.nvim_win_call(self._.relative.win, function()
+      vim.api.nvim_command(
+        string.format(
+          "silent noswapfile %s %ssplit",
+          split_direction_command_map[self._.relative.type][self._.position],
+          self._.size.width or self._.size.height or ""
+        )
       )
-    )
 
-    return vim.api.nvim_get_current_win()
-  end)
+      return vim.api.nvim_get_current_win()
+    end)
 
-  vim.api.nvim_win_set_buf(self.winid, self.bufnr)
+    vim.api.nvim_win_set_buf(self.winid, self.bufnr)
+
+    should_set_win_config = false
+  end
 
   if self._.enter then
     vim.api.nvim_set_current_win(self.winid)
   end
 
-  utils._.set_win_options(self.winid, self._.win_options)
+  u.set_win_options(self.winid, self._.win_options)
+
+  if should_set_win_config then
+    set_win_config(self.winid, self._.win_config)
+  end
 
   self._.win_config.pending_changes = {}
 end
