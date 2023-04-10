@@ -148,9 +148,10 @@ function Split:_open_window()
     vim.api.nvim_set_current_win(self.winid)
   end
 
-  utils._.set_win_options(self.winid, self._.win_options)
+  self._.win_config.pending_changes = { size = true }
+  set_win_config(self.winid, self._.win_config)
 
-  self._.win_config.pending_changes = {}
+  utils._.set_win_options(self.winid, self._.win_options)
 end
 
 function Split:_close_window()
