@@ -77,8 +77,19 @@ end
 ---@param relative nui_split_internal_relative
 local function get_container_info(relative)
   if relative.type == "editor" then
+    local size = u.get_editor_size()
+
+    -- best effort adjustments
+    size.height = size.height - vim.api.nvim_get_option("cmdheight")
+    if vim.api.nvim_get_option("laststatus") >= 2 then
+      size.height = size.height - 1
+    end
+    if vim.api.nvim_get_option("showtabline") == 2 then
+      size.height = size.height - 1
+    end
+
     return {
-      size = u.get_editor_size(),
+      size = size,
       type = "editor",
     }
   end
