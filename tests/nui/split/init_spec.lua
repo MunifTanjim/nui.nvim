@@ -121,6 +121,24 @@ describe("nui.split", function()
 
       eq(type(vim.api.nvim_win_get_height(split.winid)), "number")
     end)
+
+    it("works with relative='editor'", function()
+      vim.api.nvim_set_option("showtabline", 2)
+      vim.api.nvim_set_option("cmdheight", 2)
+
+      split = Split({
+        size = "50%",
+        position = "bottom",
+        relative = "editor",
+      })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_height(split.winid), math.floor((vim.o.lines - 4) / 2))
+
+      vim.api.nvim_set_option("cmdheight", 1)
+      vim.api.nvim_set_option("showtabline", 1)
+    end)
   end)
 
   describe("o.relative", function()
@@ -581,7 +599,7 @@ describe("nui.split", function()
 
       split:update_layout({ position = "bottom", relative = "editor", size = "50%" })
 
-      eq(vim.api.nvim_win_get_height(split.winid), percent(vim.o.lines, 50))
+      eq(vim.api.nvim_win_get_height(split.winid), percent(vim.o.lines - 1, 50))
       eq(vim.fn.winlayout(), {
         "col",
         {
