@@ -68,6 +68,7 @@ function mod.process(box, meta)
   for i, child in ipairs(box.box) do
     if meta.process_growable_child or not child.grow then
       local position = get_child_position(box.dir)
+      local relative = { type = "win" }
       local size = get_child_size(position, child, container_size, meta.growable_dimension_per_factor)
 
       consumed_size.width = consumed_size.width + (size.width or 0)
@@ -75,6 +76,9 @@ function mod.process(box, meta)
 
       if i == 1 then
         position = meta.position
+        if meta.relative then
+          relative = meta.relative
+        end
         if position == "left" or position == "right" then
           size = { width = container_size.width }
         else
@@ -85,9 +89,7 @@ function mod.process(box, meta)
       if child.component then
         child.component:update_layout({
           position = position,
-          relative = {
-            type = "win",
-          },
+          relative = relative,
           size = size,
         })
       else
