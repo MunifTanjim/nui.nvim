@@ -212,6 +212,7 @@ function Layout:_process_layout()
 
     split_layout.process(self._.box, {
       position = info.position,
+      relative = info.relative,
       container_size = info.size,
       container_fallback_size = info.container_info.size,
     })
