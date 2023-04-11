@@ -80,9 +80,9 @@ function mod.process(box, meta)
           relative = meta.relative
         end
         if position == "left" or position == "right" then
-          size = { width = container_size.width }
+          size.width = container_size.width
         else
-          size = { height = container_size.height }
+          size.height = container_size.height
         end
       end
 
@@ -92,6 +92,13 @@ function mod.process(box, meta)
           relative = relative,
           size = size,
         })
+        if i == 1 and child.component.winid then
+          if position == "left" or position == "right" then
+            vim.api.nvim_win_set_height(child.component.winid, size.height)
+          else
+            vim.api.nvim_win_set_width(child.component.winid, size.width)
+          end
+        end
       else
         mod.process(child, {
           container_size = size,

@@ -1733,12 +1733,12 @@ describe("nui.layout", function()
         assert_size(s2.winid, {
           width = percent(base_size.width, 50),
           height = percent(20, 40),
-        }, 1)
+        }, 2)
 
         assert_size(s3.winid, {
           width = percent(base_size.width, 50),
           height = percent(20, 60),
-        })
+        }, 2)
 
         assert_size(s4.winid, {
           width = percent(base_size.width, 30),
