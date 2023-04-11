@@ -412,13 +412,19 @@ function Layout:update(config, box)
     end
 
     local curr_box = self._.box
-    self._.box = prev_box
-    self:hide()
-    self._.box = curr_box
+    if prev_box ~= curr_box then
+      self._.box = prev_box
+      self:hide()
+      self._.box = curr_box
+    end
 
     u.split.update_layout_config(info, config)
 
-    self:show()
+    if prev_box == curr_box then
+      self:_process_layout()
+    else
+      self:show()
+    end
 
     if vim.api.nvim_win_is_valid(prev_winid) then
       vim.api.nvim_set_current_win(prev_winid)
