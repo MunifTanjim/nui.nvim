@@ -404,6 +404,13 @@ function Layout:update(config, box)
   if self._.type == "split" then
     local info = self._.split
 
+    local relative_winid = info.relative and info.relative.win
+
+    local prev_winid = vim.api.nvim_get_current_win()
+    if relative_winid then
+      vim.api.nvim_set_current_win(relative_winid)
+    end
+
     local curr_box = self._.box
     self._.box = prev_box
     self:hide()
@@ -412,6 +419,10 @@ function Layout:update(config, box)
     u.split.update_layout_config(info, config)
 
     self:show()
+
+    if vim.api.nvim_win_is_valid(prev_winid) then
+      vim.api.nvim_set_current_win(prev_winid)
+    end
 
     wire_up_layout_components(self, self._.box)
   end
