@@ -148,8 +148,12 @@ end
 local function unset_win_options_fixsize(box)
   for _, child in ipairs(box.box) do
     if child.component then
-      child.component._.win_options.winfixwidth = false
-      child.component._.win_options.winfixheight = false
+      local winfix = child.component._._layout_orig_winfixsize
+      if winfix then
+        child.component._.win_options.winfixwidth = winfix.winfixwidth
+        child.component._.win_options.winfixheight = winfix.winfixheight
+        child.component._._layout_orig_winfixsize = nil
+      end
       u.set_win_options(child.component.winid, {
         winfixwidth = child.component._.win_options.winfixwidth,
         winfixheight = child.component._.win_options.winfixheight,
@@ -169,6 +173,11 @@ local function do_action(box, action, meta)
   for i, child in ipairs(box.box) do
     if not meta.initial_pass or i == 1 then
       if child.component then
+        child.component._._layout_orig_winfixsize = {
+          winfixwidth = child.component._.win_options.winfixwidth,
+          winfixheight = child.component._.win_options.winfixheight,
+        }
+
         child.component._.win_options.winfixwidth = i ~= 1
         child.component._.win_options.winfixheight = i == 1
         if box.dir == "col" then
