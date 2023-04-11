@@ -154,11 +154,13 @@ function mod.update_layout_config(component_internal, config)
   end
 
   if options.position or internal.win_config.pending_changes.relative then
+    local prev_position = internal.win_config.position
+
     internal.position = options.position or internal.position
 
     internal.win_config.position = internal.position
 
-    internal.win_config.pending_changes.position = true
+    internal.win_config.pending_changes.position = internal.win_config.position ~= prev_position
   end
 
   if options.size or internal.win_config.pending_changes.position or internal.win_config.pending_changes.relative then
