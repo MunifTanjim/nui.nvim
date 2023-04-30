@@ -119,7 +119,7 @@ function Input:mount()
 
   if #self._.default_value then
     self:on(event.InsertEnter, function()
-      vim.api.nvim_feedkeys(self._.default_value, "n", false)
+      vim.api.nvim_feedkeys(self._.default_value, "t", true)
     end, { once = true })
   end
 
