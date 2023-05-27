@@ -100,6 +100,10 @@ jobs:
       - format
       - test
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
     steps:
       - uses: google-github-actions/release-please-action@v3
         id: release
@@ -109,4 +113,10 @@ jobs:
           bump-minor-pre-major: true
           pull-request-title-pattern: "chore: release ${version}"
           include-v-in-tag: false
-      - uses: actions/checkout@v2
+      - name: Trigger Publish
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+        run: |
+          gh workflow run --repo ${GITHUB_REPOSITORY} publish.yml -f version=${TAG_NAME}
