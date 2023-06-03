@@ -19,10 +19,10 @@ local u = {
 }
 
 -- luacheck: push no max comment line length
----@alias border_char_name 'down_right'|'hor'|'down_hor'|'down_left'|'ver'|'ver_left'|'ver_hor'|'ver_left'|'up_right'|'up_hor'|'up_left'
+---@alias nui_table_border_char_name 'down_right'|'hor'|'down_hor'|'down_left'|'ver'|'ver_left'|'ver_hor'|'ver_left'|'up_right'|'up_hor'|'up_left'
 -- luacheck: pop
 
----@type table<border_char_name,string>
+---@type table<nui_table_border_char_name,string>
 local default_border = {
   hor = "─",
   ver = "│",
@@ -91,9 +91,45 @@ local function prepare_columns(meta, columns, parent, depth)
   end
 end
 
+---@class NuiTable.ColumnDef
+---@field accessor_fn? fun(original_row: any, index: integer): string|NuiText|NuiLine
+---@field accessor_key? string
+---@field cell? fun(info: NuiTable.Cell): string|NuiText|NuiLine
+---@field columns? NuiTable.ColumnDef[]
+---@field footer? string|NuiText|NuiLine|fun(info: { column: NuiTable.Column }): string|NuiText|NuiLine
+---@field header? string|NuiText|NuiLine|fun(info: { column: NuiTable.Column }): string|NuiText|NuiLine
+---@field id? string
+
+---@class NuiTable.Column
+---@field accessor_fn? fun(original_row: any, index: integer): string|NuiText|NuiLine
+---@field accessor_key? string
+---@field columns? NuiTable.ColumnDef[]
+---@field depth integer
+---@field id string
+---@field parent? NuiTable.Column
+---@field width integer
+
+---@class NuiTable.Row
+---@field id string
+---@field index integer
+---@field original any
+
+---@class NuiTable.Cell
+---@field column NuiTable.Column
+---@field content NuiText|NuiLine
+---@field get_value fun(): string|NuiText|NuiLine
+---@field row NuiTable.Row
+
 ---@class NuiTable
 local Table = Object("NuiTable")
 
+---@class nui_table_options
+---@field bufnr integer
+---@field ns_id integer|string
+---@field columns NuiTable.ColumnDef[]
+---@field data any[]
+
+---@param options nui_table_options
 function Table:init(options)
   if options.bufnr then
     if not vim.api.nvim_buf_is_valid(options.bufnr) then
