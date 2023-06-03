@@ -37,6 +37,14 @@ Quickly add line containing highlighted text chunks on the buffer.
 
 **[Check Wiki Page for `nui.line`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.line)**
 
+### [NuiTable](lua/nui/table)
+
+Quickly render table-like structured content on the buffer.
+
+**[Check Detailed Documentation for `nui.table`](lua/nui/table)**
+
+**[Check Wiki Page for `nui.table`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.table)**
+
 ### [NuiTree](lua/nui/tree)
 
 Quickly render tree-like structured content on the buffer.
