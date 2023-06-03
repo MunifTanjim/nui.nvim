@@ -218,24 +218,31 @@ function _.calculate_gap_width(align, total_width, text_width)
   error("invalid value align=" .. align)
 end
 
----@param lines table[] NuiLine[]
+---@param lines NuiLine[]
 ---@param bufnr number
 ---@param ns_id number
----@param linenr_start number
----@param linenr_end number
-function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end)
-  vim.api.nvim_buf_set_lines(
-    bufnr,
-    linenr_start - 1,
-    linenr_end - 1,
-    false,
-    vim.tbl_map(function(line)
-      return line:content()
-    end, lines)
-  )
+---@param linenr_start integer (1-indexed)
+---@param linenr_end? integer (1-indexed,inclusive)
+---@param byte_start? integer (0-indexed)
+---@param byte_end? integer (0-indexed,exclusive)
+function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end, byte_start, byte_end)
+  local row_start = linenr_start - 1
+  local row_end = linenr_end or row_start + 1
+
+  local content = vim.tbl_map(function(line)
+    return line:content()
+  end, lines)
+
+  if byte_start then
+    local col_start = byte_start
+    local col_end = byte_end or #vim.api.nvim_buf_get_lines(bufnr, row_start, row_end, false)[1]
+    vim.api.nvim_buf_set_text(bufnr, row_start, col_start, row_end - 1, col_end, content)
+  else
+    vim.api.nvim_buf_set_lines(bufnr, row_start, row_end, false, content)
+  end
 
   for linenr, line in ipairs(lines) do
-    line:highlight(bufnr, ns_id, linenr)
+    line:highlight(bufnr, ns_id, linenr + row_start, byte_start)
   end
 end
 

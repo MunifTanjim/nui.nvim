@@ -48,9 +48,10 @@ end
 ---@param bufnr number buffer number
 ---@param ns_id number namespace id
 ---@param linenr number line number (1-indexed)
+---@param ___byte_start___? integer start byte position (0-indexed)
 ---@return nil
-function Line:highlight(bufnr, ns_id, linenr)
-  local current_byte_start = 0
+function Line:highlight(bufnr, ns_id, linenr, ___byte_start___)
+  local current_byte_start = ___byte_start___ or 0
   for _, text in ipairs(self._texts) do
     text:highlight(bufnr, ns_id, linenr, current_byte_start)
     current_byte_start = current_byte_start + text:length()
