@@ -5,19 +5,7 @@ local utils = require("nui.utils")
 local defaults = require("nui.utils").defaults
 
 local _ = utils._
-
-local u = {
-  char_to_byte_range = _.char_to_byte_range,
-  clear_lines = _.clear_lines,
-  render_lines = _.render_lines,
-  is_type = utils.is_type,
-  clear_namespace = _.clear_namespace,
-  normalize_namespace_id = _.normalize_namespace_id,
-  truncate_text = _.truncate_text,
-  truncate_nui_line = _.truncate_nui_line,
-  truncate_nui_text = _.truncate_nui_text,
-  calculate_gap_width = _.calculate_gap_width,
-}
+local is_type = utils.is_type
 
 -- luacheck: push no max comment line length
 ---@alias nui_table_border_char_name 'down_right'|'hor'|'down_hor'|'down_left'|'ver'|'ver_left'|'ver_hor'|'ver_left'|'up_right'|'up_hor'|'up_left'
@@ -144,7 +132,7 @@ function Table:init(options)
     error("missing bufnr")
   end
 
-  self.ns_id = u.normalize_namespace_id(options.ns_id)
+  self.ns_id = _.normalize_namespace_id(options.ns_id)
 
   local border = vim.tbl_deep_extend("keep", options.border or {}, default_border)
 
@@ -198,15 +186,16 @@ local function prepare_header_grid(kind, columns, grid, max_depth)
 
     ---@type string|function|NuiText|NuiLine
     local content = kind == 1 and column.header or kind == -1 and column.footer or Text("")
-    if type(content) == "function" then
+    if is_type("function", content) then
       content = content({ column = column })
     end
-    if type(content) ~= "table" then
+    if not is_type("table", content) then
       content = Text(
         content --[[@as string]]
       )
     end
 
+    --[[@cast content NuiText|NuiLine]]
     column.width = get_col_width(column.width, column.min_width, column.max_width, content:width())
 
     local cell = {
@@ -239,10 +228,10 @@ local function prepare_cell_content(cell)
   local column = cell.column
   ---@type string|NuiText|NuiLine
   local content = column.cell and column.cell(cell) or cell.get_value()
-  if type(content) ~= "table" then
+  if not is_type("table", content) then
     content = Text(tostring(content))
   end
-  return content
+  return content --[[@as NuiText|NuiLine]]
 end
 
 function Table:_prepare_grid()
@@ -303,11 +292,11 @@ end
 
 local function append_content(line, content, width, align)
   if content._texts then
-    u.truncate_nui_line(content, width)
+    _.truncate_nui_line(content, width)
   else
-    u.truncate_nui_text(content, width)
+    _.truncate_nui_text(content, width)
   end
-  local left_gap_width, right_gap_width = u.calculate_gap_width(align, width, content:width())
+  local left_gap_width, right_gap_width = _.calculate_gap_width(align, width, content:width())
   if left_gap_width > 0 then
     line:append(Text(string.rep(" ", left_gap_width)))
   end
@@ -507,11 +496,11 @@ function Table:render(linenr_start)
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
 
-  u.clear_namespace(self.bufnr, self.ns_id)
+  _.clear_namespace(self.bufnr, self.ns_id)
 
   -- if linenr_start was shifted downwards,
   -- clear the previously rendered lines above.
-  u.clear_lines(
+  _.clear_lines(
     self.bufnr,
     math.min(linenr_start, prev_linenr[1] or linenr_start),
     prev_linenr[1] and linenr_start - 1 or 0
@@ -519,7 +508,7 @@ function Table:render(linenr_start)
 
   -- for initial render, start inserting in a single line.
   -- for subsequent renders, replace the lines from previous render.
-  u.render_lines(lines, self.bufnr, self.ns_id, linenr_start, prev_linenr[1] and prev_linenr[2] or linenr_start)
+  _.render_lines(lines, self.bufnr, self.ns_id, linenr_start, prev_linenr[1] and prev_linenr[2] or linenr_start)
 
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
 
@@ -576,7 +565,7 @@ function Table:refresh_cell(cell)
   end
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
-  u.render_lines(
+  _.render_lines(
     { append_content(Line(), content, column.width, column.align) },
     self.bufnr,
     self.ns_id,
