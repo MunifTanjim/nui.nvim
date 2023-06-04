@@ -96,9 +96,13 @@ Refreshes the `cell` on buffer.
 
 ### `tbl:render`
 
-_Signature:_ `tbl:render()`
+_Signature:_ `tbl:render(linenr_start?: integer) -> nil`
 
 Renders the table on buffer.
+
+| Name           | Type              | Description                   |
+| -------------- | ----------------- | ----------------------------- |
+| `linenr_start` | `integer` / `nil` | start line number (1-indexed) |
 
 ## Wiki Page
 

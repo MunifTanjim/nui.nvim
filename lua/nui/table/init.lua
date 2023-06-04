@@ -8,6 +8,7 @@ local _ = utils._
 
 local u = {
   char_to_byte_range = _.char_to_byte_range,
+  clear_lines = _.clear_lines,
   render_lines = _.render_lines,
   is_type = utils.is_type,
   clear_namespace = _.clear_namespace,
@@ -166,6 +167,7 @@ function Table:init(options)
     has_header = false,
     has_footer = false,
 
+    linenr = {},
     data_linenrs = {},
   }
 
@@ -417,10 +419,14 @@ function Table:_prepare_header_lines(kind, lines, grid)
   lines.len = line_idx
 end
 
-function Table:render()
+---@param linenr_start? integer start line number (1-indexed)
+function Table:render(linenr_start)
   if #self._.columns == 0 then
     return
   end
+
+  linenr_start = math.max(1, linenr_start or self._.linenr[1] or 1)
+  local prev_linenr = { self._.linenr[1], self._.linenr[2] }
 
   local grid, header_grid = self:_prepare_grid()
 
@@ -465,6 +471,7 @@ function Table:render()
     local data_line = Line()
     local bottom_border_line = Line()
 
+    local data_linenr = line_idx + linenr_start
     data_line:append(border.ver)
     char_idx = char_idx + 1
 
@@ -474,7 +481,7 @@ function Table:render()
 
       append_content(data_line, cell.content, column.width, column.align)
       data_line:append(border.ver)
-      cell._range = { line_idx + 1, char_idx, line_idx + 1, char_idx + column.width }
+      cell._range = { data_linenr, char_idx, data_linenr, char_idx + column.width }
       char_idx = cell._range[4] + 1
 
       bottom_border_line:append(string.rep(border.hor, column.width))
@@ -485,7 +492,7 @@ function Table:render()
     line_idx = line_idx + 1
     lines[line_idx] = data_line
 
-    data_linenrs[row_idx] = line_idx
+    data_linenrs[row_idx] = data_linenr
 
     if not is_last_line or not header_grid[-1] then
       line_idx = line_idx + 1
@@ -496,15 +503,27 @@ function Table:render()
   lines.len = line_idx
   self:_prepare_header_lines(-1, lines, header_grid)
   line_idx = lines.len
+  lines.len = nil
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
 
   u.clear_namespace(self.bufnr, self.ns_id)
 
-  lines.len = nil
-  u.render_lines(lines, self.bufnr, self.ns_id, 1, line_idx)
+  -- if linenr_start was shifted downwards,
+  -- clear the previously rendered lines above.
+  u.clear_lines(
+    self.bufnr,
+    math.min(linenr_start, prev_linenr[1] or linenr_start),
+    prev_linenr[1] and linenr_start - 1 or 0
+  )
+
+  -- for initial render, start inserting in a single line.
+  -- for subsequent renders, replace the lines from previous render.
+  u.render_lines(lines, self.bufnr, self.ns_id, linenr_start, prev_linenr[1] and prev_linenr[2] or linenr_start)
 
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
+
+  self._.linenr[1], self._.linenr[2] = linenr_start, line_idx + linenr_start - 1
 end
 
 function Table:get_cell()
