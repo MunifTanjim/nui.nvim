@@ -81,7 +81,7 @@ local function prepare_columns(meta, columns, parent, depth)
 end
 
 ---@class NuiTable.ColumnDef
----@field accessor_fn? fun(original_row: any, index: integer): string|NuiText|NuiLine
+---@field accessor_fn? fun(original_row: table, index: integer): string|NuiText|NuiLine
 ---@field accessor_key? string
 ---@field cell? fun(info: NuiTable.Cell): string|NuiText|NuiLine
 ---@field columns? NuiTable.ColumnDef[]
@@ -90,7 +90,7 @@ end
 ---@field id? string
 
 ---@class NuiTable.Column
----@field accessor_fn? fun(original_row: any, index: integer): string|NuiText|NuiLine
+---@field accessor_fn? fun(original_row: table, index: integer): string|NuiText|NuiLine
 ---@field accessor_key? string
 ---@field columns? NuiTable.ColumnDef[]
 ---@field depth integer
@@ -101,7 +101,7 @@ end
 ---@class NuiTable.Row
 ---@field id string
 ---@field index integer
----@field original any
+---@field original table
 
 ---@class NuiTable.Cell
 ---@field column NuiTable.Column
@@ -116,7 +116,7 @@ local Table = Object("NuiTable")
 ---@field bufnr integer
 ---@field ns_id integer|string
 ---@field columns NuiTable.ColumnDef[]
----@field data any[]
+---@field data table[]
 
 ---@param options nui_table_options
 function Table:init(options)
@@ -577,7 +577,7 @@ function Table:refresh_cell(cell)
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
 end
 
----@alias NuiTable.constructor fun(options: table): NuiTable
+---@alias NuiTable.constructor fun(options: nui_table_options): NuiTable
 ---@type NuiTable|NuiTable.constructor
 local NuiTable = Table
 
