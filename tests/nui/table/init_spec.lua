@@ -290,6 +290,62 @@ describe("nui.table", function()
       })
     end)
 
+    it("supports param linenr_start", function()
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
+        "START: NuiTest",
+        "",
+        "END: NuiTest",
+      })
+
+      local table = Table({
+        bufnr = bufnr,
+        columns = columns,
+        data = { data[1] },
+      })
+
+      table:render(2)
+      h.assert_buf_lines(table.bufnr, {
+        "START: NuiTest",
+        "┌──────────┬─────────┐",
+        "│First Name│Last Name│",
+        "├──────────┼─────────┤",
+        "│tanner    │linsley  │",
+        "├──────────┼─────────┤",
+        "│firstName │lastName │",
+        "└──────────┴─────────┘",
+        "END: NuiTest",
+      })
+
+      table:render(4)
+      h.assert_buf_lines(table.bufnr, {
+        "START: NuiTest",
+        "",
+        "",
+        "┌──────────┬─────────┐",
+        "│First Name│Last Name│",
+        "├──────────┼─────────┤",
+        "│tanner    │linsley  │",
+        "├──────────┼─────────┤",
+        "│firstName │lastName │",
+        "└──────────┴─────────┘",
+        "END: NuiTest",
+      })
+
+      table:render(3)
+      h.assert_buf_lines(table.bufnr, {
+        "START: NuiTest",
+        "",
+        "┌──────────┬─────────┐",
+        "│First Name│Last Name│",
+        "├──────────┼─────────┤",
+        "│tanner    │linsley  │",
+        "├──────────┼─────────┤",
+        "│firstName │lastName │",
+        "└──────────┴─────────┘",
+        "END: NuiTest",
+      })
+    end)
+
     describe("grouped columns", function()
       local grouped_columns
       before_each(function()
@@ -408,6 +464,34 @@ describe("nui.table", function()
       local cell = table:get_cell()
 
       eq(cell, nil)
+    end)
+
+    it("works after shifting", function()
+      local table = Table({
+        bufnr = bufnr,
+        columns = { { accessor_key = "value" } },
+        data = { { id = 0, value = "Such Value!" } },
+      })
+
+      table:render()
+
+      local cell
+
+      vim.api.nvim_win_set_cursor(winid, { 2, 5 })
+      cell = table:get_cell()
+      eq(type(cell), "table")
+      eq(cell.row.original.id, 0)
+
+      table:render(2)
+
+      vim.api.nvim_win_set_cursor(winid, { 2, 5 })
+      cell = table:get_cell()
+      eq(type(cell), "nil")
+
+      vim.api.nvim_win_set_cursor(winid, { 3, 5 })
+      cell = table:get_cell()
+      eq(type(cell), "table")
+      eq(cell.row.original.id, 0)
     end)
   end)
 

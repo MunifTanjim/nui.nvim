@@ -246,6 +246,23 @@ function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end, byte_star
   end
 end
 
+---@param bufnr integer
+---@param linenr_start integer (1-indexed)
+---@param linenr_end integer (1-indexed,inclusive)
+function _.clear_lines(bufnr, linenr_start, linenr_end)
+  local count = linenr_end - linenr_start + 1
+  if count < 1 then
+    return
+  end
+
+  local lines = {}
+  for i = 1, count do
+    lines[i] = ""
+  end
+
+  vim.api.nvim_buf_set_lines(bufnr, linenr_start - 1, linenr_end, false, lines)
+end
+
 function _.normalize_layout_options(options)
   if utils.is_type("string", options.relative) then
     options.relative = {
