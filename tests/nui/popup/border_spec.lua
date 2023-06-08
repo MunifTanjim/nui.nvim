@@ -714,4 +714,73 @@ describe("nui.popup", function()
       )
     end)
   end)
+
+  describe("empty char", function()
+    for key, result in pairs({
+      top_left = {
+        "─────────╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      },
+      top = {
+        "╭        ╮",
+        "│        │",
+        "╰────────╯",
+      },
+      top_right = {
+        "╭─────────",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      },
+      right = {
+        "╭───────╮",
+        "│        ",
+        "│        ",
+        "╰───────╯",
+      },
+      bottom_right = {
+        "╭────────╮",
+        "│        │",
+        "│        │",
+        "╰─────────",
+      },
+      bottom = {
+        "╭────────╮",
+        "│        │",
+        "╰        ╯",
+      },
+      bottom_left = {
+        "╭────────╮",
+        "│        │",
+        "│        │",
+        "─────────╯",
+      },
+      left = {
+        "╭───────╮",
+        "        │",
+        "        │",
+        "╰───────╯",
+      },
+    }) do
+      it("- " .. key, function()
+        local style = h.popup.create_border_style_map()
+        style[key] = ""
+
+        popup_options = vim.tbl_deep_extend("force", popup_options, {
+          border = {
+            style = style,
+            text = {},
+          },
+        })
+
+        popup = Popup(popup_options)
+
+        popup:mount()
+
+        h.assert_buf_lines(popup.border.bufnr, result)
+      end)
+    end
+  end)
 end)
