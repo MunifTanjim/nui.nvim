@@ -111,7 +111,8 @@ local function is_empty_char(char)
   return char[1] == ""
 end
 
----@param text? nil|string|NuiLine|NuiText
+---@param text? nil|string|string[]|NuiLine|NuiText|({[1]:string,[2]:string}[])
+---@return nil|NuiLine|NuiText
 local function normalize_border_text(text)
   if not text then
     return text
@@ -121,13 +122,24 @@ local function normalize_border_text(text)
     return Text(text, "FloatTitle")
   end
 
-  for _, text_chunk in ipairs(text._texts or { text }) do
-    text_chunk.extmark = vim.tbl_deep_extend("keep", text_chunk.extmark or {}, {
-      hl_group = "FloatTitle",
-    })
+  if text.content then
+    for _, text_chunk in ipairs(text._texts or { text }) do
+      text_chunk.extmark = vim.tbl_deep_extend("keep", text_chunk.extmark or {}, {
+        hl_group = "FloatTitle",
+      })
+    end
+    return text
   end
 
-  return text
+  local line = Line()
+  for _, chunk in ipairs(text) do
+    if is_type("string", chunk) then
+      line:append(chunk, "FloatTitle")
+    else
+      line:append(chunk[1], chunk[2] or "FloatTitle")
+    end
+  end
+  return line
 end
 
 ---@param internal nui_popup_border_internal
@@ -171,7 +183,7 @@ local function parse_padding(padding)
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil|string|NuiLine|NuiText
+---@param text? nil|NuiLine|NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 ---@return table NuiLine
 local function calculate_buf_edge_line(internal, edge, text, align)
@@ -390,7 +402,7 @@ end
 ---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
 ---@alias nui_popup_border_internal_position { row: number, col: number }
 ---@alias nui_popup_border_internal_size { width: number, height: number }
----@alias nui_popup_border_internal_text { top?: string|NuiLine|NuiText, top_align?: nui_t_text_align, bottom?: string|NuiLine|NuiText, bottom_align?: nui_t_text_align }
+---@alias nui_popup_border_internal_text { top?: NuiLine|NuiText, top_align?: nui_t_text_align, bottom?: NuiLine|NuiText, bottom_align?: nui_t_text_align }
 ---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
 
 --luacheck: pop
