@@ -160,6 +160,8 @@ Text displayed on the border (as title/footnote).
 | `"bottom"`       | `string` / `NuiLine` / `NuiText`             | bottom border text           |
 | `"bottom_align"` | `"left"` / `"right"`/ `"center"` _(default)_ | bottom border text alignment |
 
+`"top"` and `"bottom"` also supports list of `(text, hl_group)` tuples, just like the native popup.
+
 **Examples**
 
 ```lua

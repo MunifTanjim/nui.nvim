@@ -475,6 +475,30 @@ describe("nui.popup", function()
       h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, text, "FloatTitle")
     end)
 
+    it("supports string[]", function()
+      local text = { "a", "-", "b" }
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "single",
+          text = {
+            top = text,
+          },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "┌──a-b───┐",
+      }, 1, 1)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "a", "FloatTitle")
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "-", "FloatTitle")
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "b", "FloatTitle")
+    end)
+
     it("supports nui.text", function()
       local text = "popup"
       local hl_group = "NuiPopupTest"
@@ -510,6 +534,30 @@ describe("nui.popup", function()
           style = "single",
           text = {
             top = Line({ Text("a", "NuiTestA"), Text("-"), Text("b", "NuiTestB") }),
+          },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "┌──a-b───┐",
+      }, 1, 1)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "a", "NuiTestA")
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "-", "FloatTitle")
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "b", "NuiTestB")
+    end)
+
+    it("supports (text, hl_group)[]", function()
+      local text = { { "a", "NuiTestA" }, "-", { "b", "NuiTestB" } }
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "single",
+          text = {
+            top = text,
           },
         },
       })
