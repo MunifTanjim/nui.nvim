@@ -98,6 +98,19 @@ local function normalize_border_char(internal)
   return internal.char
 end
 
+---@param char? string|NuiText|{[1]?: string}
+local function is_empty_char(char)
+  if not char or is_type("string", char) then
+    return "" == char
+    ---@cast char -string
+  end
+  if char.width then
+    return 0 == char:width()
+    ---@cast char -NuiText
+  end
+  return char[1] == ""
+end
+
 ---@param text? nil | string | NuiText
 local function normalize_border_text(text)
   if not text then
@@ -258,19 +271,19 @@ local function calculate_size_delta(internal)
 
   local char = internal.char
   if is_type("map", char) then
-    if char.top ~= "" then
+    if not is_empty_char(char.top) then
       delta.height = delta.height + 1
     end
 
-    if char.bottom ~= "" then
+    if not is_empty_char(char.bottom) then
       delta.height = delta.height + 1
     end
 
-    if char.left ~= "" then
+    if not is_empty_char(char.left) then
       delta.width = delta.width + 1
     end
 
-    if char.right ~= "" then
+    if not is_empty_char(char.right) then
       delta.width = delta.width + 1
     end
   end
@@ -333,11 +346,11 @@ local function adjust_popup_win_config(border)
   local char = internal.char
 
   if is_type("map", char) then
-    if char.top ~= "" then
+    if not is_empty_char(char.top) then
       popup_position.row = popup_position.row + 1
     end
 
-    if char.left ~= "" then
+    if not is_empty_char(char.left) then
       popup_position.col = popup_position.col + 1
     end
   end
