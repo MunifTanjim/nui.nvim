@@ -111,7 +111,7 @@ local function is_empty_char(char)
   return char[1] == ""
 end
 
----@param text? nil | string | NuiText
+---@param text? nil|string|NuiLine|NuiText
 local function normalize_border_text(text)
   if not text then
     return text
@@ -121,9 +121,11 @@ local function normalize_border_text(text)
     return Text(text, "FloatTitle")
   end
 
-  text.extmark = vim.tbl_deep_extend("keep", text.extmark or {}, {
-    hl_group = "FloatTitle",
-  })
+  for _, text_chunk in ipairs(text._texts or { text }) do
+    text_chunk.extmark = vim.tbl_deep_extend("keep", text_chunk.extmark or {}, {
+      hl_group = "FloatTitle",
+    })
+  end
 
   return text
 end
@@ -169,7 +171,7 @@ local function parse_padding(padding)
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | NuiText
+---@param text? nil|string|NuiLine|NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 ---@return table NuiLine
 local function calculate_buf_edge_line(internal, edge, text, align)
@@ -189,18 +191,16 @@ local function calculate_buf_edge_line(internal, edge, text, align)
 
   local max_width = size.width - left_char:width() - right_char:width()
 
-  local content_text = Text(defaults(text, ""))
+  local content = Line()
   if mid_char:width() == 0 then
-    content_text:set(string.rep(" ", max_width))
+    content:append(string.rep(" ", max_width))
   else
-    content_text:set(_.truncate_text(content_text:content(), max_width))
+    content:append(text or "")
   end
 
-  local left_gap_width, right_gap_width = _.calculate_gap_width(
-    defaults(align, "center"),
-    max_width,
-    content_text:width()
-  )
+  _.truncate_nui_line(content, max_width)
+
+  local left_gap_width, right_gap_width = _.calculate_gap_width(defaults(align, "center"), max_width, content:width())
 
   local line = Line()
 
@@ -210,7 +210,7 @@ local function calculate_buf_edge_line(internal, edge, text, align)
     line:append(Text(mid_char):set(string.rep(mid_char:content(), left_gap_width)))
   end
 
-  line:append(content_text)
+  line:append(content)
 
   if right_gap_width > 0 then
     line:append(Text(mid_char):set(string.rep(mid_char:content(), right_gap_width)))
@@ -390,7 +390,7 @@ end
 ---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
 ---@alias nui_popup_border_internal_position { row: number, col: number }
 ---@alias nui_popup_border_internal_size { width: number, height: number }
----@alias nui_popup_border_internal_text { top?: string|NuiText, top_align?: nui_t_text_align, bottom?: string|NuiText, bottom_align?: nui_t_text_align }
+---@alias nui_popup_border_internal_text { top?: string|NuiLine|NuiText, top_align?: nui_t_text_align, bottom?: string|NuiLine|NuiText, bottom_align?: nui_t_text_align }
 ---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
 
 --luacheck: pop
@@ -588,7 +588,7 @@ function Border:_relayout()
 end
 
 ---@param edge "'top'" | "'bottom'"
----@param text? nil | string | table # string or NuiText
+---@param text? nil|string|NuiLine|NuiText
 ---@param align? nil | "'left'" | "'center'" | "'right'"
 function Border:set_text(edge, text, align)
   local internal = self._

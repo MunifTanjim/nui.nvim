@@ -1,6 +1,7 @@
 pcall(require, "luacov")
 
 local Popup = require("nui.popup")
+local Line = require("nui.line")
 local Text = require("nui.text")
 local h = require("tests.helpers")
 
@@ -501,6 +502,28 @@ describe("nui.popup", function()
         "└─popup──┘",
       }, 4, 4)
       h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 4, text, hl_group)
+    end)
+
+    it("supports nui.line", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "single",
+          text = {
+            top = Line({ Text("a", "NuiTestA"), Text("-"), Text("b", "NuiTestB") }),
+          },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "┌──a-b───┐",
+      }, 1, 1)
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "a", "NuiTestA")
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "-", "FloatTitle")
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 1, "b", "NuiTestB")
     end)
   end)
 
