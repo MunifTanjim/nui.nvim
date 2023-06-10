@@ -591,6 +591,53 @@ describe("nui.popup", function()
       end
     end
 
+    it("can change anchor (w/ simple border)", function()
+      popup = Popup({
+        anchor = "NW",
+        position = "50%",
+        size = { width = 2, height = 1 },
+      })
+
+      popup:mount()
+
+      eq(popup.win_config.anchor, "NW")
+
+      popup:update_layout({ anchor = "SW" })
+
+      eq(popup.win_config.anchor, "SW")
+
+      popup:update_layout()
+
+      eq(popup.win_config.anchor, "SW")
+    end)
+
+    it("can change anchor (w/ complex border)", function()
+      popup = Popup({
+        anchor = "NW",
+        border = {
+          style = "single",
+          padding = { 0 },
+        },
+        position = "50%",
+        size = { width = 2, height = 1 },
+      })
+
+      popup:mount()
+
+      eq(popup.win_config.anchor, nil)
+      eq(popup.border.win_config.anchor, "NW")
+
+      popup:update_layout({ anchor = "SW" })
+
+      eq(popup.win_config.anchor, nil)
+      eq(popup.border.win_config.anchor, "SW")
+
+      popup:update_layout()
+
+      eq(popup.win_config.anchor, nil)
+      eq(popup.border.win_config.anchor, "SW")
+    end)
+
     it("can change size (w/ simple border)", function()
       local size = {
         width = 2,

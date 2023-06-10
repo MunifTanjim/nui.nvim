@@ -387,9 +387,9 @@ local function adjust_popup_win_config(border)
     return
   end
 
+  -- relative to the border window
+  popup.win_config.anchor = nil
   popup.win_config.relative = "win"
-  -- anchor to the border window instead
-  popup.win_config.anchor = "NW"
   popup.win_config.win = border.winid
   popup.win_config.bufpos = nil
   popup.win_config.row = popup_position.row
@@ -575,6 +575,11 @@ function Border:_relayout()
 
   if internal.type ~= "complex" then
     return
+  end
+
+  if self.popup.win_config.anchor and self.popup.win_config.anchor ~= self.win_config.anchor then
+    self.win_config.anchor = self.popup.win_config.anchor
+    self.popup.win_config.anchor = nil
   end
 
   local position = self.popup._.position

@@ -5,11 +5,12 @@ local defaults = utils.defaults
 
 --luacheck: push no max line length
 
+---@alias nui_layout_option_anchor "NW"|"NE"|"SW"|"SE"
 ---@alias nui_layout_option_relative_type "'cursor'"|"'editor'"|"'win'"|"'buf'"
 ---@alias nui_layout_option_relative { type: nui_layout_option_relative_type, winid?: number, position?: { row: number, col: number }  }
 ---@alias nui_layout_option_position { row: number|string, col: number|string }
 ---@alias nui_layout_option_size { width: number|string, height: number|string }
----@alias nui_layout_config { relative?: nui_layout_option_relative, size?: nui_layout_option_size, position?: nui_layout_option_position }
+---@alias nui_layout_config { anchor?: nui_layout_option_anchor, relative?: nui_layout_option_relative, size?: nui_layout_option_size, position?: nui_layout_option_position }
 ---@alias nui_layout_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_layout_container_info { relative: nui_layout_option_relative_type, size: nui_layout_option_size, type: "'editor'"|"'window'" }
 
@@ -131,6 +132,10 @@ function mod.update_layout_config(component_internal, config)
   })
 
   local win_config = internal.win_config
+
+  if config.anchor then
+    win_config.anchor = config.anchor
+  end
 
   if options.relative then
     internal.layout.relative = options.relative
