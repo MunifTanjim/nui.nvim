@@ -22,13 +22,17 @@ describe("nui.tree", function()
 
   describe("(#deprecated) o.winid", function()
     it("throws if missing", function()
-      local ok, err = pcall(Tree, {})
+      local ok, err = pcall(function()
+        return Tree({})
+      end)
       eq(ok, false)
       eq(type(string.match(err, "missing bufnr")), "string")
     end)
 
     it("throws if invalid", function()
-      local ok, err = pcall(Tree, { winid = 999 })
+      local ok, err = pcall(function()
+        return Tree({ winid = 999 })
+      end)
       eq(ok, false)
       eq(type(string.match(err, "invalid winid ")), "string")
     end)
@@ -43,13 +47,17 @@ describe("nui.tree", function()
 
   describe("o.bufnr", function()
     it("throws if missing", function()
-      local ok, err = pcall(Tree, {})
+      local ok, err = pcall(function()
+        return Tree({})
+      end)
       eq(ok, false)
       eq(type(string.match(err, "missing bufnr")), "string")
     end)
 
     it("throws if invalid", function()
-      local ok, err = pcall(Tree, { bufnr = 999 })
+      local ok, err = pcall(function()
+        return Tree({ bufnr = 999 })
+      end)
       eq(ok, false)
       eq(type(string.match(err, "invalid bufnr ")), "string")
     end)
@@ -63,13 +71,15 @@ describe("nui.tree", function()
   end)
 
   it("throws on duplicated node id", function()
-    local ok, err = pcall(Tree, {
-      bufnr = bufnr,
-      nodes = {
-        Tree.Node({ id = "id", text = "text" }),
-        Tree.Node({ id = "id", text = "text" }),
-      },
-    })
+    local ok, err = pcall(function()
+      return Tree({
+        bufnr = bufnr,
+        nodes = {
+          Tree.Node({ id = "id", text = "text" }),
+          Tree.Node({ id = "id", text = "text" }),
+        },
+      })
+    end)
     eq(ok, false)
     eq(type(err), "string")
   end)

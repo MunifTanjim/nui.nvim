@@ -2,8 +2,8 @@ local NuiLine = require("nui.line")
 
 local mod = {}
 
----@param node table NuiTreeNode
----@return string node_id id
+---@param node NuiTree.Node
+---@return string node_id
 function mod.default_get_node_id(node)
   if node.id then
     return "-" .. node.id
@@ -33,8 +33,8 @@ function mod.default_get_node_id(node)
   return "-" .. math.random()
 end
 
----@param node table NuiTreeNode
----@return table[] lines NuiLine[]
+---@param node NuiTree.Node
+---@return NuiLine[]
 function mod.default_prepare_node(node)
   if not node.text then
     error("missing node.text")
