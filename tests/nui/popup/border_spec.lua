@@ -576,6 +576,28 @@ describe("nui.popup", function()
   end)
 
   describe("method :mount", function()
+    it("ensure .bufnr is valid", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "single",
+          text = {},
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup.border.bufnr = nil
+      popup:mount()
+      eq(vim.api.nvim_buf_is_valid(popup.border.bufnr), true)
+      popup:unmount()
+
+      popup = Popup(popup_options)
+      vim.api.nvim_buf_delete(popup.border.bufnr, { force = true })
+      popup:mount()
+      eq(vim.api.nvim_buf_is_valid(popup.border.bufnr), true)
+      popup:unmount()
+    end)
+
     it("sets winhighlight correctly", function()
       local hl_group = "NuiPopupTest"
       local winhighlight = "Normal:Normal,FloatBorder:" .. hl_group

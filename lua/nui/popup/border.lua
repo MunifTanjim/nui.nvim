@@ -471,8 +471,7 @@ function Border:init(popup, options)
     return self
   end
 
-  self.bufnr = vim.api.nvim_create_buf(false, true)
-  assert(self.bufnr, "failed to create border buffer")
+  self:_buf_create()
 
   self.win_config = {
     style = "minimal",
@@ -518,6 +517,13 @@ function Border:_close_window()
   self.winid = nil
 end
 
+function Border:_buf_create()
+  if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
+    self.bufnr = vim.api.nvim_create_buf(false, true)
+    assert(self.bufnr, "failed to create border buffer")
+  end
+end
+
 function Border:mount()
   local popup = self.popup
 
@@ -530,6 +536,8 @@ function Border:mount()
   if internal.type == "simple" then
     return
   end
+
+  self:_buf_create()
 
   if internal.lines then
     _.render_lines(internal.lines, self.bufnr, popup.ns_id, 1, #internal.lines)
