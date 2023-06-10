@@ -10,9 +10,8 @@ local defaults = utils.defaults
 ---@alias nui_layout_option_relative { type: nui_layout_option_relative_type, winid?: number, position?: { row: number, col: number }  }
 ---@alias nui_layout_option_position { row: number|string, col: number|string }
 ---@alias nui_layout_option_size { width: number|string, height: number|string }
----@alias nui_layout_config { anchor?: nui_layout_option_anchor, relative?: nui_layout_option_relative, size?: nui_layout_option_size, position?: nui_layout_option_position }
 ---@alias nui_layout_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
----@alias nui_layout_container_info { relative: nui_layout_option_relative_type, size: nui_layout_option_size, type: "'editor'"|"'window'" }
+---@alias nui_layout_container_info { relative: nui_layout_option_relative_type, size: { height: integer, width: integer }, type: "'editor'"|"'window'" }
 
 --luacheck: pop
 
@@ -88,13 +87,11 @@ function mod.get_container_info(position)
     }
   end
 
-  if relative == "cursor" or relative == "win" then
-    return {
-      relative = position.bufpos and "buf" or relative,
-      size = utils.get_window_size(position.win),
-      type = "window",
-    }
-  end
+  return {
+    relative = position.bufpos and "buf" or relative,
+    size = utils.get_window_size(position.win),
+    type = "window",
+  }
 end
 
 ---@param relative nui_layout_option_relative
@@ -121,7 +118,7 @@ function mod.parse_relative(relative, fallback_winid)
 end
 
 ---@param component_internal table
----@param config nui_layout_config
+---@param config nui_layout_options
 function mod.update_layout_config(component_internal, config)
   local internal = component_internal
 
@@ -203,7 +200,7 @@ end
 ---@param size_b? nui_layout_option_size
 ---@return boolean
 function mod_size.are_same(size_a, size_b)
-  return size_b and size_a.width == size_b.width and size_a.height == size_b.height
+  return size_b and size_a.width == size_b.width and size_a.height == size_b.height or false
 end
 
 ---@param size nui_layout_option_size

@@ -14,7 +14,7 @@ local mod = {}
 local function get_child_position(box_dir)
   if box_dir == "row" then
     return "right"
-  elseif box_dir == "col" then
+  else
     return "bottom"
   end
 end
