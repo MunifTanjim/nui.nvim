@@ -35,6 +35,12 @@ _Signature:_ `Layout(options, box)` or `Layout(component, box)`
 
 ## Options
 
+### `anchor`
+
+**Type:** `"NW"` / `"NE"` / `"SW"` / `"SE"`
+
+Decides which corner of the layout to place at `position`.
+
 ### `relative`
 
 **Type:** `string` or `table`
@@ -224,11 +230,12 @@ _Signature:_ `layout:update(config, box?)` or `layout:update(box?)`
 
 `config` is a `table` having the following keys:
 
-| Key        | Type               |
-| ---------- | ------------------ |
-| `relative` | `string` / `table` |
-| `position` | `string` / `table` |
-| `size`     | `string` / `table` |
+| Key        | Type                              |
+| ---------- | --------------------------------- |
+| `anchor`   | `"NW"` / `"NE"` / `"SW"` / `"SE"` |
+| `relative` | `string` / `table`                |
+| `position` | `string` / `table`                |
+| `size`     | `string` / `table`                |
 
 `box` is a `table` returned by `Layout.Box`.
 
