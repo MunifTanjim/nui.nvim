@@ -21,14 +21,24 @@ local function patch_cursor_position(target_cursor, force)
   end
 end
 
----@alias nui_input_internal nui_popup_internal|{ default_value: string, prompt: NuiText }
+---@class nui_input_options
+---@field prompt? string|NuiText
+---@field default_value? string
+---@field on_change? fun(value: string): nil
+---@field on_close? fun(): nil
+---@field on_submit? fun(value: string): nil
+
+---@class nui_input_internal: nui_popup_internal
+---@field default_value string
+---@field prompt NuiText
+---@field disable_cursor_position_patch boolean
 
 ---@class NuiInput: NuiPopup
 ---@field private _ nui_input_internal
 local Input = Popup:extend("NuiInput")
 
----@param popup_options table
----@param options table
+---@param popup_options nui_popup_options
+---@param options nui_input_options
 function Input:init(popup_options, options)
   popup_options.enter = true
 
@@ -136,7 +146,7 @@ function Input:mount()
   vim.api.nvim_command("startinsert!")
 end
 
----@alias NuiInput.constructor fun(popup_options: table, options: table): NuiInput
+---@alias NuiInput.constructor fun(popup_options: nui_popup_options, options: nui_input_options): NuiInput
 ---@type NuiInput|NuiInput.constructor
 local NuiInput = Input
 
