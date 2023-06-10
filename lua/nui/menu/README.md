@@ -171,7 +171,7 @@ keymap = {
 
 **Type:** `function`
 
-_Signature:_ `on_change(item, menu)`
+_Signature:_ `on_change(item, menu) -> nil`
 
 Callback function, called when menu item is focused.
 
@@ -179,7 +179,7 @@ Callback function, called when menu item is focused.
 
 **Type:** `function`
 
-_Signature:_ `on_close(item, menu)`
+_Signature:_ `on_close() -> nil`
 
 Callback function, called when menu is closed.
 
@@ -187,7 +187,7 @@ Callback function, called when menu is closed.
 
 **Type:** `function`
 
-_Signature:_ `on_submit(item)`
+_Signature:_ `on_submit(item) -> nil`
 
 Callback function, called when menu is submitted.
 

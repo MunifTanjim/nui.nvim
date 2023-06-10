@@ -32,8 +32,8 @@ local default_keymap = {
   submit = { "<CR>" },
 }
 
----@param keymap table<string, string|string[]>
----@return table<string, string[]>
+---@param keymap table<_nui_menu_keymap_action, string|string[]>
+---@return table<_nui_menu_keymap_action, string[]>
 local function parse_keymap(keymap)
   local result = defaults(keymap, {})
 
@@ -109,12 +109,12 @@ local function make_default_prepare_node(menu)
       local sep_max_width = max_width - sep_char:width() * 2
 
       if content:width() > sep_max_width then
-        if is_type("function", content.set) then
-          ---@cast content NuiText
-          _.truncate_nui_text(content, sep_max_width)
-        else
+        if content._texts then
           ---@cast content NuiLine
           _.truncate_nui_line(content, sep_max_width)
+        else
+          ---@cast content NuiText
+          _.truncate_nui_text(content, sep_max_width)
         end
       end
 
@@ -181,13 +181,31 @@ local function focus_item(menu, direction, current_linenr)
   end
 end
 
---luacheck: push no max line length
-
 ---@alias nui_menu_prepare_item nui_tree_prepare_node
----@alias nui_menu_should_skip_item fun(node: NuiTreeNode): boolean
----@alias nui_menu_internal nui_popup_internal|{ items: NuiTreeNode[], keymap: table<string,string[]>, sep: { char?: string|NuiText, text_align?: nui_t_text_align }, prepare_item: nui_menu_prepare_item, should_skip_item: nui_menu_should_skip_item }
+---@alias nui_menu_should_skip_item fun(node: NuiTree.Node): boolean
 
---luacheck: pop
+---@alias _nui_menu_keymap_action 'close'|'focus_next'|'focus_prev'|'submit'
+
+---@class nui_menu_internal: nui_popup_internal
+---@field items NuiTree.Node[]
+---@field keymap table<_nui_menu_keymap_action, string[]>
+---@field sep { char?: string|NuiText, text_align?: nui_t_text_align } # deprecated
+---@field prepare_item nui_menu_prepare_item
+---@field should_skip_item nui_menu_should_skip_item
+---@field on_change fun(item: NuiTree.Node): nil
+
+---@class nui_menu_options
+---@field lines NuiTree.Node[]
+---@field prepare_item? nui_tree_prepare_node
+---@field should_skip_item? nui_menu_should_skip_item
+---@field max_height? integer
+---@field min_height? integer
+---@field max_width? integer
+---@field min_width? integer
+---@field keymap? table<_nui_menu_keymap_action, string|string[]>
+---@field on_change? fun(item: NuiTree.Node, menu: NuiMenu): nil
+---@field on_close? fun(): nil
+---@field on_submit? fun(item: NuiTree.Node): nil
 
 ---@class NuiMenu: NuiPopup
 ---@field private _ nui_menu_internal
@@ -195,7 +213,7 @@ local Menu = Popup:extend("NuiMenu")
 
 ---@param content? string|NuiText|NuiLine
 ---@param options? { char?: string|NuiText, text_align?: nui_t_text_align }
----@return NuiTreeNode
+---@return NuiTree.Node
 function Menu.separator(content, options)
   options = options or {}
   return Tree.Node({
@@ -209,7 +227,7 @@ end
 
 ---@param content string|NuiText|NuiLine
 ---@param data? table
----@return NuiTreeNode
+---@return NuiTree.Node
 function Menu.item(content, data)
   if not data then
     ---@diagnostic disable-next-line: undefined-field
@@ -229,14 +247,15 @@ function Menu.item(content, data)
   return Tree.Node(data)
 end
 
----@param popup_options table
----@param options table
+---@param popup_options nui_popup_options
+---@param options nui_menu_options
 function Menu:init(popup_options, options)
   local max_width = calculate_initial_max_width(options.lines)
 
   local width = math.max(math.min(max_width, defaults(options.max_width, 256)), defaults(options.min_width, 4))
   local height = math.max(math.min(#options.lines, defaults(options.max_height, 256)), defaults(options.min_height, 1))
 
+  ---@type nui_popup_options
   popup_options = vim.tbl_deep_extend("force", {
     enter = true,
     size = {
@@ -255,14 +274,14 @@ function Menu:init(popup_options, options)
   self._.items = options.lines
   self._.keymap = parse_keymap(options.keymap)
 
-  ---@param node NuiTreeNode
+  ---@param node NuiTree.Node
   self._.on_change = function(node)
     if options.on_change then
       options.on_change(node, self)
     end
   end
 
-  -- @deprecated
+  ---@deprecated
   self._.sep = options.separator
 
   self._.should_skip_item = defaults(options.should_skip_item, default_should_skip_item)
@@ -346,7 +365,7 @@ function Menu:mount()
   end
 end
 
----@alias NuiMenu.constructor fun(popup_options: table, options: table): NuiMenu
+---@alias NuiMenu.constructor fun(popup_options: nui_popup_options, options: nui_menu_options): NuiMenu
 ---@type NuiMenu|NuiMenu.constructor
 local NuiMenu = Menu
 
