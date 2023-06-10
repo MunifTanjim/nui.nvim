@@ -29,22 +29,26 @@ local function apply_workaround_for_float_relative_position_issue_18925(layout)
   vim.api.nvim_set_current_win(current_winid)
 end
 
+---@param options nui_layout_options
 local function merge_default_options(options)
   options.relative = defaults(options.relative, "win")
 
   return options
 end
 
+---@param options nui_layout_options
 local function normalize_options(options)
   options = _.normalize_layout_options(options)
 
   return options
 end
 
+---@return boolean
 local function is_box(object)
   return object and (object.box or object.component)
 end
 
+---@return boolean
 local function is_component(object)
   return object and object.mount
 end
@@ -53,6 +57,7 @@ local function is_component_mounted(component)
   return is_type("number", component.winid)
 end
 
+---@param component NuiPopup|NuiSplit
 local function get_layout_config_relative_to_component(component)
   return {
     relative = { type = "win", winid = component.winid },
@@ -103,6 +108,12 @@ local function wire_up_layout_components(layout, box)
   end
 end
 
+---@class nui_layout_options
+---@field anchor? nui_layout_option_anchor
+---@field relative? nui_layout_option_relative_type|nui_layout_option_relative
+---@field position? number|string|nui_layout_option_position
+---@field size? number|string|nui_layout_option_size
+
 ---@class NuiLayout
 local Layout = Object("NuiLayout")
 
@@ -122,6 +133,8 @@ local function get_layout_type(box)
   error("unexpected empty box")
 end
 
+---@param options nui_layout_options|NuiPopup|NuiSplit
+---@param box NuiLayout.Box|NuiLayout.Box[]
 function Layout:init(options, box)
   local id = u.get_next_id()
 
@@ -144,9 +157,10 @@ function Layout:init(options, box)
   if type == "float" then
     local container
     if is_component(options) then
-      container = options
+      container = options --[[@as NuiPopup|NuiSplit]]
       options = get_layout_config_relative_to_component(container)
     else
+      ---@cast options -NuiPopup, -NuiSplit
       options = merge_default_options(options)
       options = normalize_options(options)
     end
@@ -368,11 +382,14 @@ function Layout:show()
   self._.loading = false
 end
 
+---@param config? NuiLayout.Box|NuiLayout.Box[]|nui_layout_options
+---@param box? NuiLayout.Box
 function Layout:update(config, box)
-  config = config or {}
+  config = config or {} --[[@as nui_layout_options]]
 
   if not box and is_box(config) or is_box(config[1]) then
-    box = config
+    box = config --[=[@as NuiLayout.Box|NuiLayout.Box[]]=]
+    ---@type nui_layout_options
     config = {}
   end
 
@@ -435,20 +452,37 @@ function Layout:update(config, box)
   end
 end
 
+---@class nui_layout_box_options
+---@field dir? 'row'|'col'
+---@field grow? integer
+---@field size? number|string|table<'height'|'width', number|string>
+
+---@class NuiLayout.Box
+---@field type? 'float'|'split'
+---@field component? NuiPopup|NuiSplit
+---@field box? NuiLayout.Box[]
+---@field grow? integer
+---@field size? nui_layout_option_size
+
+---@param box NuiPopup|NuiSplit|NuiLayout.Box|NuiLayout.Box[]
+---@param options? nui_layout_box_options
+---@return NuiLayout.Box
 function Layout.Box(box, options)
   options = options or {}
 
   if is_box(box) then
-    return box
+    return box --[[@as NuiLayout.Box]]
   end
 
   if box.mount then
     local type
+    ---@diagnostic disable: undefined-field
     if box:is_instance_of(Popup) then
       type = "float"
     elseif box:is_instance_of(Split) then
       type = "split"
     end
+    ---@diagnostic enable: undefined-field
 
     if not type then
       error("unsupported component")
@@ -471,7 +505,8 @@ function Layout.Box(box, options)
     end
 
     if dir == "row" then
-      if not is_type("table", child.size) then
+      if type(child.size) ~= "table" then
+        ---@diagnostic disable-next-line: assign-type-mismatch
         child.size = { width = child.size }
       end
       if not child.size.height then
@@ -479,6 +514,7 @@ function Layout.Box(box, options)
       end
     elseif dir == "col" then
       if not is_type("table", child.size) then
+        ---@diagnostic disable-next-line: assign-type-mismatch
         child.size = { height = child.size }
       end
       if not child.size.width then
@@ -495,8 +531,12 @@ function Layout.Box(box, options)
   }
 end
 
----@alias NuiLayout.constructor fun(options: table, box: table): NuiLayout
+-- luacheck: push no max comment line length
+
+---@alias NuiLayout.constructor fun(options: nui_layout_options|NuiPopup|NuiSplit, box: NuiLayout.Box|NuiLayout.Box[]): NuiLayout
 ---@type NuiLayout|NuiLayout.constructor
 local NuiLayout = Layout
+
+-- luacheck: pop
 
 return NuiLayout
