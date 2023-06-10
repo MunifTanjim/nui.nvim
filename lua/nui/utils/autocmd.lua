@@ -319,7 +319,7 @@ function autocmd.create(event, opts, bufnr)
     return vim.api.nvim_create_autocmd(event, opts)
   end
 
-  event = is_type("table", event) and table.concat(event, ",") or event
+  event = type(event) == "table" and table.concat(event, ",") or event --[[@as string]]
   local pattern = is_type("table", opts.pattern) and table.concat(opts.pattern, ",") or opts.pattern
   if opts.buffer then
     pattern = string.format("<buffer=%s>", opts.buffer)
@@ -370,7 +370,7 @@ end
 ---@param event string|string[]
 ---@param opts table
 function autocmd.exec(event, opts)
-  local events = is_type("table", event) and event or { event }
+  local events = type(event) == "table" and event or { event } --[=[@as string[]]=]
 
   if feature.lua_autocmd then
     vim.api.nvim_exec_autocmds(events, {

@@ -15,14 +15,14 @@ end
 
 ---@param bufnr number
 ---@param key_id string
----@return number|nil handler_id
+---@return integer|nil handler_id
 local function get_handler_id(bufnr, key_id)
   return keymap.storage[bufnr].keys[key_id]
 end
 
 ---@param bufnr number
 ---@param key_id string
----@return number|nil handler_id
+---@return integer handler_id
 local function next_handler_id(bufnr, key_id)
   local handler_id = keymap.storage[bufnr]._next_handler_id
   keymap.storage[bufnr].keys[key_id] = handler_id
@@ -48,7 +48,7 @@ local function get_keymap_info(bufnr, mode, key, handler, overwrite)
 
   local rhs, callback = "", nil
 
-  if is_type("function", handler) then
+  if type(handler) == "function" then
     if feature.lua_keymap then
       callback = handler
     else
@@ -78,14 +78,18 @@ end
 ---@param mode string
 ---@param lhs string|string[]
 ---@param handler string|fun(): nil
----@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
+---@param opts? table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
 function keymap.set(bufnr, mode, lhs, handler, opts, force)
   if feature.lua_keymap and not is_type("boolean", force) then
     force = true
   end
 
-  local keys = is_type("table", lhs) and lhs or { lhs }
+  local keys = lhs
+  if type(lhs) ~= "table" then
+    keys = { lhs }
+  end
+  ---@cast keys -string
 
   opts = opts or {}
 
@@ -120,7 +124,11 @@ function keymap._del(bufnr, mode, lhs, force)
     force = true
   end
 
-  local keys = is_type("table", lhs) and lhs or { lhs }
+  local keys = lhs
+  if type(lhs) ~= "table" then
+    keys = { lhs }
+  end
+  ---@cast keys -string
 
   for _, key in ipairs(keys) do
     local key_id = get_key_id(mode, key)
@@ -130,6 +138,7 @@ function keymap._del(bufnr, mode, lhs, force)
     -- luacov: disable
     if not handler_id and not force then
       return false
+      ---@cast handler_id -nil
     end
     -- luacov: enable
 
