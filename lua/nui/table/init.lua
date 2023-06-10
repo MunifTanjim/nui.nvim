@@ -88,6 +88,9 @@ end
 ---@field footer? string|NuiText|NuiLine|fun(info: { column: NuiTable.Column }): string|NuiText|NuiLine
 ---@field header? string|NuiText|NuiLine|fun(info: { column: NuiTable.Column }): string|NuiText|NuiLine
 ---@field id? string
+---@field max_width? integer
+---@field min_width? integer
+---@field width? integer
 
 ---@class NuiTable.Column
 ---@field accessor_fn? fun(original_row: table, index: integer): string|NuiText|NuiLine
@@ -109,14 +112,28 @@ end
 ---@field get_value fun(): string|NuiText|NuiLine
 ---@field row NuiTable.Row
 
----@class NuiTable
-local Table = Object("NuiTable")
+---@class nui_table_internal
+---@field buf_options table<string, any>
+---@field headers { depth: integer }|NuiTable.Column[]
+---@field columns NuiTable.ColumnDef[]
+---@field data table[]
+---@field has_header boolean
+---@field has_footer boolean
+---@field linenr { [1]?: integer, [2]?: integer }
+---@field data_linenrs integer[]
+---@field grid table[][]
 
 ---@class nui_table_options
 ---@field bufnr integer
 ---@field ns_id integer|string
 ---@field columns NuiTable.ColumnDef[]
 ---@field data table[]
+
+---@class NuiTable
+---@field private _ nui_table_internal
+---@field bufnr integer
+---@field ns_id integer
+local Table = Object("NuiTable")
 
 ---@param options nui_table_options
 function Table:init(options)
