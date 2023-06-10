@@ -183,6 +183,14 @@ Namespace id (`number`) or name (`string`).
 
 ---
 
+### `anchor`
+
+**Type:** `"NW"` / `"NE"` / `"SW"` / `"SE"`
+
+Decides which corner of the popup to place at `position`.
+
+---
+
 ### `relative`
 
 **Type:** `string` or `table`
@@ -562,11 +570,12 @@ size or position after it's mounted.
 
 `config` is a `table` having the following keys:
 
-| Key        | Type               |
-| ---------- | ------------------ |
-| `relative` | `string` / `table` |
-| `position` | `string` / `table` |
-| `size`     | `string` / `table` |
+| Key        | Type                              |
+| ---------- | --------------------------------- |
+| `anchor`   | `"NW"` / `"NE"` / `"SW"` / `"SE"` |
+| `relative` | `string` / `table`                |
+| `position` | `string` / `table`                |
+| `size`     | `string` / `table`                |
 
 They are the same options used for popup initialization.
 
