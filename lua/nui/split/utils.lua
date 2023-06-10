@@ -12,8 +12,8 @@ local u = {
 
 local mod = {}
 
----@param size number|string|nui_layout_option_size
----@param position nui_split_internal_position
+---@param size number|string|nui_split_option_size
+---@param position nui_split_option_position
 ---@return number|string size
 local function to_split_size(size, position)
   if not u.is_type("table", size) then
@@ -45,11 +45,11 @@ function mod.merge_default_options(options)
   return options
 end
 
----@param options table
----@return table options
+---@param options nui_split_options
 function mod.normalize_layout_options(options)
   if utils.is_type("string", options.relative) then
     options.relative = {
+      ---@diagnostic disable-next-line: assign-type-mismatch
       type = options.relative,
     }
   end
@@ -57,8 +57,7 @@ function mod.normalize_layout_options(options)
   return options
 end
 
----@param options table
----@return table options
+---@param options nui_split_options
 function mod.normalize_options(options)
   options = mod.normalize_layout_options(options)
 
@@ -74,7 +73,8 @@ local function parse_relative(relative, fallback_winid)
   }
 end
 
----@param relative nui_split_internal_relative
+---@param relative nui_split_option_relative
+---@return { size: { height: integer, width: integer }, type: 'editor'|'window' }
 local function get_container_info(relative)
   if relative.type == "editor" then
     local size = u.get_editor_size()
@@ -94,15 +94,13 @@ local function get_container_info(relative)
     }
   end
 
-  if relative.type == "win" then
-    return {
-      size = u.get_window_size(relative.win),
-      type = "window",
-    }
-  end
+  return {
+    size = u.get_window_size(relative.win),
+    type = "window",
+  }
 end
 
----@param position nui_split_internal_position
+---@param position nui_split_option_position
 ---@param size number|string
 ---@param container_size { width: number, height: number }
 ---@return { width?: number, height?: number }

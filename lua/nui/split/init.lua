@@ -27,6 +27,8 @@ local split_direction_command_map = {
   },
 }
 
+---@param winid integer
+---@param win_config _nui_split_internal_win_config
 local function move_split_window(winid, win_config)
   if win_config.relative == "editor" then
     vim.api.nvim_win_call(winid, function()
@@ -50,6 +52,8 @@ local function move_split_window(winid, win_config)
   end
 end
 
+---@param winid integer
+---@param win_config _nui_split_internal_win_config
 local function set_win_config(winid, win_config)
   if win_config.pending_changes.position then
     move_split_window(winid, win_config)
@@ -68,12 +72,38 @@ end
 
 --luacheck: push no max line length
 
----@alias nui_split_internal_position "'top'"|"'right'"|"'bottom'"|"'left'"
----@alias nui_split_internal_relative { type: "'editor'"|"'win'", win: number }
----@alias nui_split_internal_size { width?: number, height?: number }
----@alias nui_split_internal { loading: boolean, mounted: boolean, buf_options: table<string,any>, win_options: table<string,any>, position: nui_split_internal_position, relative: nui_split_internal_relative, size: nui_split_internal_size }
+---@alias nui_split_option_relative_type 'editor'|'win'
+---@alias nui_split_option_relative { type: nui_split_option_relative_type, win?: number }
+
+---@alias nui_split_option_position "'top'"|"'right'"|"'bottom'"|"'left'"
+
+---@alias nui_split_option_size { height?: number|string }|{ width?: number|string }
+
+---@alias _nui_split_internal_win_config { height?: number, width?: number, position: nui_split_option_position, relative: nui_split_option_relative, win?: integer, pending_changes: table<'position'|'size', boolean> }
 
 --luacheck: pop
+
+---@class nui_split_internal
+---@field enter? boolean
+---@field loading boolean
+---@field mounted boolean
+---@field buf_options table<string, any>
+---@field win_options table<string, any>
+---@field position nui_split_option_position
+---@field relative nui_split_option_relative
+---@field size { height?: number }|{ width?: number }
+---@field win_config _nui_split_internal_win_config
+---@field pending_quit? boolean
+---@field augroup table<'hide'|'unmount', string>
+
+---@class nui_split_options
+---@field ns_id? string|integer
+---@field relative? nui_split_option_relative_type|nui_split_option_relative
+---@field position? nui_split_option_position
+---@field size? number|string|nui_split_option_size
+---@field enter? boolean
+---@field buf_options? table<string, any>
+---@field win_options? table<string, any>
 
 ---@class NuiSplit
 ---@field private _ nui_split_internal
@@ -82,7 +112,7 @@ end
 ---@field winid number
 local Split = Object("NuiSplit")
 
----@param options table
+---@param options nui_split_options
 function Split:init(options)
   local id = u.get_next_id()
 
@@ -115,6 +145,9 @@ function Split:init(options)
   self:update_layout(options)
 end
 
+--luacheck: push no max line length
+
+---@param config { relative?: nui_split_option_relative_type|nui_split_option_relative, position?: nui_split_option_position, size?: number|string|nui_split_option_size }
 function Split:update_layout(config)
   config = config or {}
 
@@ -124,6 +157,8 @@ function Split:update_layout(config)
     set_win_config(self.winid, self._.win_config)
   end
 end
+
+--luacheck: pop
 
 function Split:_open_window()
   if self.winid or not self.bufnr then
@@ -282,18 +317,17 @@ function Split:unmount()
 end
 
 -- set keymap for this split
--- `force` is not `true` returns `false`, otherwise returns `true`
 ---@param mode string check `:h :map-modes`
 ---@param key string|string[] key for the mapping
 ---@param handler string | fun(): nil handler for the mapping
----@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
+---@param opts? table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
-function Split:map(mode, key, handler, opts, force)
+function Split:map(mode, key, handler, opts, ___force___)
   if not self.bufnr then
     error("split buffer not found.")
   end
 
-  return keymap.set(self.bufnr, mode, key, handler, opts, force)
+  return keymap.set(self.bufnr, mode, key, handler, opts, ___force___)
 end
 
 ---@param mode string check `:h :map-modes`
@@ -309,7 +343,7 @@ end
 
 ---@param event string | string[]
 ---@param handler string | function
----@param options nil | table<"'once'" | "'nested'", boolean>
+---@param options? table<"'once'" | "'nested'", boolean>
 function Split:on(event, handler, options)
   if not self.bufnr then
     error("split buffer not found.")
@@ -318,7 +352,7 @@ function Split:on(event, handler, options)
   autocmd.buf.define(self.bufnr, event, handler, options)
 end
 
----@param event nil | string | string[]
+---@param event? string | string[]
 function Split:off(event)
   if not self.bufnr then
     error("split buffer not found.")
@@ -327,7 +361,7 @@ function Split:off(event)
   autocmd.buf.remove(self.bufnr, nil, event)
 end
 
----@alias NuiSplit.constructor fun(options: table): NuiSplit
+---@alias NuiSplit.constructor fun(options: nui_split_options): NuiSplit
 ---@type NuiSplit|NuiSplit.constructor
 local NuiSplit = Split
 
