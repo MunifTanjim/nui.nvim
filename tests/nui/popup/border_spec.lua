@@ -637,18 +637,74 @@ describe("nui.popup", function()
 
       popup = Popup(popup_options)
 
-      eq(type(popup.border.bufnr), "nil")
+      local bufnr = popup.border.bufnr
       eq(type(popup.border.winid), "nil")
 
       popup.border:unmount()
 
-      eq(type(popup.border.bufnr), "nil")
+      eq(popup.border.bufnr, bufnr)
       eq(type(popup.border.winid), "nil")
     end)
   end)
 
   describe("method :set_text", function()
-    it("works", function()
+    it("works before :mount", function()
+      local text_top, text_bottom = "top", "bot"
+
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          text = {
+            top = text_top,
+            top_align = "left",
+          },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭top─────╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      popup.border:set_text("top", text_top, "center")
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭──top───╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      popup.border:set_text("top", text_top, "right")
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭─────top╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      local hl_group = "NuiPopupTest"
+
+      popup.border:set_text("bottom", Text(text_bottom, hl_group))
+
+      popup:mount()
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭─────top╮",
+        "│        │",
+        "│        │",
+        "╰──bot───╯",
+      })
+
+      h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 4, text_bottom, hl_group)
+    end)
+
+    it("works after :mount", function()
       local text_top, text_bottom = "top", "bot"
 
       popup_options = vim.tbl_deep_extend("force", popup_options, {
