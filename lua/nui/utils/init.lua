@@ -31,6 +31,7 @@ end
 
 -- luacheck: push no max comment line length
 ---@param type_name "'nil'" | "'number'" | "'string'" | "'boolean'" | "'table'" | "'function'" | "'thread'" | "'userdata'" | "'list'" | '"map"'
+---@return boolean
 function utils.is_type(type_name, v)
   if type_name == "list" then
     return vim.tbl_islist(v)
