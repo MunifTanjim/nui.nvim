@@ -2,23 +2,28 @@ local Object = require("nui.object")
 local _ = require("nui.utils")._
 local is_type = require("nui.utils").is_type
 
+---@class nui_text_extmark
+---@field id? integer
+---@field hl_group? string
+---@field [string] any
+
 ---@class NuiText
----@field protected extmark? table|{ id?: number, hl_group: string }
+---@field protected extmark? nui_text_extmark
 local Text = Object("NuiText")
 
 ---@param content string|NuiText text content or NuiText object
----@param extmark? string|table highlight group name or extmark options
+---@param extmark? string|nui_text_extmark highlight group name or extmark options
 function Text:init(content, extmark)
-  if is_type("table", content) then
+  if type(content) == "string" then
+    self:set(content, extmark)
+  else
     -- cloning
     self:set(content._content, extmark or content.extmark)
-  else
-    self:set(content, extmark)
   end
 end
 
 ---@param content string text content
----@param extmark? string|table highlight group name or extmark options
+---@param extmark? string|nui_text_extmark highlight group name or extmark options
 ---@return NuiText
 function Text:set(content, extmark)
   if self._content ~= content then
@@ -107,7 +112,7 @@ function Text:render_char(bufnr, ns_id, linenr_start, char_start, linenr_end, ch
   self:render(bufnr, ns_id, linenr_start, byte_range[1], linenr_end, byte_range[2])
 end
 
----@alias NuiText.constructor fun(content: string|NuiText, extmark?: string|table): NuiText
+---@alias NuiText.constructor fun(content: string|NuiText, extmark?: string|nui_text_extmark): NuiText
 ---@type NuiText|NuiText.constructor
 local NuiText = Text
 
