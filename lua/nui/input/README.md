@@ -77,13 +77,25 @@ Default value placed in the input on mount
 
 ### `on_close`
 
+**Type:** `function`
+
+_Signature:_ `on_close() -> nil`
+
 Callback function, called when input is closed.
 
 ### `on_submit`
 
+**Type:** `function`
+
+_Signature:_ `on_submit(value: string) -> nil`
+
 Callback function, called when input value is submitted.
 
 ### `on_change`
+
+**Type:** `function`
+
+_Signature:_ `on_change(value: string) -> nil`
 
 Callback function, called when input value is changed.
 
