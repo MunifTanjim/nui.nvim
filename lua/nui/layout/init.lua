@@ -158,6 +158,7 @@ function Layout:init(options, box)
       win_config = {
         focusable = false,
         style = "minimal",
+        anchor = options.anchor,
         zindex = 49,
       },
       win_options = {
