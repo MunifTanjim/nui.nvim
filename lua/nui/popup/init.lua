@@ -59,10 +59,36 @@ end
 
 ---@alias nui_popup_internal_position { relative: "'cursor'"|"'editor'"|"'win'", win: number, bufpos?: number[], row: number, col: number }
 ---@alias nui_popup_internal_size { height: number, width: number }
----@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: table, anchor?: nui_layout_option_anchor }
----@alias nui_popup_internal { layout: nui_layout_config, layout_ready: boolean, loading: boolean, mounted: boolean, position: nui_popup_internal_position, size: nui_popup_internal_size, win_enter: boolean, unmanaged_bufnr?: boolean, buf_options: table<string,any>, win_options: table<string,any>, win_config: nui_popup_win_config }
+---@alias nui_popup_win_config { focusable: boolean, style: "'minimal'", zindex: number, relative: "'cursor'"|"'editor'"|"'win'", win?: number, bufpos?: number[], row: number, col: number, width: number, height: number, border?: string|table, anchor?: nui_layout_option_anchor }
 
 --luacheck: pop
+
+---@class nui_popup_internal
+---@field augroup table<'hide'|'unmount', string>
+---@field buf_options table<string, any>
+---@field layout table, layout_ready: boolean
+---@field loading boolean
+---@field mounted boolean
+---@field position nui_popup_internal_position
+---@field size nui_popup_internal_size
+---@field unmanaged_bufnr? boolean
+---@field win_config nui_popup_win_config
+---@field win_enter boolean
+---@field win_options table<string, any>
+
+---@class nui_popup_options
+---@field border? _nui_popup_border_style_builtin|nui_popup_border_options
+---@field ns_id? string|integer
+---@field anchor? nui_layout_option_anchor
+---@field relative? nui_layout_option_relative_type|nui_layout_option_relative
+---@field position? number|string|nui_layout_option_position
+---@field size? number|string|nui_layout_option_size
+---@field enter? boolean
+---@field focusable? boolean
+---@field zindex? integer
+---@field buf_options? table<string, any>
+---@field win_options? table<string, any>
+---@field bufnr? integer
 
 ---@class NuiPopup
 ---@field border NuiPopupBorder
@@ -73,6 +99,7 @@ end
 ---@field winid number
 local Popup = Object("NuiPopup")
 
+---@param options nui_popup_options
 function Popup:init(options)
   local id = u.get_next_id()
 
@@ -300,30 +327,30 @@ end
 ---@param mode string check `:h :map-modes`
 ---@param key string|string[] key for the mapping
 ---@param handler string | fun(): nil handler for the mapping
----@param opts table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
+---@param opts? table<"'expr'"|"'noremap'"|"'nowait'"|"'remap'"|"'script'"|"'silent'"|"'unique'", boolean>
 ---@return nil
-function Popup:map(mode, key, handler, opts, force)
+function Popup:map(mode, key, handler, opts, ___force___)
   if not self.bufnr then
     error("popup buffer not found.")
   end
 
-  return keymap.set(self.bufnr, mode, key, handler, opts, force)
+  return keymap.set(self.bufnr, mode, key, handler, opts, ___force___)
 end
 
 ---@param mode string check `:h :map-modes`
 ---@param key string|string[] key for the mapping
 ---@return nil
-function Popup:unmap(mode, key, force)
+function Popup:unmap(mode, key, ___force___)
   if not self.bufnr then
     error("popup buffer not found.")
   end
 
-  return keymap._del(self.bufnr, mode, key, force)
+  return keymap._del(self.bufnr, mode, key, ___force___)
 end
 
 ---@param event string | string[]
 ---@param handler string | function
----@param options nil | table<"'once'" | "'nested'", boolean>
+---@param options? table<"'once'" | "'nested'", boolean>
 function Popup:on(event, handler, options)
   if not self.bufnr then
     error("popup buffer not found.")
@@ -332,7 +359,7 @@ function Popup:on(event, handler, options)
   autocmd.buf.define(self.bufnr, event, handler, options)
 end
 
----@param event nil | string | string[]
+---@param event? string | string[]
 function Popup:off(event)
   if not self.bufnr then
     error("popup buffer not found.")
@@ -350,7 +377,7 @@ function Popup:set_layout(config)
 end
 -- luacov: enable
 
----@param config? nui_layout_config
+---@param config? nui_layout_options
 function Popup:update_layout(config)
   config = config or {}
 
@@ -388,7 +415,7 @@ function Popup:set_position(position, relative)
 end
 -- luacov: enable
 
----@alias NuiPopup.constructor fun(options: table): NuiPopup
+---@alias NuiPopup.constructor fun(options: nui_popup_options): NuiPopup
 ---@type NuiPopup|NuiPopup.constructor
 local NuiPopup = Popup
 

@@ -1,3 +1,5 @@
+---@diagnostic disable: invisible
+
 local Object = require("nui.object")
 local Line = require("nui.line")
 local Text = require("nui.text")
@@ -111,14 +113,14 @@ local function is_empty_char(char)
   return char[1] == ""
 end
 
----@param text? nil|string|string[]|NuiLine|NuiText|({[1]:string,[2]:string}[])
+---@param text? _nui_popup_border_option_text_value
 ---@return nil|NuiLine|NuiText
 local function normalize_border_text(text)
   if not text then
     return text
   end
 
-  if is_type("string", text) then
+  if type(text) == "string" then
     return Text(text, "FloatTitle")
   end
 
@@ -128,12 +130,12 @@ local function normalize_border_text(text)
         hl_group = "FloatTitle",
       })
     end
-    return text
+    return text --[[@as NuiLine|NuiText]]
   end
 
   local line = Line()
   for _, chunk in ipairs(text) do
-    if is_type("string", chunk) then
+    if type(chunk) == "string" then
       line:append(chunk, "FloatTitle")
     else
       line:append(chunk[1], chunk[2] or "FloatTitle")
@@ -165,7 +167,7 @@ local function calculate_winhighlight(internal, popup_winhighlight)
 end
 
 ---@return nui_popup_border_internal_padding|nil
-local function parse_padding(padding)
+local function normalize_option_padding(padding)
   if not padding then
     return nil
   end
@@ -180,6 +182,20 @@ local function parse_padding(padding)
   map.bottom = defaults(padding[3], map.top)
   map.left = defaults(padding[4], map.right)
   return map
+end
+
+---@param text? nui_popup_border_option_text
+---@return nui_popup_border_internal_text|nil
+local function normalize_option_text(text)
+  if not text then
+    return text
+  end
+
+  text.top = normalize_border_text(text.top)
+  text.bottom = normalize_border_text(text.bottom)
+
+  ---@cast text nui_popup_border_internal_text
+  return text
 end
 
 ---@param edge "'top'" | "'bottom'"
@@ -399,11 +415,30 @@ end
 --luacheck: push no max line length
 
 ---@alias nui_t_text_align "'left'" | "'center'" | "'right'"
+
 ---@alias nui_popup_border_internal_padding { top: number, right: number, bottom: number, left: number }
 ---@alias nui_popup_border_internal_position { row: number, col: number }
 ---@alias nui_popup_border_internal_size { width: number, height: number }
 ---@alias nui_popup_border_internal_text { top?: NuiLine|NuiText, top_align?: nui_t_text_align, bottom?: NuiLine|NuiText, bottom_align?: nui_t_text_align }
----@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
+---@alias nui_popup_border_internal { type: "'simple'"|"'complex'", style: table, char: any, padding?: nui_popup_border_internal_padding, position: nui_popup_border_internal_position, size: nui_popup_border_internal_size, size_delta: nui_popup_border_internal_size, text?: nui_popup_border_internal_text, lines?: table[], winhighlight?: string }
+
+---@alias _nui_popup_border_option_padding_list table<1|2|3|4, integer>
+---@alias _nui_popup_border_option_padding_map table<'top'|'right'|'bottom'|'left', integer>
+---@alias nui_popup_border_option_padding _nui_popup_border_option_padding_list|_nui_popup_border_option_padding_map
+
+---@alias _nui_popup_border_style_builtin 'double'|'none'|'rounded'|'shadow'|'single'|'solid'
+---@alias _nui_popup_border_style_list_char string|table<1|2, string>
+---@alias _nui_popup_border_style_list table<1|2|3|4|5|6|7|8, _nui_popup_border_style_list_char>
+---@alias nui_popup_border_option_style _nui_popup_border_style_builtin|_nui_popup_border_style_list
+
+---@alias _nui_popup_border_option_text_builtin_list table<1|2, string>[]
+---@alias _nui_popup_border_option_text_value string|NuiLine|NuiText|string[]|_nui_popup_border_option_text_builtin_list
+---@alias nui_popup_border_option_text { top?: _nui_popup_border_option_text_value, top_align?: nui_t_text_align, bottom?: _nui_popup_border_option_text_value, bottom_align?: nui_t_text_align }
+
+---@class nui_popup_border_options
+---@field padding? nui_popup_border_option_padding
+---@field style? nui_popup_border_option_style
+---@field text? nui_popup_border_option_text
 
 --luacheck: pop
 
@@ -416,6 +451,7 @@ end
 local Border = Object("NuiPopupBorder")
 
 ---@param popup NuiPopup
+---@param options nui_popup_border_options
 function Border:init(popup, options)
   self.popup = popup
 
@@ -424,16 +460,11 @@ function Border:init(popup, options)
     style = defaults(options.style, "none"),
     -- @deprecated
     highlight = options.highlight,
-    padding = parse_padding(options.padding),
-    text = options.text,
+    padding = normalize_option_padding(options.padding),
+    text = normalize_option_text(options.text),
   }
 
   local internal = self._
-
-  if internal.text then
-    internal.text.top = normalize_border_text(internal.text.top)
-    internal.text.bottom = normalize_border_text(internal.text.bottom)
-  end
 
   local style = internal.style
 
@@ -625,7 +656,12 @@ function Border:set_text(edge, text, align)
   internal.text[edge] = normalize_border_text(text)
   internal.text[edge .. "_align"] = defaults(align, internal.text[edge .. "_align"])
 
-  local line = calculate_buf_edge_line(internal, edge, internal.text[edge], internal.text[edge .. "_align"])
+  local line = calculate_buf_edge_line(
+    internal,
+    edge,
+    internal.text[edge],
+    internal.text[edge .. "_align"] --[[@as nui_t_text_align]]
+  )
 
   local linenr = edge == "top" and 1 or #internal.lines
 
@@ -666,7 +702,7 @@ function Border:get()
   end
 end
 
----@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: table): NuiPopupBorder
+---@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: nui_popup_border_options): NuiPopupBorder
 ---@type NuiPopupBorder|NuiPopupBorder.constructor
 local NuiPopupBorder = Border
 
