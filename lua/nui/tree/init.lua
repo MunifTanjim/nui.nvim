@@ -298,8 +298,13 @@ end
 function Tree:set_nodes(nodes, parent_id)
   --luacheck: push no max line length
 
-  ---@type { linenr: {[1]?:integer,[2]?:integer}, lines: string[]|NuiLine[], node_id_by_linenr: table<number,string>, linenr_by_node_id: table<string, {[1]:integer,[2]:integer}> }
-  self._content = { linenr = {}, lines = {}, node_id_by_linenr = {}, linenr_by_node_id = {} }
+  ---@type { linenr: {[1]?:integer,[2]?:integer}, lines: (string|NuiLine)[], node_id_by_linenr: table<number,string>, linenr_by_node_id: table<string, {[1]:integer,[2]:integer}> }
+  self._content = {
+    linenr = self._content and self._content.linenr or {},
+    lines = {},
+    node_id_by_linenr = {},
+    linenr_by_node_id = {},
+  }
 
   --luacheck: pop
 
