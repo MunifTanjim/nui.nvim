@@ -219,7 +219,7 @@ function _.calculate_gap_width(align, total_width, text_width)
   error("invalid value align=" .. align)
 end
 
----@param lines NuiLine[]
+---@param lines (string|NuiLine)[]
 ---@param bufnr number
 ---@param ns_id number
 ---@param linenr_start integer (1-indexed)
@@ -231,6 +231,9 @@ function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end, byte_star
   local row_end = linenr_end or row_start + 1
 
   local content = vim.tbl_map(function(line)
+    if type(line) == "string" then
+      return line
+    end
     return line:content()
   end, lines)
 
@@ -243,7 +246,9 @@ function _.render_lines(lines, bufnr, ns_id, linenr_start, linenr_end, byte_star
   end
 
   for linenr, line in ipairs(lines) do
-    line:highlight(bufnr, ns_id, linenr + row_start, byte_start)
+    if type(line) ~= "string" then
+      line:highlight(bufnr, ns_id, linenr + row_start, byte_start)
+    end
   end
 end
 
