@@ -135,7 +135,7 @@ end
 
 ---@alias nui_tree_get_node_id fun(node: NuiTree.Node): string
 ---@alias nui_tree_prepare_node fun(node: NuiTree.Node, parent_node?: NuiTree.Node): nil | string | string[] | NuiLine | NuiLine[]
----@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node, track_tree_linenr?: boolean }
+---@alias nui_tree_internal { buf_options: table<string,any>, win_options: table<string,any>, get_node_id: nui_tree_get_node_id, prepare_node: nui_tree_prepare_node }
 
 --luacheck: pop
 
@@ -199,7 +199,6 @@ function Tree:init(options)
     }, defaults(options.win_options, {})),
     get_node_id = defaults(options.get_node_id, tree_util.default_get_node_id),
     prepare_node = defaults(options.prepare_node, tree_util.default_prepare_node),
-    track_tree_linenr = nil,
   }
 
   _.set_buf_options(self.bufnr, self._.buf_options)
@@ -424,10 +423,6 @@ end
 
 ---@param linenr_start? number start line number (1-indexed)
 function Tree:render(linenr_start)
-  if is_type("nil", self._.track_tree_linenr) then
-    self._.track_tree_linenr = is_type("number", linenr_start)
-  end
-
   linenr_start = math.max(1, linenr_start or self._content.linenr[1] or 1)
 
   local prev_linenr = { self._content.linenr[1], self._content.linenr[2] }
@@ -435,31 +430,25 @@ function Tree:render(linenr_start)
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
 
-  if self._.track_tree_linenr then
-    _.clear_namespace(self.bufnr, self.ns_id, prev_linenr[1], prev_linenr[2])
+  _.clear_namespace(self.bufnr, self.ns_id, prev_linenr[1], prev_linenr[2])
 
-    -- if linenr_start was shifted downwards,
-    -- clear the previously rendered lines above.
-    _.clear_lines(
-      self.bufnr,
-      math.min(linenr_start, prev_linenr[1] or linenr_start),
-      prev_linenr[1] and linenr_start - 1 or 0
-    )
+  -- if linenr_start was shifted downwards,
+  -- clear the previously rendered lines above.
+  _.clear_lines(
+    self.bufnr,
+    math.min(linenr_start, prev_linenr[1] or linenr_start),
+    prev_linenr[1] and linenr_start - 1 or 0
+  )
 
-    -- for initial render, start inserting in a single line.
-    -- for subsequent renders, replace the lines from previous render.
-    _.render_lines(
-      self._content.lines,
-      self.bufnr,
-      self.ns_id,
-      linenr_start,
-      prev_linenr[1] and prev_linenr[2] or linenr_start
-    )
-  else
-    _.clear_namespace(self.bufnr, self.ns_id)
-
-    _.render_lines(self._content.lines, self.bufnr, self.ns_id, 1, -1)
-  end
+  -- for initial render, start inserting in a single line.
+  -- for subsequent renders, replace the lines from previous render.
+  _.render_lines(
+    self._content.lines,
+    self.bufnr,
+    self.ns_id,
+    linenr_start,
+    prev_linenr[1] and prev_linenr[2] or linenr_start
+  )
 
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
 end
