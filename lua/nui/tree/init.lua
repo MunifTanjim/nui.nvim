@@ -423,54 +423,37 @@ function Tree:render(linenr_start)
     self._.track_tree_linenr = is_type("number", linenr_start)
   end
 
-  linenr_start = linenr_start or self._content.linenr[1] or 1
+  linenr_start = math.max(1, linenr_start or self._content.linenr[1] or 1)
 
   local prev_linenr = { self._content.linenr[1], self._content.linenr[2] }
   self:_prepare_content(linenr_start)
-  local next_linenr = { self._content.linenr[1], self._content.linenr[2] }
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
-
-  local buf_lines = vim.tbl_map(function(line)
-    if is_type("string", line) then
-      return line
-    end
-    return line:content()
-  end, self._content.lines)
 
   if self._.track_tree_linenr then
     _.clear_namespace(self.bufnr, self.ns_id, prev_linenr[1], prev_linenr[2])
 
-    -- if linenr_start was shifted downwards, clear the
-    -- previously rendered buffer lines above the tree.
+    -- if linenr_start was shifted downwards,
+    -- clear the previously rendered lines above.
     _.clear_lines(
       self.bufnr,
       math.min(linenr_start, prev_linenr[1] or linenr_start),
       prev_linenr[1] and linenr_start - 1 or 0
     )
 
-    -- for initial render, start inserting the tree in a single buffer line.
-    local content_linenr_range = {
-      next_linenr[1],
-      next_linenr[1],
-    }
-    -- for subsequent renders, replace the buffer lines from previous tree.
-    if prev_linenr[1] then
-      content_linenr_range[2] = prev_linenr[2] < next_linenr[2] and math.min(next_linenr[2], prev_linenr[2])
-        or math.max(next_linenr[2], prev_linenr[2])
-    end
-
-    vim.api.nvim_buf_set_lines(self.bufnr, content_linenr_range[1] - 1, content_linenr_range[2], false, buf_lines)
+    -- for initial render, start inserting in a single line.
+    -- for subsequent renders, replace the lines from previous render.
+    _.render_lines(
+      self._content.lines,
+      self.bufnr,
+      self.ns_id,
+      linenr_start,
+      prev_linenr[1] and prev_linenr[2] or linenr_start
+    )
   else
     _.clear_namespace(self.bufnr, self.ns_id)
 
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, buf_lines)
-  end
-
-  for i, line in ipairs(self._content.lines) do
-    if type(line) ~= "string" then
-      line:highlight(self.bufnr, self.ns_id, i + linenr_start - 1)
-    end
+    _.render_lines(self._content.lines, self.bufnr, self.ns_id, 1, -1)
   end
 
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
