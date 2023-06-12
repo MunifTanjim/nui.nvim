@@ -22,11 +22,28 @@ local u = {
 
 -- GitHub Issue: https://github.com/neovim/neovim/issues/18925
 local function apply_workaround_for_float_relative_position_issue_18925(layout)
-  local current_winid = vim.api.nvim_get_current_win()
+  local winids_len = 1
+  local winids = { layout.winid }
+  local function collect_anchor_winids(box)
+    for _, child in ipairs(box.box) do
+      if child.component then
+        local border = child.component.border
+        if border and border.winid then
+          winids_len = winids_len + 1
+          winids[winids_len] = border.winid
+        end
+      else
+        collect_anchor_winids(child)
+      end
+    end
+  end
+  collect_anchor_winids(layout._.box)
 
-  vim.api.nvim_set_current_win(layout.winid)
-  vim.api.nvim_command("redraw!")
-  vim.api.nvim_set_current_win(current_winid)
+  vim.schedule(function()
+    winids_len = winids_len + 1
+    winids[winids_len] = vim.api.nvim_get_current_win()
+    vim.cmd(string.rep("noa call nvim_set_current_win(%s)\nredraw\n", winids_len):format(unpack(winids)))
+  end)
 end
 
 ---@param options nui_layout_options
@@ -208,8 +225,6 @@ function Layout:_process_layout()
   if type == "float" then
     local info = self._.float
 
-    apply_workaround_for_float_relative_position_issue_18925(self)
-
     float_layout.process(self._.box, {
       winid = self.winid,
       container_size = info.size,
@@ -218,6 +233,8 @@ function Layout:_process_layout()
         col = 0,
       },
     })
+
+    apply_workaround_for_float_relative_position_issue_18925(self)
 
     return
   end
