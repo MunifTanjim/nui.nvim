@@ -56,8 +56,8 @@ local function get_assert_component(layout)
       eq(border_col, expected.position.col)
 
       local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
-      eq(row, border_row + math.floor(component.border._.size_delta.width / 2 + 0.5))
-      eq(col, border_col + math.floor(component.border._.size_delta.height / 2 + 0.5))
+      eq(row, math.floor(component.border._.size_delta.width / 2 + 0.5))
+      eq(col, math.floor(component.border._.size_delta.height / 2 + 0.5))
     else
       local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
       eq(row, expected.position.row)
@@ -713,10 +713,10 @@ describe("nui.layout", function()
         win_width = vim.api.nvim_win_get_width(winid)
         win_height = vim.api.nvim_win_get_height(winid)
 
-        p1, p2, p3, p4 = unpack(create_popups({}, {}, {
-          border = {
-            style = "rounded",
-          },
+        p1, p2, p3, p4 = unpack(create_popups({
+          border = { style = "single" },
+        }, {}, {
+          border = { style = "rounded", text = {} },
         }, {}))
       end)
 
