@@ -20,14 +20,12 @@ local function get_child_position(box_dir)
 end
 
 ---@param position nui_split_internal_position
----@param child { size: number|string|nui_layout_option_size, grow?: boolean }
+---@param child { size: nui_layout_option_size, grow?: boolean }
 ---@param container_size { width?: number, height?: number }
 ---@param growable_dimension_per_factor? number
 local function get_child_size(position, child, container_size, growable_dimension_per_factor)
   local child_size
-  if not u.is_type("table", child.size) then
-    child_size = child.size --[[@as number|string]]
-  elseif position == "left" or position == "right" then
+  if position == "left" or position == "right" then
     child_size = child.size.width
   else
     child_size = child.size.height
