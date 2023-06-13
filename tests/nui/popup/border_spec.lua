@@ -453,6 +453,22 @@ describe("nui.popup", function()
       eq(type(string.match(err, "invalid border style name")), "string")
     end)
 
+    it("throws error if invalid align", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "single",
+          text = {
+            top = "popup",
+            top_align = "diagonal",
+          },
+        },
+      })
+
+      local ok, err = pcall(Popup, popup_options)
+      eq(ok, false)
+      eq(type(string.match(err, "invalid value align=diagonal")), "string")
+    end)
+
     it("supports simple text", function()
       local text = "popup"
 
