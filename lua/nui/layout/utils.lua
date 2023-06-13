@@ -150,9 +150,11 @@ function mod.update_layout_config(component_internal, config)
     win_config.bufpos = internal.position.bufpos
   end
 
+  -- luacov: disable
   if not win_config.relative then
     return error("missing layout config: relative")
   end
+  -- luacov: enable
 
   local prev_container_size = internal.container_info and internal.container_info.size
   internal.container_info = mod.get_container_info(internal.position)
