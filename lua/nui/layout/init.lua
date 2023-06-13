@@ -40,9 +40,9 @@ local function apply_workaround_for_float_relative_position_issue_18925(layout)
   collect_anchor_winids(layout._.box)
 
   vim.schedule(function()
-    winids_len = winids_len + 1
-    winids[winids_len] = vim.api.nvim_get_current_win()
-    vim.cmd(string.rep("noa call nvim_set_current_win(%s)\nredraw\n", winids_len):format(unpack(winids)))
+    local current_winid = vim.api.nvim_get_current_win()
+    vim.cmd(string.rep("noa call nvim_set_current_win(%s)\nnormal! jk\nredraw\n", winids_len):format(unpack(winids)))
+    vim.cmd(string.format("noa call nvim_set_current_win(%s)", current_winid))
   end)
 end
 
@@ -234,8 +234,6 @@ function Layout:_process_layout()
       },
     })
 
-    apply_workaround_for_float_relative_position_issue_18925(self)
-
     return
   end
 
@@ -304,6 +302,8 @@ function Layout:mount()
 
   if type == "float" then
     float_layout.mount_box(self._.box)
+
+    apply_workaround_for_float_relative_position_issue_18925(self)
   end
 
   if type == "split" then
@@ -390,6 +390,8 @@ function Layout:show()
 
   if type == "float" then
     float_layout.show_box(self._.box)
+
+    apply_workaround_for_float_relative_position_issue_18925(self)
   end
 
   if type == "split" then
@@ -431,6 +433,8 @@ function Layout:update(config, box)
       self:_process_layout()
 
       float_layout.process_box_change(self._.box, prev_box)
+
+      apply_workaround_for_float_relative_position_issue_18925(self)
     end
 
     wire_up_layout_components(self, self._.box)
