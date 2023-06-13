@@ -380,11 +380,13 @@ local function adjust_popup_win_config(border)
 
   local popup = border.popup
 
+  -- luacov: disable
   if not has_nvim_0_5_1 then
     popup.win_config.row = internal.position.row + popup_position.row
     popup.win_config.col = internal.position.col + popup_position.col
     return
   end
+  -- luacov: enable
 
   -- relative to the border window
   popup.win_config.anchor = nil
