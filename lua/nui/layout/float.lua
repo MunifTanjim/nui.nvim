@@ -64,14 +64,19 @@ local function get_child_size(parent, child, container_size, growable_dimension_
 end
 
 function mod.process(box, meta)
+  -- luacov: disable
   if box.mount or box.component or not box.box then
     return error("invalid paramter: box")
   end
+  -- luacov: enable
 
   local container_size = meta.container_size
+
+  -- luacov: disable
   if not u.is_type("number", container_size.width) or not u.is_type("number", container_size.height) then
     return error("invalid value: box.size")
   end
+  -- luacov: enable
 
   local current_position = {
     col = 0,

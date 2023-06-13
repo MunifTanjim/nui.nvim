@@ -48,15 +48,19 @@ local function get_container_size(meta)
 end
 
 function mod.process(box, meta)
+  -- luacov: disable
   if box.mount or box.component or not box.box then
     return error("invalid paramter: box")
   end
+  -- luacov: enable
 
   local container_size = get_container_size(meta)
 
+  -- luacov: disable
   if not u.is_type("number", container_size.width) and not u.is_type("number", container_size.height) then
     return error("invalid value: box.size")
   end
+  -- luacov: enable
 
   local consumed_size = {
     width = 0,
