@@ -43,46 +43,10 @@ local function to_border_map(border)
   return named_border
 end
 
----@param named_border _nui_popup_border_style_map
----@return _nui_popup_border_style_list
-local function to_border_list(named_border)
-  ---@type _nui_popup_border_style_list
-  local border = {}
-
-  for index, name in ipairs(index_name) do
-    if not named_border[name] then
-      error(string.format("missing named border: %s", name))
-    end
-
-    border[index] = named_border[name]
-  end
-
-  return border
-end
-
----@param border_type nui_popup_border_internal_type
----@param char _nui_popup_border_internal_char
+---@param char _nui_popup_border_style_map
 ---@return _nui_popup_border_internal_char
-local function normalize_border_char(border_type, char)
+local function normalize_char_map(char)
   if not char or type(char) == "string" then
-    return char
-  end
-
-  if border_type == "simple" then
-    for position, item in pairs(char) do
-      if type(item) == "string" then
-        char[position] = item
-      elseif item.content then
-        if item.extmark and item.extmark.hl_group then
-          char[position] = { item:content(), item.extmark.hl_group }
-        else
-          char[position] = item:content()
-        end
-      else
-        char[position] = item
-      end
-    end
-
     return char
   end
 
@@ -98,21 +62,13 @@ local function normalize_border_char(border_type, char)
     end
   end
 
-  return char
+  return char --[[@as _nui_popup_border_internal_char]]
 end
 
----@param char? _nui_popup_border_style_char
+---@param char? NuiText
 ---@return boolean
 local function is_empty_char(char)
-  if not char or type(char) == "string" then
-    return "" == char
-    ---@cast char -string
-  end
-  if char.width then
-    return 0 == char:width()
-    ---@cast char -NuiText
-  end
-  return char[1] == ""
+  return not char or 0 == char:width()
 end
 
 ---@param text? _nui_popup_border_option_text_value
@@ -265,7 +221,6 @@ local function calculate_buf_lines(internal)
     return nil
   end
 
-  ---@cast char -_nui_popup_border_internal_char_simple
   local left_char, right_char = char.left, char.right
 
   local gap_length = size.width - left_char:width() - right_char:width()
@@ -299,9 +254,9 @@ local styles = {
 }
 
 ---@param style nui_popup_border_option_style
----@param prev_char? _nui_popup_border_internal_char
----@return _nui_popup_border_internal_char
-local function prepare_char_map(style, prev_char)
+---@param prev_char_map? _nui_popup_border_internal_char
+---@return _nui_popup_border_style_map
+local function prepare_char_map(style, prev_char_map)
   if type(style) == "string" then
     if not styles[style] then
       error("invalid border style name")
@@ -317,7 +272,7 @@ local function prepare_char_map(style, prev_char)
   end
 
   ---@cast style _nui_popup_border_style_map
-  return vim.tbl_extend("force", prev_char or {}, style)
+  return vim.tbl_extend("force", prev_char_map or {}, style)
 end
 
 ---@param internal nui_popup_border_internal
@@ -330,7 +285,7 @@ local function calculate_size_delta(internal)
   }
 
   local char = internal.char
-  if is_type("map", char) then
+  if type(char) == "table" then
     if not is_empty_char(char.top) then
       delta.height = delta.height + 1
     end
@@ -405,7 +360,7 @@ local function adjust_popup_win_config(border)
 
   local char = internal.char
 
-  if is_type("map", char) then
+  if type(char) == "table" then
     if not is_empty_char(char.top) then
       popup_position.row = popup_position.row + 1
     end
@@ -453,9 +408,7 @@ end
 ---@alias nui_popup_border_internal_size table<'height'|'width', number>
 ---@alias nui_popup_border_internal_padding _nui_popup_border_option_padding_map
 ---@alias nui_popup_border_internal_text { top?: NuiLine|NuiText, top_align?: nui_t_text_align, bottom?: NuiLine|NuiText, bottom_align?: nui_t_text_align }
----@alias _nui_popup_border_internal_char_simple table<_nui_popup_border_style_map_position, string|_nui_popup_border_style_char_tuple>
----@alias _nui_popup_border_internal_char_complex table<_nui_popup_border_style_map_position, NuiText>
----@alias _nui_popup_border_internal_char _nui_popup_border_internal_char_simple|_nui_popup_border_internal_char_complex
+---@alias _nui_popup_border_internal_char table<_nui_popup_border_style_map_position, NuiText>
 
 ---@alias _nui_popup_border_option_padding_list table<1|2|3|4, integer>
 ---@alias _nui_popup_border_option_padding_map table<'top'|'right'|'bottom'|'left', integer>
@@ -515,12 +468,12 @@ function Border:init(popup, options)
 
   local internal = self._
 
-  internal.char = prepare_char_map(internal.style, internal.char)
+  local char = prepare_char_map(internal.style, internal.char)
 
-  local is_borderless = type(internal.char) == "string"
+  local is_borderless = type(char) == "string"
   if is_borderless then
     if internal.text then
-      error("text not supported for style:" .. internal.char)
+      error("text not supported for style:" .. char)
     end
   end
 
@@ -528,7 +481,7 @@ function Border:init(popup, options)
     internal.type = "complex"
   end
 
-  internal.char = normalize_border_char(internal.type, internal.char)
+  internal.char = normalize_char_map(char)
   internal.size_delta = calculate_size_delta(internal)
 
   internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
@@ -722,6 +675,25 @@ function Border:set_highlight(highlight)
 end
 
 ---@return nil|_nui_popup_border_style_builtin|(string|_nui_popup_border_style_char_tuple)[]
+---@param char_map _nui_popup_border_internal_char
+---@return _nui_popup_border_style_char_tuple[]
+local function to_tuple_list(char_map)
+  ---@type _nui_popup_border_style_char_tuple[]
+  local border = {}
+
+  for index, name in ipairs(index_name) do
+    if not char_map[name] then
+      error(string.format("missing named border: %s", name))
+    end
+
+    local char = char_map[name]
+    border[index] = { char:content(), char.extmark.hl_group }
+  end
+
+  return border
+end
+
+---@return nil|_nui_popup_border_style_builtin|_nui_popup_border_style_char_tuple[]
 function Border:get()
   local internal = self._
 
@@ -733,7 +705,7 @@ function Border:get()
     return internal.char
   end
 
-  return to_border_list(internal.char)
+  return to_tuple_list(internal.char)
 end
 
 ---@alias NuiPopupBorder.constructor fun(popup: NuiPopup, options: nui_popup_border_options): NuiPopupBorder
