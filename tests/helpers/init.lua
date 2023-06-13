@@ -3,8 +3,12 @@ local function to_string(text)
     return text
   end
 
-  if type(text) == "table" and text.content then
-    return text:content()
+  if type(text) == "table" then
+    if text.content then
+      return text:content()
+    end
+
+    return text[1]
   end
 
   error("unsupported text")
