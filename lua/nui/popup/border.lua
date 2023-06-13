@@ -349,10 +349,6 @@ end
 local function adjust_popup_win_config(border)
   local internal = border._
 
-  if internal.type ~= "complex" then
-    return
-  end
-
   local popup_position = {
     row = 0,
     col = 0,
