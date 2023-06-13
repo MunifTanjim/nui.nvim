@@ -458,8 +458,6 @@ function Border:init(popup, options)
   self.popup = popup
 
   self._ = {
-    type = "simple",
-    style = options.style or "none",
     ---@deprecated
     highlight = options.highlight,
     padding = normalize_option_padding(options.padding),
@@ -468,21 +466,13 @@ function Border:init(popup, options)
 
   local internal = self._
 
-  local char = prepare_char_map(internal.style, internal.char)
-
-  local is_borderless = type(char) == "string"
-  if is_borderless then
-    if internal.text then
-      error("text not supported for style:" .. char)
-    end
-  end
-
   if internal.text or internal.padding then
     internal.type = "complex"
+  else
+    internal.type = "simple"
   end
 
-  internal.char = normalize_char_map(char)
-  internal.size_delta = calculate_size_delta(internal)
+  self:set_style(options.style or "none")
 
   internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
 
@@ -674,7 +664,29 @@ function Border:set_highlight(highlight)
   end
 end
 
----@return nil|_nui_popup_border_style_builtin|(string|_nui_popup_border_style_char_tuple)[]
+---@param style nui_popup_border_option_style
+function Border:set_style(style)
+  local internal = self._
+
+  internal.style = style
+
+  local char = prepare_char_map(internal.style, internal.char)
+
+  local is_borderless = type(char) == "string"
+  if is_borderless then
+    if not internal.char then -- initial
+      if internal.text then
+        error("text not supported for style:" .. char)
+      end
+    elseif internal.type == "complex" then -- subsequent
+      error("cannot change from previous style to " .. char)
+    end
+  end
+
+  internal.char = normalize_char_map(char)
+  internal.size_delta = calculate_size_delta(internal)
+end
+
 ---@param char_map _nui_popup_border_internal_char
 ---@return _nui_popup_border_style_char_tuple[]
 local function to_tuple_list(char_map)

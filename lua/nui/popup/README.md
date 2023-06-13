@@ -617,6 +617,31 @@ popup.border:set_highlight("SpecialChar")
 
 ---
 
+### `popup.border:set_style`
+
+_Signature:_ `popup.border:set_style(style: string|table) -> nil`
+
+Sets border style.
+
+**Parameters**
+
+| Name    | Type               | Description  |
+| ------- | ------------------ | ------------ |
+| `style` | `string` / `table` | border style |
+
+This `style` parameter is exactly the same as popup option `border.style`.
+
+You'll need to call `popup:update_layout()` after this for the change to render on screen.
+
+**Examples**
+
+```lua
+popup.border:set_style("rounded")
+popup:update_layout()
+```
+
+---
+
 ### `popup.border:set_text`
 
 _Signature:_ `popup.border:set_text(edge, text, align)`
