@@ -285,21 +285,19 @@ function Popup:show()
 end
 
 function Popup:_buf_destory()
-  if not self.bufnr then
-    return
-  end
-
-  if vim.api.nvim_buf_is_valid(self.bufnr) then
-    u.clear_namespace(self.bufnr, self.ns_id)
-    if not self._.unmanaged_bufnr then
-      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+  if self.bufnr then
+    if vim.api.nvim_buf_is_valid(self.bufnr) then
+      u.clear_namespace(self.bufnr, self.ns_id)
+      if not self._.unmanaged_bufnr then
+        vim.api.nvim_buf_delete(self.bufnr, { force = true })
+      end
     end
-  end
 
-  buf_storage.cleanup(self.bufnr)
+    buf_storage.cleanup(self.bufnr)
 
-  if not self._.unmanaged_bufnr then
-    self.bufnr = nil
+    if not self._.unmanaged_bufnr then
+      self.bufnr = nil
+    end
   end
 end
 
