@@ -40,9 +40,10 @@ local function apply_workaround_for_float_relative_position_issue_18925(layout)
   collect_anchor_winids(layout._.box)
 
   vim.schedule(function()
-    local current_winid = vim.api.nvim_get_current_win()
-    vim.cmd(string.rep("noa call nvim_set_current_win(%s)\nnormal! jk\nredraw\n", winids_len):format(unpack(winids)))
-    vim.cmd(string.format("noa call nvim_set_current_win(%s)", current_winid))
+    vim.cmd(
+      ("noa call nvim_set_current_win(%s)\nnormal! jk\nredraw\n"):rep(winids_len):format(unpack(winids))
+        .. ("noa call nvim_set_current_win(%s)"):format(vim.api.nvim_get_current_win())
+    )
   end)
 end
 
