@@ -375,7 +375,7 @@ describe("nui.popup", function()
         local win_config = vim.api.nvim_win_get_config(popup.winid)
 
         eq(win_config.border[2], { style[2]:content(), hl_group })
-        eq(win_config.border[6], style[6]:content())
+        eq(win_config.border[6], { style[6]:content(), "FloatBorder" })
       end)
 
       it("supports (char, hl_group) tuple as char", function()
@@ -398,7 +398,7 @@ describe("nui.popup", function()
         local win_config = vim.api.nvim_win_get_config(popup.winid)
 
         eq(win_config.border[2], { style[2][1], style[2][2] })
-        eq(win_config.border[6], style[6][1])
+        eq(win_config.border[6], { style[6][1], "FloatBorder" })
       end)
 
       it("throws if map table missing keys", function()
