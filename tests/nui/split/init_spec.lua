@@ -519,6 +519,18 @@ describe("nui.split", function()
       eq(vim.api.nvim_win_get_height(split.winid), 20)
     end)
 
+    it('accepts size=""', function()
+      split = Split({ positon = "bottom", size = 10 })
+
+      split:mount()
+
+      eq(vim.api.nvim_win_get_height(split.winid), 10)
+
+      split:update_layout({ size = "" })
+
+      eq(vim.api.nvim_win_get_height(split.winid), 10)
+    end)
+
     it("can change position", function()
       local winid = vim.api.nvim_get_current_win()
 
