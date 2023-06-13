@@ -138,6 +138,7 @@ function mod.update_layout_config(component_internal, config)
     internal.layout.relative = options.relative
 
     local fallback_winid = internal.position and internal.position.win or vim.api.nvim_get_current_win()
+    -- stylua: ignore
     internal.position = vim.tbl_extend(
       "force",
       internal.position or {},
@@ -157,11 +158,11 @@ function mod.update_layout_config(component_internal, config)
   internal.container_info = mod.get_container_info(internal.position)
   local container_size_changed = not mod.size.are_same(internal.container_info.size, prev_container_size)
 
-  local need_size_refresh = container_size_changed
-    and internal.layout.size
-    and mod.size.contains_percentage_string(internal.layout.size)
-
-  if options.size or need_size_refresh then
+  if
+    options.size
+    -- need_size_refresh
+    or (container_size_changed and internal.layout.size and mod.size.contains_percentage_string(internal.layout.size))
+  then
     internal.layout.size = options.size or internal.layout.size
 
     internal.size = mod.calculate_window_size(internal.layout.size, internal.container_info.size)
@@ -174,11 +175,15 @@ function mod.update_layout_config(component_internal, config)
     return error("missing layout config: size")
   end
 
-  local need_position_refresh = container_size_changed
-    and internal.layout.position
-    and mod.position.contains_percentage_string(internal.layout.position)
-
-  if options.position or need_position_refresh then
+  if
+    options.position
+    -- need_position_refresh
+    or (
+      container_size_changed
+      and internal.layout.position
+      and mod.position.contains_percentage_string(internal.layout.position)
+    )
+  then
     internal.layout.position = options.position or internal.layout.position
 
     internal.position = vim.tbl_extend(

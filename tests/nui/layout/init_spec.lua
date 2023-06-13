@@ -132,6 +132,20 @@ describe("nui.layout", function()
   end)
 
   describe("box", function()
+    it("throws if unknown component", function()
+      local unknown = require("nui.object")("Unknown")()
+      function unknown.mount() end
+
+      local ok, err = pcall(function()
+        Layout.Box({
+          Layout.Box(unknown, { size = "100%" }),
+        })
+      end)
+
+      eq(ok, false)
+      eq(type(string.match(err, "unsupported component")), "string")
+    end)
+
     it("requires child.size if child.grow is missing", function()
       local p1, p2 = unpack(create_popups({}, {}))
 
@@ -738,6 +752,7 @@ describe("nui.layout", function()
         local relative, position, size = config.relative, config.position, config.size
 
         local win_config = vim.api.nvim_win_get_config(layout.winid)
+        eq(win_config.anchor, config.anchor or "NW")
         eq(win_config.relative, relative.type)
         eq(win_config.win, relative.winid)
 
@@ -1242,6 +1257,26 @@ describe("nui.layout", function()
             width = win_width,
             height = percent(win_height, 100),
           },
+        })
+      end)
+
+      it("can change anchor", function()
+        layout = Layout({
+          position = 0,
+          size = 10,
+        }, {
+          Layout.Box(p1, { size = "100%" }),
+        })
+
+        layout:mount()
+
+        layout:update({ anchor = "SW" })
+
+        assert_layout_config({
+          anchor = "SW",
+          relative = { type = "win", winid = winid },
+          position = { row = 0, col = 0 },
+          size = { height = 10, width = 10 },
         })
       end)
     end)
