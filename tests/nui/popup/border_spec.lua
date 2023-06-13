@@ -669,6 +669,25 @@ describe("nui.popup", function()
     end)
   end)
 
+  describe("method :set_style", function()
+    it("throws when trying to convert complex border to simple", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          padding = { 0 },
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      local ok, err = pcall(function()
+        popup.border:set_style("none")
+      end)
+      eq(ok, false)
+      eq(type(string.match(err, "cannot change from previous style to none")), "string")
+    end)
+  end)
+
   describe("method :set_text", function()
     it("works before :mount", function()
       local text_top, text_bottom = "top", "bot"
