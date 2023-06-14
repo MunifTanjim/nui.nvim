@@ -51,6 +51,56 @@ describe("nui.input", function()
     end)
   end)
 
+  describe("o.on_change", function()
+    it("works", function()
+      local done = false
+      local values = {}
+
+      input = Input(popup_options, {
+        on_change = function(value)
+          values[#values + 1] = value
+        end,
+        on_close = function()
+          done = true
+        end,
+      })
+
+      input:mount()
+
+      feedkeys("aa", "x") -- append a
+      feedkeys("ab", "x") -- append b
+      feedkeys("ac", "x") -- append c
+
+      vim.fn.wait(100, function()
+        return done
+      end)
+
+      eq(values, { "a", "ab", "abc" })
+    end)
+  end)
+
+  describe("o.on_close", function()
+    it("is called on <C-c>", function()
+      local done = false
+
+      input = Input(popup_options, {
+        on_close = function()
+          done = true
+        end,
+      })
+
+      input:mount()
+
+      feedkeys("i<C-c>", "x")
+
+      vim.fn.wait(2000, function()
+        return done
+      end)
+
+      eq(done, true)
+    end)
+  end)
+
   describe("cursor_position_patch", function()
     local initial_cursor
 

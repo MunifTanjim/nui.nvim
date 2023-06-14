@@ -32,6 +32,7 @@ end
 ---@field default_value string
 ---@field prompt NuiText
 ---@field disable_cursor_position_patch boolean
+---@field on_change? fun(value: string): nil
 ---@field on_close fun(): nil
 ---@field on_submit fun(value: string): nil
 ---@field pending_submit_value? string
@@ -62,20 +63,11 @@ function Input:init(popup_options, options)
   self._.prompt = Text(defaults(options.prompt, ""))
   self._.disable_cursor_position_patch = defaults(options.disable_cursor_position_patch, false)
 
-  local props = {}
+  self.input_props = {}
 
-  self.input_props = props
-
+  self._.on_change = options.on_change
   self._.on_close = options.on_close or function() end
   self._.on_submit = options.on_submit or function() end
-
-  if options.on_change then
-    props.on_change = function()
-      local value_with_prompt = vim.api.nvim_buf_get_lines(self.bufnr, 0, 1, false)[1]
-      local value = string.sub(value_with_prompt, self._.prompt:length() + 1)
-      options.on_change(value)
-    end
-  end
 end
 
 function Input:mount()
@@ -83,7 +75,14 @@ function Input:mount()
 
   Input.super.mount(self)
 
-  if props.on_change then
+  if self._.on_change then
+    ---@deprecated
+    props.on_change = function()
+      local value_with_prompt = vim.api.nvim_buf_get_lines(self.bufnr, 0, 1, false)[1]
+      local value = string.sub(value_with_prompt, self._.prompt:length() + 1)
+      self._.on_change(value)
+    end
+
     vim.api.nvim_buf_attach(self.bufnr, false, {
       on_lines = props.on_change,
     })
