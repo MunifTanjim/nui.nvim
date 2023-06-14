@@ -118,11 +118,8 @@ local function make_default_prepare_node(menu)
         end
       end
 
-      local left_gap_width, right_gap_width = _.calculate_gap_width(
-        defaults(sep_text_align, "center"),
-        sep_max_width,
-        content:width()
-      )
+      local left_gap_width, right_gap_width =
+        _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
 
       local line = Line()
 
