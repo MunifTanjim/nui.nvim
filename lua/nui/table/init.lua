@@ -1,14 +1,18 @@
 local Object = require("nui.object")
 local Text = require("nui.text")
 local Line = require("nui.line")
-local utils = require("nui.utils")
-local defaults = require("nui.utils").defaults
-
-local _ = utils._
-local is_type = utils.is_type
+local _ = require("nui.utils")._
 
 -- luacheck: push no max comment line length
+
 ---@alias nui_table_border_char_name 'down_right'|'hor'|'down_hor'|'down_left'|'ver'|'ver_left'|'ver_hor'|'ver_left'|'up_right'|'up_hor'|'up_left'
+
+---@alias _nui_table_header_kind
+---| -1 -- footer
+---|  1 -- header
+
+---@class nui_t_list<T>: { [integer]: T, len: integer }
+
 -- luacheck: pop
 
 ---@type table<nui_table_border_char_name,string>
@@ -26,25 +30,35 @@ local default_border = {
   up_left = "┘",
 }
 
-local function prepare_columns(meta, columns, parent, depth)
+---@param internal nui_table_internal
+---@param columns NuiTable.ColumnDef[]
+---@param parent? NuiTable.ColumnDef
+---@param depth? integer
+local function prepare_columns(internal, columns, parent, depth)
   for _, col in ipairs(columns) do
     if col.header then
-      meta.has_header = true
+      internal.has_header = true
     end
 
     if col.footer then
-      meta.has_footer = true
+      internal.has_footer = true
     end
 
     if not col.id then
-      col.id = col.accessor_key or col.header
+      if col.accessor_key then
+        col.id = col.accessor_key
+      elseif type(col.header) == "string" then
+        col.id = col.header --[[@as string]]
+      elseif type(col.header) == "table" then
+        col.id = (col.header --[[@as NuiText|NuiLine]]):content()
+      end
     end
 
     if not col.id then
       error("missing column id")
     end
 
-    if col.accessor_key then
+    if col.accessor_key and not col.accessor_fn then
       col.accessor_fn = function(row)
         return row[col.accessor_key]
       end
@@ -55,19 +69,19 @@ local function prepare_columns(meta, columns, parent, depth)
 
     if parent and not col.header then
       col.header = col.id
-      meta.has_header = true
+      internal.has_header = true
     end
 
     if col.columns then
-      prepare_columns(meta, col.columns, col, col.depth + 1)
+      prepare_columns(internal, col.columns, col, col.depth + 1)
     else
-      table.insert(meta.columns, col)
+      table.insert(internal.columns, col)
     end
 
     if col.depth == 0 then
-      table.insert(meta.headers, col)
+      table.insert(internal.headers, col)
     else
-      meta.headers.depth = math.max(meta.headers.depth, col.depth + 1)
+      internal.headers.depth = math.max(internal.headers.depth, col.depth + 1)
     end
 
     if not col.align then
@@ -83,6 +97,7 @@ end
 ---@class NuiTable.ColumnDef
 ---@field accessor_fn? fun(original_row: table, index: integer): string|NuiText|NuiLine
 ---@field accessor_key? string
+---@field align? nui_t_text_align
 ---@field cell? fun(info: NuiTable.Cell): string|NuiText|NuiLine
 ---@field columns? NuiTable.ColumnDef[]
 ---@field footer? string|NuiText|NuiLine|fun(info: { column: NuiTable.Column }): string|NuiText|NuiLine
@@ -95,6 +110,7 @@ end
 ---@class NuiTable.Column
 ---@field accessor_fn? fun(original_row: table, index: integer): string|NuiText|NuiLine
 ---@field accessor_key? string
+---@field align nui_t_text_align
 ---@field columns? NuiTable.ColumnDef[]
 ---@field depth integer
 ---@field id string
@@ -111,17 +127,19 @@ end
 ---@field content NuiText|NuiLine
 ---@field get_value fun(): string|NuiText|NuiLine
 ---@field row NuiTable.Row
+---@field _range table<1|2|3|4, integer>
 
 ---@class nui_table_internal
+---@field border table
 ---@field buf_options table<string, any>
----@field headers { depth: integer }|NuiTable.Column[]
+---@field headers NuiTable.Column[]|{ depth: integer }
 ---@field columns NuiTable.ColumnDef[]
 ---@field data table[]
 ---@field has_header boolean
 ---@field has_footer boolean
----@field linenr { [1]?: integer, [2]?: integer }
+---@field linenr table<1|2, integer>
 ---@field data_linenrs integer[]
----@field grid table[][]
+---@field data_grid nui_t_list<NuiTable.Cell[]>
 
 ---@class nui_table_options
 ---@field bufnr integer
@@ -162,7 +180,7 @@ function Table:init(options)
       readonly = true,
       swapfile = false,
       undolevels = 0,
-    }, defaults(options.buf_options, {})),
+    }, options.buf_options or {}),
     border = border,
 
     headers = { depth = 1 },
@@ -181,12 +199,21 @@ function Table:init(options)
   _.set_buf_options(self.bufnr, self._.buf_options)
 end
 
+---@param current_width integer
+---@param min_width? integer
+---@param max_width? integer
+---@param content_width integer
 local function get_col_width(current_width, min_width, max_width, content_width)
   local min = math.max(content_width, min_width or 0)
   return math.max(current_width, math.min(max_width or min, min))
 end
 
-local function get_row_at(idx, grid, kind)
+---@generic C: table
+---@param idx integer
+---@param grid nui_t_list<nui_t_list<C>>
+---@param kind _nui_table_header_kind
+---@return nui_t_list<C> header_row
+local function get_header_row_at(idx, grid, kind)
   local row = grid[idx]
   if not row then
     row = { len = 0 }
@@ -196,23 +223,32 @@ local function get_row_at(idx, grid, kind)
   return row
 end
 
+---@generic C: table
+---@param kind _nui_table_header_kind
+---@param columns (NuiTable.ColumnDef|{ depth: integer })[]
+---@param grid nui_t_list<nui_t_list<C>>
+---@param max_depth integer
 local function prepare_header_grid(kind, columns, grid, max_depth)
-  for _, column in ipairs(columns) do
-    local row_idx = kind + kind * column.depth
-    local row = get_row_at(row_idx, grid, kind)
+  local columns_len = #columns
+  for column_idx = 1, columns_len do
+    local column = columns[column_idx]
 
-    ---@type string|function|NuiText|NuiLine
+    local row_idx = kind + kind * column.depth
+    local row = get_header_row_at(row_idx, grid, kind)
+
     local content = kind == 1 and column.header or kind == -1 and column.footer or Text("")
-    if is_type("function", content) then
+    if type(content) == "function" then
+      --[[@cast column NuiTable.Column]]
       content = content({ column = column })
+      --[[@cast content -function]]
     end
-    if not is_type("table", content) then
+    if type(content) ~= "table" then
       content = Text(
         content --[[@as string]]
       )
+      --[[@cast content -string]]
     end
 
-    --[[@cast content NuiText|NuiLine]]
     column.width = get_col_width(column.width, column.min_width, column.max_width, content:width())
 
     local cell = {
@@ -232,7 +268,7 @@ local function prepare_header_grid(kind, columns, grid, max_depth)
     else
       cell.row_span = max_depth - column.depth
       for i = 1, cell.row_span - 1 do
-        local span_row = get_row_at(row_idx + i * kind, grid, kind)
+        local span_row = get_header_row_at(row_idx + i * kind, grid, kind)
         span_row.len = span_row.len + 1
         span_row[span_row.len] = vim.tbl_extend("keep", { ridx = i + 1 }, cell)
       end
@@ -240,50 +276,64 @@ local function prepare_header_grid(kind, columns, grid, max_depth)
   end
 end
 
+---@param cell NuiTable.Cell
 ---@return NuiText|NuiLine
 local function prepare_cell_content(cell)
-  local column = cell.column
-  ---@type string|NuiText|NuiLine
+  local column = cell.column --[[@as NuiTable.ColumnDef|NuiTable.Column]]
   local content = column.cell and column.cell(cell) or cell.get_value()
-  if not is_type("table", content) then
+  if type(content) ~= "table" then
     content = Text(tostring(content))
   end
-  return content --[[@as NuiText|NuiLine]]
+  return content
 end
 
+---@return nui_t_list<NuiTable.Cell[]> data_grid
+---@return nui_t_list<nui_t_list<table>> header_grid
 function Table:_prepare_grid()
-  local grid = {}
+  ---@type nui_t_list<NuiTable.Cell[]>
+  local data_grid = {}
 
+  ---@type nui_t_list<nui_t_list<table>>
   local header_grid = { len = 0 }
   if self._.has_header then
     prepare_header_grid(1, self._.headers, header_grid, self._.headers.depth)
   end
 
-  local gr_idx = 0
-  for ridx, data in ipairs(self._.data) do
-    gr_idx = gr_idx + 1
+  local rows = self._.data
+  local rows_len = #rows
 
-    grid[gr_idx] = {}
+  local columns = self._.columns
+  local columns_len = #columns
 
-    local row = { id = tostring(ridx), original = data, index = ridx }
+  for row_idx = 1, rows_len do
+    local data = rows[row_idx]
 
-    local gc_idx = 0
-    for _, column in ipairs(self._.columns) do
-      gc_idx = gc_idx + 1
+    data_grid[row_idx] = {}
 
+    ---@type NuiTable.Row
+    local row = {
+      id = tostring(row_idx),
+      index = row_idx,
+      original = data,
+    }
+
+    for column_idx = 1, columns_len do
+      local column = columns[column_idx]
+
+      ---@type NuiTable.Cell
       local cell = {
         row = row,
         column = column,
+        get_value = function()
+          return column.accessor_fn(row.original, row.index)
+        end,
       }
-      function cell.get_value()
-        return column.accessor_fn(row.original, row.index)
-      end
 
       cell.content = prepare_cell_content(cell)
 
       column.width = get_col_width(column.width, column.min_width, column.max_width, cell.content:width())
 
-      grid[gr_idx][gc_idx] = cell
+      data_grid[row_idx][column_idx] = cell
     end
   end
 
@@ -292,25 +342,33 @@ function Table:_prepare_grid()
   end
 
   for idx = -header_grid.len, header_grid.len do
-    for _, item in ipairs(header_grid[idx] or {}) do
-      local column = item.column
+    for _, th in ipairs(header_grid[idx] or {}) do
+      local column = th.column
       if column.columns then
         column.width = 0
-        for i = 1, item.col_span do
+        for i = 1, th.col_span do
           column.width = column.width + column.columns[i].width
         end
-        column.width = column.width + item.col_span - 1
+        column.width = column.width + th.col_span - 1
       end
     end
   end
 
-  return grid, header_grid
+  data_grid.len = rows_len
+
+  return data_grid, header_grid
 end
 
+---@param line NuiLine
+---@param content NuiLine|NuiText
+---@param width integer
+---@param align nui_t_text_align
 local function append_content(line, content, width, align)
   if content._texts then
+    --[[@cast content NuiLine]]
     _.truncate_nui_line(content, width)
   else
+    --[[@cast content NuiText]]
     _.truncate_nui_text(content, width)
   end
   local left_gap_width, right_gap_width = _.calculate_gap_width(align, width, content:width())
@@ -324,6 +382,9 @@ local function append_content(line, content, width, align)
   return line
 end
 
+---@param kind _nui_table_header_kind
+---@param lines nui_t_list<NuiLine>
+---@param grid nui_t_list<nui_t_list<table>>
 function Table:_prepare_header_lines(kind, lines, grid)
   local line_idx = lines.len
 
@@ -348,8 +409,8 @@ function Table:_prepare_header_lines(kind, lines, grid)
 
     data_line:append(border.ver)
 
-    local row_len = #row
-    for cell_idx = 1, row_len do
+    local cells_len = #row
+    for cell_idx = 1, cells_len do
       local prev_cell = row[cell_idx - 1]
       local cell = row[cell_idx]
       local next_cell = row[cell_idx + 1]
@@ -395,7 +456,7 @@ function Table:_prepare_header_lines(kind, lines, grid)
       outer_border_line:append(kind == 1 and border.down_hor or border.up_hor)
     end
 
-    local last_cell = row[row_len]
+    local last_cell = row[cells_len]
     if last_cell.ridx == last_cell.row_span then
       inner_border_line:append(border.ver_left)
     else
@@ -434,26 +495,32 @@ function Table:render(linenr_start)
   linenr_start = math.max(1, linenr_start or self._.linenr[1] or 1)
   local prev_linenr = { self._.linenr[1], self._.linenr[2] }
 
-  local grid, header_grid = self:_prepare_grid()
+  local data_grid, header_grid = self:_prepare_grid()
 
-  self._.grid = grid
-
-  local border = self._.border
+  self._.data_grid = data_grid
 
   local line_idx = 0
-  local lines = {}
+  ---@type nui_t_list<NuiLine>
+  local lines = { len = line_idx }
 
-  lines.len = line_idx
   self:_prepare_header_lines(1, lines, header_grid)
   line_idx = lines.len
 
-  if line_idx == 0 and #grid > 0 then
+  local border = self._.border
+
+  local rows_len = data_grid.len
+
+  if line_idx == 0 and rows_len > 0 then
+    local columns = self._.columns
+    local columns_len = #columns
+
     local top_border_line = Line()
 
     top_border_line:append(border.down_right)
-    for idx, column in ipairs(self._.columns) do
+    for column_idx = 1, columns_len do
+      local column = columns[column_idx]
       top_border_line:append(string.rep(border.hor, column.width))
-      if idx ~= #self._.columns then
+      if column_idx ~= columns_len then
         top_border_line:append(border.down_hor)
       end
     end
@@ -465,14 +532,13 @@ function Table:render(linenr_start)
 
   local data_linenrs = self._.data_linenrs
 
-  local grid_len = #grid
-  for row_idx = 1, grid_len do
+  for row_idx = 1, rows_len do
     local char_idx = 0
 
-    local is_last_line = row_idx == grid_len
+    local is_last_line = row_idx == rows_len
     local bottom_border_mid = is_last_line and border.up_hor or border.ver_hor
 
-    local row = grid[row_idx]
+    local row = data_grid[row_idx]
 
     local data_line = Line()
     local bottom_border_line = Line()
@@ -482,7 +548,11 @@ function Table:render(linenr_start)
     char_idx = char_idx + 1
 
     bottom_border_line:append(is_last_line and border.up_right or border.ver_right)
-    for _, cell in ipairs(row) do
+
+    local cells_len = #row
+    for cell_idx = 1, cells_len do
+      local cell = row[cell_idx]
+
       local column = cell.column
 
       append_content(data_line, cell.content, column.width, column.align)
@@ -546,7 +616,7 @@ function Table:get_cell()
     end
   end
 
-  local row = self._.grid[row_idx]
+  local row = self._.data_grid[row_idx]
   if not row then
     return
   end
