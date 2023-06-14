@@ -138,12 +138,8 @@ function mod.update_layout_config(component_internal, config)
     internal.layout.relative = options.relative
 
     local fallback_winid = internal.position and internal.position.win or vim.api.nvim_get_current_win()
-    -- stylua: ignore
-    internal.position = vim.tbl_extend(
-      "force",
-      internal.position or {},
-      mod.parse_relative(internal.layout.relative, fallback_winid)
-    )
+    internal.position =
+      vim.tbl_extend("force", internal.position or {}, mod.parse_relative(internal.layout.relative, fallback_winid))
 
     win_config.relative = internal.position.relative
     win_config.win = internal.position.relative == "win" and internal.position.win or nil

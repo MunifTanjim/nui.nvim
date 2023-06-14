@@ -243,9 +243,7 @@ local function prepare_header_grid(kind, columns, grid, max_depth)
       --[[@cast content -function]]
     end
     if type(content) ~= "table" then
-      content = Text(
-        content --[[@as string]]
-      )
+      content = Text(content --[[@as string]])
       --[[@cast content -string]]
     end
 
