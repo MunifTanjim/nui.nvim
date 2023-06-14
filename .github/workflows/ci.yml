@@ -19,7 +19,7 @@ jobs:
           CI_RUNNER_OS: ${{ runner.os }}
           CI_SECRETS_CACHE_VERSION: ${{ secrets.CACHE_VERSION }}
         run: |
-          echo "::set-output name=value::${CI_RUNNER_OS}-luver-${CI_SECRETS_CACHE_VERSION}-$(date -u +%Y-%m-%d)"
+          echo "value=${CI_RUNNER_OS}-luver-${CI_SECRETS_CACHE_VERSION}-$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Setup Cache
         uses: actions/cache@v3
@@ -63,7 +63,7 @@ jobs:
           CI_RUNNER_OS: ${{ runner.os }}
           CI_SECRETS_CACHE_VERSION: ${{ secrets.CACHE_VERSION }}
         run: |
-          echo "::set-output name=value::${CI_RUNNER_OS}-luver-${CI_SECRETS_CACHE_VERSION}-$(date -u +%Y-%m-%d)"
+          echo "value=${CI_RUNNER_OS}-luver-${CI_SECRETS_CACHE_VERSION}-$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Setup Cache
         uses: actions/cache@v3
