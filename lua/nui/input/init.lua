@@ -32,8 +32,8 @@ end
 ---@field default_value string
 ---@field prompt NuiText
 ---@field disable_cursor_position_patch boolean
----@field on_close? fun(): nil
----@field on_submit? fun(value: string): nil
+---@field on_close fun(): nil
+---@field on_submit fun(value: string): nil
 ---@field pending_submit_value? string
 
 ---@class NuiInput: NuiPopup
@@ -66,8 +66,8 @@ function Input:init(popup_options, options)
 
   self.input_props = props
 
-  self._.on_close = options.on_close
-  self._.on_submit = options.on_submit
+  self._.on_close = options.on_close or function() end
+  self._.on_submit = options.on_submit or function() end
 
   if options.on_change then
     props.on_change = function()
@@ -144,13 +144,9 @@ function Input:unmount()
 
     if pending_submit_value then
       self._.pending_submit_value = nil
-      if self._.on_submit then
-        self._.on_submit(pending_submit_value)
-      end
+      self._.on_submit(pending_submit_value)
     else
-      if self._.on_close then
-        self._.on_close()
-      end
+      self._.on_close()
     end
   end)
 end
