@@ -32,6 +32,8 @@ end
 ---@field default_value string
 ---@field prompt NuiText
 ---@field disable_cursor_position_patch boolean
+---@field on_close? fun(): nil
+---@field pending_submit_value? string
 
 ---@class NuiInput: NuiPopup
 ---@field private _ nui_input_internal
@@ -68,6 +70,7 @@ function Input:init(popup_options, options)
 
     local prompt_normal_mode = vim.fn.mode() == "n"
 
+    self._.pending_submit_value = value
     self:unmount()
 
     vim.schedule(function()
@@ -84,28 +87,12 @@ function Input:init(popup_options, options)
       if options.on_submit then
         options.on_submit(value)
       end
+
+      self._.pending_submit_value = nil
     end)
   end
 
-  props.on_close = function()
-    local target_cursor = vim.api.nvim_win_get_cursor(self._.position.win)
-
-    self:unmount()
-
-    vim.schedule(function()
-      if vim.fn.mode() == "i" then
-        vim.api.nvim_command("stopinsert")
-      end
-
-      if not self._.disable_cursor_position_patch then
-        patch_cursor_position(target_cursor)
-      end
-
-      if options.on_close then
-        options.on_close()
-      end
-    end)
-  end
+  self._.on_close = options.on_close
 
   if options.on_change then
     props.on_change = function()
@@ -141,9 +128,41 @@ function Input:mount()
   end
 
   vim.fn.prompt_setcallback(self.bufnr, props.on_submit)
+
+  -- @deprecated
+  --- Use `input:unmount`
+  ---@deprecated
+  props.on_close = function()
+    self:unmount()
+  end
+
   vim.fn.prompt_setinterrupt(self.bufnr, props.on_close)
 
   vim.api.nvim_command("startinsert!")
+end
+
+function Input:unmount()
+  local target_cursor = vim.api.nvim_win_get_cursor(self._.position.win)
+
+  Input.super.unmount(self)
+
+  if self._.pending_submit_value then
+    return
+  end
+
+  vim.schedule(function()
+    if vim.fn.mode() == "i" then
+      vim.api.nvim_command("stopinsert")
+    end
+
+    if not self._.disable_cursor_position_patch then
+      patch_cursor_position(target_cursor)
+    end
+
+    if self._.on_close then
+      self._.on_close()
+    end
+  end)
 end
 
 ---@alias NuiInput.constructor fun(popup_options: nui_popup_options, options: nui_input_options): NuiInput

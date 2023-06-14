@@ -120,7 +120,9 @@ describe("nui.input", function()
 
       input:mount()
 
-      input:map("i", "<esc>", input.input_props.on_close, { nowait = true, noremap = true })
+      input:map("i", "<esc>", function()
+        input:unmount()
+      end, { nowait = true, noremap = true })
 
       feedkeys("i<esc>", "x")
 
@@ -144,7 +146,9 @@ describe("nui.input", function()
 
       input:mount()
 
-      input:map("n", "<esc>", input.input_props.on_close, { nowait = true, noremap = true })
+      input:map("n", "<esc>", function()
+        input:unmount()
+      end, { nowait = true, noremap = true })
 
       feedkeys("<esc>", "x")
 
