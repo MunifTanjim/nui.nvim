@@ -33,6 +33,7 @@ end
 ---@field prompt NuiText
 ---@field disable_cursor_position_patch boolean
 ---@field on_close? fun(): nil
+---@field on_submit? fun(value: string): nil
 ---@field pending_submit_value? string
 
 ---@class NuiInput: NuiPopup
@@ -65,34 +66,8 @@ function Input:init(popup_options, options)
 
   self.input_props = props
 
-  props.on_submit = function(value)
-    local target_cursor = vim.api.nvim_win_get_cursor(self._.position.win)
-
-    local prompt_normal_mode = vim.fn.mode() == "n"
-
-    self._.pending_submit_value = value
-    self:unmount()
-
-    vim.schedule(function()
-      if prompt_normal_mode then
-        -- NOTE: on prompt-buffer normal mode <CR> causes neovim to enter insert mode.
-        --  ref: https://github.com/neovim/neovim/blob/d8f5f4d09078/src/nvim/normal.c#L5327-L5333
-        vim.api.nvim_command("stopinsert")
-      end
-
-      if not self._.disable_cursor_position_patch then
-        patch_cursor_position(target_cursor, prompt_normal_mode)
-      end
-
-      if options.on_submit then
-        options.on_submit(value)
-      end
-
-      self._.pending_submit_value = nil
-    end)
-  end
-
   self._.on_close = options.on_close
+  self._.on_submit = options.on_submit
 
   if options.on_change then
     props.on_change = function()
@@ -127,6 +102,12 @@ function Input:mount()
     end)
   end
 
+  ---@deprecated
+  props.on_submit = function(value)
+    self._.pending_submit_value = value
+    self:unmount()
+  end
+
   vim.fn.prompt_setcallback(self.bufnr, props.on_submit)
 
   -- @deprecated
@@ -144,23 +125,32 @@ end
 function Input:unmount()
   local target_cursor = vim.api.nvim_win_get_cursor(self._.position.win)
 
+  local prompt_mode = vim.fn.mode()
+
   Input.super.unmount(self)
 
-  if self._.pending_submit_value then
-    return
-  end
+  local pending_submit_value = self._.pending_submit_value
 
   vim.schedule(function()
-    if vim.fn.mode() == "i" then
+    -- NOTE: on prompt-buffer normal mode <CR> causes neovim to enter insert mode.
+    --  ref: https://github.com/neovim/neovim/blob/d8f5f4d09078/src/nvim/normal.c#L5327-L5333
+    if (pending_submit_value and prompt_mode == "n") or prompt_mode == "i" then
       vim.api.nvim_command("stopinsert")
     end
 
     if not self._.disable_cursor_position_patch then
-      patch_cursor_position(target_cursor)
+      patch_cursor_position(target_cursor, pending_submit_value and prompt_mode == "n")
     end
 
-    if self._.on_close then
-      self._.on_close()
+    if pending_submit_value then
+      self._.pending_submit_value = nil
+      if self._.on_submit then
+        self._.on_submit(pending_submit_value)
+      end
+    else
+      if self._.on_close then
+        self._.on_close()
+      end
     end
   end)
 end
