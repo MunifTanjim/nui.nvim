@@ -98,19 +98,58 @@ describe("nui.table", function()
   end)
 
   describe("o.columns", function()
-    it("throws if missing column.id", function()
-      local ok, err = pcall(Table, {
-        bufnr = bufnr,
-        columns = {
-          {
-            accessor_fn = function()
-              return ""
-            end,
-          },
-        },
-      })
-      eq(ok, false)
-      eq(type(string.match(err, "missing column id")), "string")
+    describe(".id", function()
+      it("fallbacks t o .accessor_key", function()
+        local table = Table({
+          bufnr = bufnr,
+          columns = { { accessor_key = "ID" } },
+          data = { { ID = 42 } },
+        })
+
+        table:render()
+
+        vim.api.nvim_win_set_cursor(winid, { 2, 3 })
+
+        eq(table:get_cell().column.id, "ID")
+      end)
+
+      for header_type, header in pairs({
+        string = "ID",
+        NuiText = Text("ID"),
+        NuiLine = Line({ Text("I"), Text("D") }),
+      }) do
+        it(string.format("fallbacks to .header (%s)", header_type), function()
+          local table = Table({
+            bufnr = bufnr,
+            columns = {
+              {
+                header = header,
+                accessor_fn = function()
+                  return ""
+                end,
+              },
+            },
+            data = { {} },
+          })
+
+          table:render()
+
+          vim.api.nvim_win_set_cursor(winid, { 4, 3 })
+
+          eq(table:get_cell().column.id, "ID")
+        end)
+      end
+
+      it("throws if missing", function()
+        local ok, err = pcall(function()
+          return Table({
+            bufnr = bufnr,
+            columns = { {} },
+          })
+        end)
+        eq(ok, false)
+        eq(type(string.match(err, "missing column id")), "string")
+      end)
     end)
   end)
 
