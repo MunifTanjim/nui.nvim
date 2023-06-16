@@ -128,6 +128,12 @@ function Input:unmount()
 
   Input.super.unmount(self)
 
+  if self._.loading then
+    return
+  end
+
+  self._.loading = true
+
   local pending_submit_value = self._.pending_submit_value
 
   vim.schedule(function()
@@ -147,6 +153,7 @@ function Input:unmount()
     else
       self._.on_close()
     end
+    self._.loading = false
   end)
 end
 
