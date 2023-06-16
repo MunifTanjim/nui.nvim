@@ -99,6 +99,25 @@ describe("nui.input", function()
 
       eq(done, true)
     end)
+
+    it("is called on unmount", function()
+      local done = false
+
+      input = Input(popup_options, {
+        on_close = function()
+          done = true
+        end,
+      })
+
+      input:mount()
+      input:unmount()
+
+      vim.fn.wait(200, function()
+        return done
+      end)
+
+      eq(done, true)
+    end)
   end)
 
   describe("cursor_position_patch", function()
@@ -208,6 +227,29 @@ describe("nui.input", function()
 
       eq(done, true)
       eq(vim.api.nvim_win_get_cursor(parent_winid), initial_cursor)
+    end)
+  end)
+
+  describe("method :unmount", function()
+    it("is idempotent", function()
+      local done = 0
+
+      input = Input(popup_options, {
+        on_close = function()
+          done = done + 1
+        end,
+      })
+
+      input:mount()
+      input:unmount()
+      input:unmount()
+      input:unmount()
+
+      vim.fn.wait(200, function()
+        return done > 1
+      end)
+
+      eq(done, 1)
     end)
   end)
 end)
