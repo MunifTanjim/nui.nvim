@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.2.0](https://github.com/MunifTanjim/nui.nvim/compare/0.1.0...0.2.0) (2023-06-18)
+
+
+### Features
+
+* **input:** call on_close inside :unmount ([60e91dd](https://github.com/MunifTanjim/nui.nvim/commit/60e91dd3d3b19dfe1ca5833600dd94381657f035))
+* **input:** update types ([c3c2957](https://github.com/MunifTanjim/nui.nvim/commit/c3c2957f2d5e2d5ebeb1be421cb0a2f4b50461ff))
+* **layout:** support anchor for float layout ([f284153](https://github.com/MunifTanjim/nui.nvim/commit/f2841533540eb60d6878964a3cd3f8196e1f200c))
+* **layout:** update types ([62b3203](https://github.com/MunifTanjim/nui.nvim/commit/62b320361fe0c93697a600fd4ca9ede295bd3c81))
+* **line:** update types ([1a8d824](https://github.com/MunifTanjim/nui.nvim/commit/1a8d8240b458a6b82751702bfb217f00eaf305b6))
+* **menu:** update types ([0a97a88](https://github.com/MunifTanjim/nui.nvim/commit/0a97a88bf28c8545550bcbcdd28a03b428647dbc))
+* **popup:** add method border:set_style ([9d98e9b](https://github.com/MunifTanjim/nui.nvim/commit/9d98e9bac8cf681a608ef20c0a2205354a77c419))
+* **popup:** create border buffer on initialization ([643e9af](https://github.com/MunifTanjim/nui.nvim/commit/643e9afb9411f5ebd95efb43437692e74238a4a3))
+* **popup:** support `(text, hl_group)[]` for border text ([062e366](https://github.com/MunifTanjim/nui.nvim/commit/062e366afcdf2bc1e9d28313a1df4ff14f05cb4e))
+* **popup:** support anchor in :update_layout ([52c9115](https://github.com/MunifTanjim/nui.nvim/commit/52c9115b10b22a2b8416bdab3072662d67d91ed6))
+* **popup:** support nui.line for border text ([1b8fa8b](https://github.com/MunifTanjim/nui.nvim/commit/1b8fa8b2adaf3583a05f53b505093017d23cd62f))
+* **popup:** update types ([f6b6923](https://github.com/MunifTanjim/nui.nvim/commit/f6b6923883491aeb7ce8dbae3b7b3767e8376aa8))
+* **split:** update types ([f4469cb](https://github.com/MunifTanjim/nui.nvim/commit/f4469cb716ba4430e22ad7f0c71ef4da8baf1f34))
+* support byte range for _.render_lines util ([993d550](https://github.com/MunifTanjim/nui.nvim/commit/993d5500f1c09710feae07a7887cf9a36cd7e02d))
+* **table:** add nui.table block ([bfd3806](https://github.com/MunifTanjim/nui.nvim/commit/bfd3806904c29babfa61705a37e8b32ab687d2d2))
+* **table:** support linenr_start for render method ([457a5cf](https://github.com/MunifTanjim/nui.nvim/commit/457a5cfe43a18d21337045b6026818a2898144d1))
+* **table:** update types ([64bdc57](https://github.com/MunifTanjim/nui.nvim/commit/64bdc579873fa5bd303f6951ead2b419493c88e8))
+* **text:** update types ([9f7666d](https://github.com/MunifTanjim/nui.nvim/commit/9f7666d89f9b4abf76d7db25a0511833dc72e7c1))
+* **tree:** always track linenr in :render ([f008972](https://github.com/MunifTanjim/nui.nvim/commit/f008972ac7d24f7188521a7f8d158aac2fb0b07e))
+* **tree:** update types ([d3cc976](https://github.com/MunifTanjim/nui.nvim/commit/d3cc9762581afa19e86353238423f521a61aeea4))
+* **utils:** support string line in _.render_lines ([51764d2](https://github.com/MunifTanjim/nui.nvim/commit/51764d2c2235ad944ef4086d5f3954305728e5bd))
+* **utils:** update types ([df321ba](https://github.com/MunifTanjim/nui.nvim/commit/df321ba052f37715ea5936a52d862a12efd836c6))
+
+
+### Bug Fixes
+
+* **input:** unmount race condition ([e319f25](https://github.com/MunifTanjim/nui.nvim/commit/e319f2554d14a521f4271576ebff2685105d7628))
+* **layout:** even more patch for neovim/neovim[#18925](https://github.com/MunifTanjim/nui.nvim/issues/18925) ([de66444](https://github.com/MunifTanjim/nui.nvim/commit/de6644476702ba39344f1b28900b74381bc8c4c9))
+* **layout:** more robust workaround for neovim/neovim[#18925](https://github.com/MunifTanjim/nui.nvim/issues/18925) ([9230eb0](https://github.com/MunifTanjim/nui.nvim/commit/9230eb01fb34f81b7b31ac77dcfdf356a71e487e))
+* **popup:** border empty char handling ([bd2fefb](https://github.com/MunifTanjim/nui.nvim/commit/bd2fefb2efac70231fee497137295333dd4ada30))
+* **popup:** ensure valid border.bufnr on mount ([6867305](https://github.com/MunifTanjim/nui.nvim/commit/6867305a508e374b1f4ec84ba0efa59351c6f7e6))
+* **table:** update types ([d5a82aa](https://github.com/MunifTanjim/nui.nvim/commit/d5a82aae64426a805e19d8ef5a379292f9dc55d3))
+* **tree:** do not wipe linenr tracking in :set_nodes ([da3b5eb](https://github.com/MunifTanjim/nui.nvim/commit/da3b5eb197391f3e1fac6f79c75e123ae9590be3))
+
+
+### Performance Improvements
+
+* **tree:** optimize hot paths ([19de4d5](https://github.com/MunifTanjim/nui.nvim/commit/19de4d5299be40a9aada6af940daeef20a59929e))
+
 ## 0.1.0 (2023-05-27)
 
 
