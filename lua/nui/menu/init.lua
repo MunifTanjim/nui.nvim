@@ -153,14 +153,14 @@ local function focus_item(menu, direction, current_linenr)
   local next_linenr = nil
 
   if direction == "next" then
-    if curr_linenr == #menu.tree.nodes.root_ids then
+    if curr_linenr == #menu.tree:get_nodes() then
       next_linenr = 1
     else
       next_linenr = curr_linenr + 1
     end
   elseif direction == "prev" then
     if curr_linenr == 1 then
-      next_linenr = #menu.tree.nodes.root_ids
+      next_linenr = #menu.tree:get_nodes()
     else
       next_linenr = curr_linenr - 1
     end
@@ -352,7 +352,7 @@ function Menu:mount()
   self.tree:render()
 
   -- focus first item
-  for linenr = 1, #self.tree.nodes.root_ids do
+  for linenr = 1, #self.tree:get_nodes() do
     local node, target_linenr = self.tree:get_node(linenr)
     if not self._.should_skip_item(node) then
       vim.api.nvim_win_set_cursor(self.winid, { target_linenr, 0 })
