@@ -116,7 +116,7 @@ end
 
 ---@return boolean is_updated
 function TreeNode:expand()
-  if self:has_children() and not self:is_expanded() then
+  if (self._child_ids or self.__children) and not self:is_expanded() then
     self._is_expanded = true
     return true
   end
