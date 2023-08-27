@@ -871,6 +871,13 @@ describe("nui.tree.Node", function()
       eq(node:is_expanded(), true)
     end)
 
+    it("does work w/ zero child", function()
+      local node = Tree.Node({ text = "a" }, {})
+      eq(node:is_expanded(), false)
+      eq(node:expand(), true)
+      eq(node:is_expanded(), true)
+    end)
+
     it("does not work w/o children", function()
       local node = Tree.Node({ text = "a" })
       eq(node:is_expanded(), false)
