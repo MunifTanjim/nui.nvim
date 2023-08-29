@@ -527,6 +527,7 @@ end
 function Border:_buf_create()
   if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
     self.bufnr = vim.api.nvim_create_buf(false, true)
+    vim.bo[self.bufnr].modifiable = true
     assert(self.bufnr, "failed to create border buffer")
   end
 end
