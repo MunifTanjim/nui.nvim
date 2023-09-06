@@ -9,8 +9,9 @@ handling the calculation for position and size of other components.
 local Layout = require("nui.layout")
 local Popup = require("nui.popup")
 
-local top_popup = Popup({ border = "single" })
-local bottom_popup = Popup({ border = "double" })
+local top_popup = Popup({ border = "double" })
+local bottom_left_popup = Popup({ border = "single" })
+local bottom_right_popup = Popup({ border = "single" })
 
 local layout = Layout(
   {
@@ -22,7 +23,10 @@ local layout = Layout(
   },
   Layout.Box({
     Layout.Box(top_popup, { size = "40%" }),
-    Layout.Box(bottom_popup, { size = "60%" }),
+    Layout.Box({
+      Layout.Box(bottom_left_popup, { size = "50%" }),
+      Layout.Box(bottom_right_popup, { size = "50%" }),
+    }, { dir = "row", size = "60%" }),
   }, { dir = "col" })
 )
 
