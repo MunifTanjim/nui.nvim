@@ -269,8 +269,12 @@ function Popup:hide()
 end
 
 function Popup:show()
-  if self._.loading or not self._.mounted then
+  if self._.loading then
     return
+  end
+
+  if not self._.mounted then
+    return self:mount()
   end
 
   self._.loading = true
