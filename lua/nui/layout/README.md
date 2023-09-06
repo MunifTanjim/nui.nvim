@@ -33,13 +33,15 @@ _Signature:_ `Layout(options, box)` or `Layout(component, box)`
 
 `component` can be `Popup` or `Split`.
 
-## Options
+## Options (for float layout)
 
 ### `anchor`
 
 **Type:** `"NW"` / `"NE"` / `"SW"` / `"SE"`
 
 Decides which corner of the layout to place at `position`.
+
+---
 
 ### `relative`
 
@@ -164,6 +166,53 @@ size = {
   height = "60%",
 },
 ```
+
+## Options (for split layout)
+
+### `relative`
+
+**Type:** `string` or `table`
+
+This option affects how `size` is calculated.
+
+**Examples**
+
+Split current editor screen:
+
+```lua
+relative = "editor"
+```
+
+Split current window (_default_):
+
+```lua
+relative = "win"
+```
+
+Split window with specific id:
+
+```lua
+relative = {
+  type = "win",
+  winid = 42,
+}
+```
+
+---
+
+### `position`
+
+**Type:** `"top" | "right"| "bottom" | "left"`.
+
+---
+
+### `size`
+
+**Type:** `number` or `percentage string`
+
+Determines the size of the layout.
+
+For `percentage string`, size is calculated according to the option `relative`.
 
 ## Layout.Box
 
