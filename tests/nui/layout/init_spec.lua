@@ -660,9 +660,10 @@ describe("nui.layout", function()
     end)
 
     describe("method :show", function()
-      it("does nothing if not mounted", function()
+      it("mounts if not mounted", function()
         local p1 = unpack(create_popups({}))
 
+        local p1_mount = spy.on(p1, "mount")
         local p1_show = spy.on(p1, "show")
 
         layout = Layout(
@@ -678,6 +679,7 @@ describe("nui.layout", function()
         layout:hide()
         layout:show()
 
+        assert.spy(p1_mount).was_called()
         assert.spy(p1_show).was_not_called()
       end)
 
@@ -1647,9 +1649,10 @@ describe("nui.layout", function()
     end)
 
     describe("method :show", function()
-      it("does nothing if not mounted", function()
+      it("mounts if not mounted", function()
         local s1 = unpack(create_splits({}))
 
+        local s1_mount = spy.on(s1, "mount")
         local s1_show = spy.on(s1, "show")
 
         layout = Layout(
@@ -1665,6 +1668,7 @@ describe("nui.layout", function()
         layout:hide()
         layout:show()
 
+        assert.spy(s1_mount).was_called()
         assert.spy(s1_show).was_not_called()
       end)
 
