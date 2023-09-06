@@ -473,7 +473,7 @@ describe("nui.split", function()
       eq(#curr_winids, #vim.api.nvim_list_wins())
     end)
 
-    it("does nothing if not mounted", function()
+    it("mounts if not mounted", function()
       split = Split({
         size = 20,
         position = "bottom",
@@ -485,7 +485,7 @@ describe("nui.split", function()
 
       local curr_winids = vim.api.nvim_list_wins()
 
-      eq(#prev_winids, #curr_winids)
+      eq(#prev_winids + 1, #curr_winids)
     end)
 
     it("does nothing if not hidden", function()
