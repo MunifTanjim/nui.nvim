@@ -230,6 +230,24 @@ describe("nui.input", function()
     end)
   end)
 
+  describe("method :mount", function()
+    it("is idempotent", function()
+      input = Input(popup_options, {})
+
+      input:mount()
+
+      local bufnr, winid = input.bufnr, input.winid
+
+      eq(type(bufnr), "number")
+      eq(type(winid), "number")
+
+      input:mount()
+
+      eq(bufnr, input.bufnr)
+      eq(winid, input.winid)
+    end)
+  end)
+
   describe("method :unmount", function()
     it("is idempotent", function()
       local done = 0
