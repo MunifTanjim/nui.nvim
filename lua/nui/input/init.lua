@@ -73,6 +73,10 @@ end
 function Input:mount()
   local props = self.input_props
 
+  if self._.mounted then
+    return
+  end
+
   Input.super.mount(self)
 
   if self._.on_change then
@@ -122,6 +126,10 @@ function Input:mount()
 end
 
 function Input:unmount()
+  if not self._.mounted then
+    return
+  end
+
   local target_cursor = vim.api.nvim_win_get_cursor(self._.position.win)
 
   local prompt_mode = vim.fn.mode()
