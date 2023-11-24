@@ -504,7 +504,7 @@ function Border:_open_window()
   assert(self.winid, "failed to create border window")
 
   if self._.winhighlight then
-    vim.api.nvim_win_set_option(self.winid, "winhighlight", self._.winhighlight)
+    _.set_win_option(self.winid, "winhighlight", self._.winhighlight)
   end
 
   adjust_popup_win_config(self)
@@ -654,12 +654,12 @@ function Border:set_highlight(highlight)
   winhighlight_data["FloatBorder"] = highlight
   self.popup._.win_options.winhighlight = _.serialize_winhighlight(winhighlight_data)
   if self.popup.winid then
-    vim.api.nvim_win_set_option(self.popup.winid, "winhighlight", self.popup._.win_options.winhighlight)
+    _.set_win_option(self.popup.winid, "winhighlight", self.popup._.win_options.winhighlight)
   end
 
   internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
   if self.winid then
-    vim.api.nvim_win_set_option(self.winid, "winhighlight", internal.winhighlight)
+    _.set_win_option(self.winid, "winhighlight", internal.winhighlight)
   end
 end
 

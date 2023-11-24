@@ -1,8 +1,14 @@
+local ok_nvim_version, nvim_version = pcall(vim.version)
+if not ok_nvim_version then
+  nvim_version = {}
+end
+
 -- internal utils
 local _ = {
   feature = {
     lua_keymap = type(vim.keymap) ~= "nil",
     lua_autocmd = type(vim.api.nvim_create_autocmd) ~= "nil",
+    v0_10 = nvim_version.minor >= 10,
   },
 }
 
@@ -122,12 +128,43 @@ function _.clear_namespace(bufnr, ns_id, linenr_start, linenr_end)
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr_start - 1, linenr_end - 1)
 end
 
+-- luacov: disable
+local nvim_buf_set_option = vim.api.nvim_buf_set_option
+---@param bufnr integer
+---@param name string
+---@param value any
+local function set_buf_option(bufnr, name, value)
+  nvim_buf_set_option(bufnr, name, value)
+end
+
+local nvim_win_set_option = vim.api.nvim_win_set_option
+---@param winid integer
+---@param name string
+---@param value any
+local function set_win_option(winid, name, value)
+  nvim_win_set_option(winid, name, value)
+end
+-- luacov: enable
+
+if _.feature.v0_10 then
+  function set_buf_option(bufnr, name, value)
+    vim.api.nvim_set_option_value(name, value, { buf = bufnr })
+  end
+
+  function set_win_option(winid, name, value)
+    vim.api.nvim_set_option_value(name, value, { win = winid, scope = "local" })
+  end
+end
+
+_.set_buf_option = set_buf_option
+_.set_win_option = set_win_option
+
 ---@private
 ---@param bufnr number
 ---@param buf_options table<string, any>
 function _.set_buf_options(bufnr, buf_options)
   for name, value in pairs(buf_options) do
-    vim.api.nvim_buf_set_option(bufnr, name, value)
+    set_buf_option(bufnr, name, value)
   end
 end
 
@@ -136,7 +173,7 @@ end
 ---@param win_options table<string, any>
 function _.set_win_options(winid, win_options)
   for name, value in pairs(win_options) do
-    vim.api.nvim_win_set_option(winid, name, value)
+    set_win_option(winid, name, value)
   end
 end
 
