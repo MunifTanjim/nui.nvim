@@ -507,6 +507,10 @@ function Border:_open_window()
     _.set_win_option(self.winid, "winhighlight", self._.winhighlight)
   end
 
+  if self.popup._.win_options.winblend then
+    _.set_win_option(self.winid, "winblend", self.popup._.win_options.winblend)
+  end
+
   adjust_popup_win_config(self)
 
   vim.api.nvim_command("redraw")

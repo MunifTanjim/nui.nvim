@@ -614,6 +614,26 @@ describe("nui.popup", function()
       popup:unmount()
     end)
 
+    it("sets winblend from popup", function()
+      popup_options = vim.tbl_deep_extend("force", popup_options, {
+        border = {
+          style = "rounded",
+          text = {
+            top = "text",
+          },
+        },
+        win_options = {
+          winblend = 20,
+        },
+      })
+
+      popup = Popup(popup_options)
+
+      popup:mount()
+
+      eq(vim.api.nvim_win_get_option(popup.border.winid, "winblend"), 20)
+    end)
+
     it("sets winhighlight correctly", function()
       local hl_group = "NuiPopupTest"
       local winhighlight = "Normal:Normal,FloatBorder:" .. hl_group
