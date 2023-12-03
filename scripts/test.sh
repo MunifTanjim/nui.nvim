@@ -2,18 +2,21 @@
 
 set -euo pipefail
 
-test_scope="nui"
+declare -r plugins_dir="./.tests/site/pack/deps/start"
+declare -r module="nui"
+
+declare test_scope="${module}"
 
 while [[ $# -gt 0 ]]; do
   case "${1}" in
     --clean)
       shift
       echo "[test] cleaning up environment"
-      rm -rf ./.testcache
+      rm -rf "${plugins_dir}"
       echo "[test] envionment cleaned"
       ;;
     *)
-      if [[ "${test_scope}" == "nui" ]] && [[ "${1}" == "nui/"* ]]; then
+      if [[ "${test_scope}" == "${module}" ]] && [[ "${1}" == "${module}/"* ]]; then
         test_scope="${1}"
       fi
       shift
@@ -26,7 +29,6 @@ function setup_environment() {
   echo "[test] setting up environment"
   echo
 
-  local plugins_dir="./.testcache/site/pack/deps/start"
   if [[ ! -d "${plugins_dir}" ]]; then
     mkdir -p "${plugins_dir}"
   fi
@@ -60,10 +62,12 @@ function luacov_start() {
 
 function luacov_end() {
   if test -n "${luacov_dir}"; then
-    luacov
+    if test -f "luacov.stats.out"; then
+      luacov
 
-    echo
-    tail -n +$(($(grep -n "^Summary$" luacov.report.out | cut -d":" -f1) - 1)) luacov.report.out
+      echo
+      tail -n +$(($(grep -n "^Summary$" luacov.report.out | cut -d":" -f1) - 1)) luacov.report.out
+    fi
   fi
 }
 
@@ -72,9 +76,9 @@ setup_environment
 luacov_start
 
 if [[ -d "./tests/${test_scope}/" ]]; then
-  nvim --headless --noplugin -u tests/minimal_init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/minimal_init.lua', sequential = true })"
+  nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/init.lua', sequential = true })"
 elif [[ -f "./tests/${test_scope}_spec.lua" ]]; then
-  nvim --headless --noplugin -u tests/minimal_init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')"
+  nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')"
 fi
 
 luacov_end

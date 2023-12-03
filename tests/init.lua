@@ -13,13 +13,11 @@ end
 
 clean_startup()
 
-local root_dir = vim.fn.fnamemodify(vim.trim(vim.fn.system("git rev-parse --show-toplevel")), ":p")
+local root_dir = vim.fn.fnamemodify(vim.trim(vim.fn.system("git rev-parse --show-toplevel")), ":p"):gsub("/$", "")
 
-package.path = string.format("%s;%s?.lua;%s?/init.lua", package.path, root_dir, root_dir)
+package.path = string.format("%s;%s/?.lua;%s/?/init.lua", package.path, root_dir, root_dir)
 
-vim.opt.packpath:prepend(root_dir .. ".testcache/site")
-
-vim.opt.runtimepath:prepend(root_dir)
+vim.opt.packpath:prepend(root_dir .. "/.tests/site")
 
 vim.cmd([[
   packadd plenary.nvim

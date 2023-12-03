@@ -1,3 +1,6 @@
 include = {
    "lua%/nui",
 }
+includeuntestedfiles = {
+  "lua/nui"
+}
