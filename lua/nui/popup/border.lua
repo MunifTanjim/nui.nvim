@@ -630,12 +630,16 @@ end
 function Border:set_text(edge, text, align)
   local internal = self._
 
-  if not internal.lines or not internal.text then
+  if not internal.text then
     return
   end
 
   internal.text[edge] = normalize_border_text(text)
   internal.text[edge .. "_align"] = align or internal.text[edge .. "_align"]
+
+  if not internal.lines then
+    return
+  end
 
   local line = calculate_buf_edge_line(
     internal,

@@ -1,5 +1,6 @@
 pcall(require, "luacov")
 
+local Layout = require("nui.layout")
 local Popup = require("nui.popup")
 local Line = require("nui.line")
 local Text = require("nui.text")
@@ -835,6 +836,46 @@ describe("nui.popup", function()
       })
 
       h.assert_highlight(popup.border.bufnr, popup_options.ns_id, 4, text_bottom, hl_group)
+    end)
+
+    it("works w/ Layout before :mount", function()
+      local text_top = "top"
+
+      popup = Popup({
+        border = {
+          style = "rounded",
+          text = {
+            top = text_top,
+            top_align = "left",
+          },
+        },
+      })
+
+      popup.border:set_text("top", "TOP", "right")
+
+      local layout = Layout(
+        {
+          position = popup_options.position,
+          size = {
+            width = popup_options.size.width + 2,
+            height = popup_options.size.height + 2,
+          },
+        },
+        Layout.Box({
+          Layout.Box(popup, { size = "100%" }),
+        })
+      )
+
+      layout:mount()
+
+      h.assert_buf_lines(popup.border.bufnr, {
+        "╭─────TOP╮",
+        "│        │",
+        "│        │",
+        "╰────────╯",
+      })
+
+      layout:unmount()
     end)
 
     it("does nothing for simple border", function()
