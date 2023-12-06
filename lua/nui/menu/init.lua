@@ -264,6 +264,7 @@ function Menu:init(popup_options, options)
       scrolloff = 1,
       sidescrolloff = 0,
     },
+    zindex = 60,
   }, popup_options)
 
   Menu.super.init(self, popup_options)
