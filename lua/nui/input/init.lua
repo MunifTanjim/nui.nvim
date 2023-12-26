@@ -130,8 +130,8 @@ function Input:unmount()
     return
   end
 
-  local target_cursor = vim.api.nvim_win_get_cursor(self._.position.win)
-
+  local position_win = self._.position.win
+  local target_cursor = vim.api.nvim_win_is_valid(position_win) and vim.api.nvim_win_get_cursor(position_win) or nil
   local prompt_mode = vim.fn.mode()
 
   Input.super.unmount(self)
@@ -151,7 +151,7 @@ function Input:unmount()
       vim.api.nvim_command("stopinsert")
     end
 
-    if not self._.disable_cursor_position_patch then
+    if not self._.disable_cursor_position_patch and target_cursor ~= nil then
       patch_cursor_position(target_cursor, pending_submit_value and prompt_mode == "n")
     end
 
