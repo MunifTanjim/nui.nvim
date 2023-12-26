@@ -283,7 +283,7 @@ function Menu:init(popup_options, options)
   self._.sep = options.separator
 
   self._.should_skip_item = defaults(options.should_skip_item, default_should_skip_item)
-  self._.prepare_item = defaults(options.prepare_item, make_default_prepare_node(self))
+  self._.prepare_item = defaults(options.prepare_item, self._.prepare_item)
 
   self.menu_props = {}
 
@@ -314,6 +314,13 @@ function Menu:init(popup_options, options)
   props.on_focus_prev = function()
     focus_item(self, "prev")
   end
+end
+
+---@param config? nui_layout_options
+function Menu:update_layout(config)
+  Menu.super.update_layout(self, config)
+
+  self._.prepare_item = defaults(self._.prepare_item, make_default_prepare_node(self))
 end
 
 function Menu:mount()
