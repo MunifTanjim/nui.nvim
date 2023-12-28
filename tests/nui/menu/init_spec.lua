@@ -1,6 +1,7 @@
 pcall(require, "luacov")
 
 local Menu = require("nui.menu")
+local Layout = require("nui.layout")
 local Line = require("nui.line")
 local Text = require("nui.text")
 local h = require("tests.helpers")
@@ -569,6 +570,32 @@ describe("nui.menu", function()
       h.assert_extmark(extmarks[2], linenr, "*", hl_group)
       h.assert_extmark(extmarks[3], linenr, "**", hl_group)
       h.assert_extmark(extmarks[4], linenr, "*", hl_group)
+    end)
+  end)
+
+  describe("w/ Layout", function()
+    it("can be used", function()
+      menu = Menu({}, {
+        lines = {
+          Menu.item("A"),
+        },
+      })
+
+      local layout = Layout(
+        {
+          position = "50%",
+          size = "100%",
+        },
+        Layout.Box({
+          Layout.Box(menu, { size = "100%" }),
+        })
+      )
+
+      layout:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "A",
+      })
     end)
   end)
 end)
