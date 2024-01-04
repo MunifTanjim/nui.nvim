@@ -11,6 +11,25 @@ local function percent(number, percentage)
   return math.floor(number * percentage / 100)
 end
 
+local function assert_size(popup, size, border_size)
+  if border_size and type(border_size) ~= "table" then
+    border_size = {
+      width = size.width + 2,
+      height = size.height + 2,
+    }
+  end
+
+  local win_config = vim.api.nvim_win_get_config(popup.winid)
+  eq(win_config.width, size.width)
+  eq(win_config.height, size.height)
+
+  if popup.border.winid then
+    local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
+    eq(border_win_config.width, border_size.width)
+    eq(border_win_config.height, border_size.height)
+  end
+end
+
 describe("nui.popup", function()
   local popup
 
@@ -92,6 +111,59 @@ describe("nui.popup", function()
 
     eq(type(popup.ns_id), "number")
     eq(popup.ns_id > 0, true)
+  end)
+
+  describe("o.size", function()
+    it("supports integer", function()
+      popup = Popup({
+        position = 0,
+        size = {
+          height = 8,
+          width = 20,
+        },
+      })
+
+      popup:mount()
+
+      assert_size(popup, {
+        height = 8,
+        width = 20,
+      })
+    end)
+
+    it("supports decimal number in (0,1)", function()
+      popup = Popup({
+        position = 0,
+        size = {
+          height = 0.6,
+          width = 0.8,
+        },
+      })
+
+      popup:mount()
+
+      assert_size(popup, {
+        height = percent(popup._.container_info.size.height, 60),
+        width = percent(popup._.container_info.size.width, 80),
+      })
+    end)
+
+    it("supports percentage string", function()
+      popup = Popup({
+        position = 0,
+        size = {
+          height = "60%",
+          width = "80%",
+        },
+      })
+
+      popup:mount()
+
+      assert_size(popup, {
+        height = percent(popup._.container_info.size.height, 60),
+        width = percent(popup._.container_info.size.width, 80),
+      })
+    end)
   end)
 
   h.describe_flipping_feature("lua_keymap", "method :map", function()
@@ -545,25 +617,6 @@ describe("nui.popup", function()
   end)
 
   describe("method :update_layout", function()
-    local function assert_size(size, border_size)
-      if border_size and type(border_size) ~= "table" then
-        border_size = {
-          width = size.width + 2,
-          height = size.height + 2,
-        }
-      end
-
-      local win_config = vim.api.nvim_win_get_config(popup.winid)
-      eq(win_config.width, size.width)
-      eq(win_config.height, size.height)
-
-      if popup.border.winid then
-        local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
-        eq(border_win_config.width, border_size.width)
-        eq(border_win_config.height, border_size.height)
-      end
-    end
-
     local function assert_position(position, container_winid)
       container_winid = container_winid or vim.api.nvim_get_current_win()
 
@@ -653,7 +706,7 @@ describe("nui.popup", function()
 
       eq(type(popup.border.winid), "nil")
 
-      assert_size(size)
+      assert_size(popup, size)
 
       local new_size = {
         width = size.width + 2,
@@ -662,7 +715,7 @@ describe("nui.popup", function()
 
       popup:update_layout({ size = new_size })
 
-      assert_size(new_size)
+      assert_size(popup, new_size)
     end)
 
     it("can change size (w/ complex border)", function()
@@ -688,7 +741,7 @@ describe("nui.popup", function()
 
       eq(type(popup.border.winid), "number")
 
-      assert_size(size, true)
+      assert_size(popup, size, true)
       h.popup.assert_border_lines({
         size = size,
         border = { style = style },
@@ -705,7 +758,7 @@ describe("nui.popup", function()
 
       popup:update_layout({ size = new_size })
 
-      assert_size(new_size, true)
+      assert_size(popup, new_size, true)
       h.popup.assert_border_lines({
         size = new_size,
         border = { style = style },
@@ -808,7 +861,7 @@ describe("nui.popup", function()
 
       popup:mount()
 
-      assert_size({
+      assert_size(popup, {
         width = percent(container_size.width, 50),
         height = percent(container_size.height, 50),
       })
@@ -829,7 +882,7 @@ describe("nui.popup", function()
 
       popup:update_layout()
 
-      assert_size({
+      assert_size(popup, {
         width = percent(container_size.width, 50),
         height = percent(container_size.height, 50),
       })
