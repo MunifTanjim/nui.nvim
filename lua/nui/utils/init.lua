@@ -61,6 +61,7 @@ function utils.parse_number_input(v)
     parsed.value = tonumber(string.sub(v, 1, #v - 1)) / 100
   else
     parsed.value = tonumber(v)
+    parsed.is_percentage = parsed.value and 0 < parsed.value and parsed.value < 1
   end
 
   return parsed

@@ -291,6 +291,9 @@ You can also pass a table to set them separately.
 For `percentage string`, `size` is calculated according to the option `relative`.
 If `relative` is set to `"buf"` or `"cursor"`, window size is considered.
 
+Decimal `number` in `(0,1)` range is treated similar to `percentage string`. For
+example: `0.5` is same as `"50%"`.
+
 **Examples**
 
 ```lua
@@ -299,6 +302,10 @@ size = 50,
 
 ```lua
 size = "50%",
+```
+
+```lua
+size = 0.5,
 ```
 
 ```lua
@@ -311,7 +318,7 @@ size = {
 ```lua
 size = {
   width = "80%",
-  height = "60%",
+  height = 0.6,
 },
 ```
 
