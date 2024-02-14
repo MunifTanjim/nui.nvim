@@ -51,15 +51,15 @@ local function get_assert_component(layout)
     end
 
     if border_win_config then
-      local border_row, border_col = border_win_config.row[vim.val_idx], border_win_config.col[vim.val_idx]
+      local border_row, border_col = border_win_config.row, border_win_config.col
       eq(border_row, expected.position.row)
       eq(border_col, expected.position.col)
 
-      local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+      local row, col = win_config.row, win_config.col
       eq(row, math.floor(component.border._.size_delta.width / 2 + 0.5))
       eq(col, math.floor(component.border._.size_delta.height / 2 + 0.5))
     else
-      local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+      local row, col = win_config.row, win_config.col
       eq(row, expected.position.row)
       eq(col, expected.position.col)
     end
@@ -482,8 +482,8 @@ describe("nui.layout", function()
 
         local win_config = vim.api.nvim_win_get_config(layout.winid)
         eq(win_config.relative, "win")
-        eq(win_config.row[vim.val_idx], 0)
-        eq(win_config.col[vim.val_idx], 0)
+        eq(win_config.row, 0)
+        eq(win_config.col, 0)
         eq(win_config.width, vim.o.columns)
         eq(win_config.height, 10)
 
