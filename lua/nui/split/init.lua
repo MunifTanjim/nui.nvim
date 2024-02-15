@@ -232,13 +232,19 @@ function Split:mount()
     group = self._.augroup.unmount,
     buffer = self.bufnr,
     callback = function()
-      autocmd.create("WinClosed", {
-        group = self._.augroup.hide,
-        pattern = tostring(self.winid),
-        callback = function()
-          self:hide()
-        end,
-      }, self.bufnr)
+      -- When two splits using the same buffer and both of them
+      -- are hiddden, calling `:show` for one of them fires
+      -- `BufWinEnter` for both of them. And in that scenario
+      -- one of them will not have `self.winid`.
+      if self.winid then
+        autocmd.create("WinClosed", {
+          group = self._.augroup.hide,
+          pattern = tostring(self.winid),
+          callback = function()
+            self:hide()
+          end,
+        }, self.bufnr)
+      end
     end,
   }, self.bufnr)
 
