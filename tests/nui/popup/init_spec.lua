@@ -623,14 +623,14 @@ describe("nui.popup", function()
       local win_config = vim.api.nvim_win_get_config(popup.winid)
       eq(win_config.win, popup.border.winid or container_winid)
 
-      local row, col = win_config.row[vim.val_idx], win_config.col[vim.val_idx]
+      local row, col = win_config.row, win_config.col
 
       if popup.border.winid then
         eq(row, 1)
         eq(col, 1)
 
         local border_win_config = vim.api.nvim_win_get_config(popup.border.winid)
-        local border_row, border_col = border_win_config.row[vim.val_idx], border_win_config.col[vim.val_idx]
+        local border_row, border_col = border_win_config.row, border_win_config.col
         local border_width, border_height = border_win_config.width, border_win_config.height
 
         local delta_width = border_width - win_config.width
