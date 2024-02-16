@@ -66,7 +66,8 @@ end
 ---@class nui_popup_internal
 ---@field augroup table<'hide'|'unmount', string>
 ---@field buf_options table<string, any>
----@field layout table, layout_ready: boolean
+---@field layout table
+---@field layout_ready boolean
 ---@field loading boolean
 ---@field mounted boolean
 ---@field position nui_popup_internal_position

@@ -73,7 +73,7 @@ end
 --luacheck: push no max line length
 
 ---@alias nui_split_option_relative_type 'editor'|'win'
----@alias nui_split_option_relative { type: nui_split_option_relative_type, win?: number }
+---@alias nui_split_option_relative { type: nui_split_option_relative_type, winid?: number }
 
 ---@alias nui_split_option_position "'top'"|"'right'"|"'bottom'"|"'left'"
 
@@ -90,7 +90,7 @@ end
 ---@field buf_options table<string, any>
 ---@field win_options table<string, any>
 ---@field position nui_split_option_position
----@field relative nui_split_option_relative
+---@field relative { type: nui_split_option_relative_type, win: number }
 ---@field size { height?: number }|{ width?: number }
 ---@field win_config _nui_split_internal_win_config
 ---@field pending_quit? boolean
