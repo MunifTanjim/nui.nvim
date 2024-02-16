@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.0](https://github.com/MunifTanjim/nui.nvim/compare/0.2.0...0.3.0) (2024-02-16)
+
+
+### Features
+
+* **layout:** method 'show' mounts if not already mounted ([c1627d0](https://github.com/MunifTanjim/nui.nvim/commit/c1627d07dbd64fac9bab213e30df7ec044ac32c6))
+* **popup:** method 'show' mounts if not already mounted ([ecd77d8](https://github.com/MunifTanjim/nui.nvim/commit/ecd77d8b5d917714f4e4f7bf5b7e91184c6cecae))
+* **split:** method 'show' mounts if not already mounted ([43f7605](https://github.com/MunifTanjim/nui.nvim/commit/43f7605f864d82ab1a2642541814465c25fb76d8))
+* support decimal number in (0,1) range as size ([35da9ca](https://github.com/MunifTanjim/nui.nvim/commit/35da9ca1de0fc4dda96c2e214d93d363c145f418))
+* **tree:** allow node:expand with zero child ([0f913a3](https://github.com/MunifTanjim/nui.nvim/commit/0f913a3ae1a24c8a4487fbf111b4044cc22b1b0d))
+* **utils:** replace deprecated api to set option ([401a7c6](https://github.com/MunifTanjim/nui.nvim/commit/401a7c65bfd6433e1b0b48d2c246e2621fc44387))
+
+
+### Bug Fixes
+
+* **input:** check mounted state in mount/unmount method ([c0c8e34](https://github.com/MunifTanjim/nui.nvim/commit/c0c8e347ceac53030f5c1ece1c5a5b6a17a25b32))
+* **input:** skip cursor position patch for hidden input ([80445d0](https://github.com/MunifTanjim/nui.nvim/commit/80445d015d2b5f9af0d9e8bce63d303bc86eda8a))
+* **menu:** defer execution of `make_default_prepare_node` ([49182fa](https://github.com/MunifTanjim/nui.nvim/commit/49182fae69bd3f9be33862f106c1bb9f6bc3b4f5))
+* **menu:** set default zindex higher than popup ([abb0662](https://github.com/MunifTanjim/nui.nvim/commit/abb066278507040e4c1ddf1c53ccde3139b42ab0))
+* **popup:** make sure border buf is modifiable ([aa1b4c1](https://github.com/MunifTanjim/nui.nvim/commit/aa1b4c1e05983ff7debd2b4b2788651db099de2f))
+* **popup:** support border:set_text before layout mount ([c9b4de6](https://github.com/MunifTanjim/nui.nvim/commit/c9b4de623d19a85b353ff70d2ae9c77143abe69c))
+* **popup:** use popup winblend for border ([257dccc](https://github.com/MunifTanjim/nui.nvim/commit/257dccc43b4badc735978f0791d216f7d665b75a))
+* **split:** for relative=editor always split from current window ([af8ddf5](https://github.com/MunifTanjim/nui.nvim/commit/af8ddf5db7e8485051aacefb24d76ab24ea26a0c))
+* **split:** manual doautocmd BufWinEnter ([af7dfee](https://github.com/MunifTanjim/nui.nvim/commit/af7dfee12fbf51d12cfc6ee386fa54f7a5a573c8))
+
 ## [0.2.0](https://github.com/MunifTanjim/nui.nvim/compare/0.1.0...0.2.0) (2023-06-18)
 
 
