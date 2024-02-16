@@ -165,7 +165,7 @@ function Split:_open_window()
     return
   end
 
-  self.winid = vim.api.nvim_win_call(self._.relative.win, function()
+  self.winid = vim.api.nvim_win_call(self._.relative.type == "editor" and 0 or self._.relative.win, function()
     vim.api.nvim_command(
       string.format(
         "silent noswapfile %s %ssplit",

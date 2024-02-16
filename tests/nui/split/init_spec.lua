@@ -163,6 +163,29 @@ describe("nui.split", function()
       left_half_split:unmount()
     end)
 
+    it("'editor' is not tied to specific window", function()
+      local center_split = Split({
+        size = 20,
+        position = "right",
+      })
+
+      center_split:mount()
+
+      split = Split({
+        size = 20,
+        position = "right",
+        relative = "editor",
+      })
+
+      split:mount()
+
+      center_split:unmount()
+
+      split:hide()
+
+      split:show()
+    end)
+
     it("supports 'win'", function()
       local left_half_split = Split({
         size = "50%",
