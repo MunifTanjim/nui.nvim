@@ -73,7 +73,7 @@ local function parse_relative(relative, fallback_winid)
   }
 end
 
----@param relative nui_split_option_relative
+---@param relative _nui_split_internal_relative
 ---@return { size: { height: integer, width: integer }, type: 'editor'|'window' }
 local function get_container_info(relative)
   if relative.type == "editor" then

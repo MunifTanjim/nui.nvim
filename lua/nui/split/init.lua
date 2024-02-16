@@ -79,6 +79,7 @@ end
 
 ---@alias nui_split_option_size { height?: number|string }|{ width?: number|string }
 
+---@alias _nui_split_internal_relative { type: nui_split_option_relative_type, win: number }
 ---@alias _nui_split_internal_win_config { height?: number, width?: number, position: nui_split_option_position, relative: nui_split_option_relative, win?: integer, pending_changes: table<'position'|'size', boolean> }
 
 --luacheck: pop
@@ -90,7 +91,7 @@ end
 ---@field buf_options table<string, any>
 ---@field win_options table<string, any>
 ---@field position nui_split_option_position
----@field relative { type: nui_split_option_relative_type, win: number }
+---@field relative _nui_split_internal_relative
 ---@field size { height?: number }|{ width?: number }
 ---@field win_config _nui_split_internal_win_config
 ---@field pending_quit? boolean
