@@ -89,7 +89,7 @@ function mod.get_container_info(position)
 
   return {
     relative = position.bufpos and "buf" or relative,
-    size = utils.get_window_size(position.win),
+    size = utils.get_window_size(relative == "cursor" and 0 or position.win),
     type = "window",
   }
 end
