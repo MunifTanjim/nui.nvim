@@ -127,7 +127,7 @@ end
 ---@field content NuiText|NuiLine
 ---@field get_value fun(): string|NuiText|NuiLine
 ---@field row NuiTable.Row
----@field _range table<1|2|3|4, integer>
+---@field _range table<1|2|3|4, integer> -- [start_row, start_col, end_row, end_col]
 
 ---@class nui_table_internal
 ---@field border table
@@ -600,8 +600,9 @@ function Table:render(linenr_start)
   self._.linenr[1], self._.linenr[2] = linenr_start, line_idx + linenr_start - 1
 end
 
-function Table:get_cell()
-  local pos = vim.fn.getcharpos(".")
+---@param position? {[1]: integer, [2]: integer}
+function Table:get_cell(position)
+  local pos = vim.fn.getcharpos(".") --[[@as integer[] ]]
   local line, char = pos[2], pos[3]
 
   local row_idx = 0
@@ -613,18 +614,23 @@ function Table:get_cell()
       break
     end
   end
+  row_idx = row_idx + (position and position[1] or 0)
 
   local row = self._.data_grid[row_idx]
   if not row then
     return
   end
 
-  for _, cell in ipairs(row) do
+  local cell_idx = 0
+  for idx, cell in ipairs(row) do
     local range = cell._range
     if range[2] < char and char <= range[4] then
-      return cell
+      cell_idx = idx
     end
   end
+  cell_idx = cell_idx + (position and position[2] or 0)
+
+  return row[cell_idx]
 end
 
 function Table:refresh_cell(cell)

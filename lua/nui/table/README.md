@@ -78,9 +78,15 @@ List of data items.
 
 ### `tbl:get_cell`
 
-_Signature:_ `tbl:get_cell() -> NuiTable.Cell | nil`
+_Signature:_ `tbl:get_cell(position?: {integer, integer}) -> NuiTable.Cell | nil`
 
-Returns the `cell` if found.
+**Parameters**
+
+| Name       | Type                   | Description                           |
+| ---------- | ---------------------- | ------------------------------------- |
+| `position` | `{ integer, integer }` | `(row, col)` tuple relative to cursor |
+
+Returns the `NuiTable.Cell` if found.
 
 ### `tbl:refresh_cell`
 

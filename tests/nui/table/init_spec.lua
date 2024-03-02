@@ -532,6 +532,31 @@ describe("nui.table", function()
       eq(type(cell), "table")
       eq(cell.row.original.id, 0)
     end)
+
+    it("can take position", function()
+      local table = Table({
+        bufnr = bufnr,
+        columns = {
+          { accessor_key = "id" },
+          { accessor_key = "value" },
+        },
+        data = {
+          { id = 1, value = "One" },
+          { id = 2, value = "Two" },
+        },
+      })
+
+      table:render()
+
+      local cell
+
+      vim.api.nvim_win_set_cursor(winid, { 2, 3 })
+      cell = table:get_cell()
+      eq(cell.get_value(), 1)
+
+      cell = table:get_cell({ 1, 1 })
+      eq(cell.get_value(), "Two")
+    end)
   end)
 
   describe("method :refresh_cell", function()
