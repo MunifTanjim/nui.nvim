@@ -127,7 +127,7 @@ end
 ---@field content NuiText|NuiLine
 ---@field get_value fun(): string|NuiText|NuiLine
 ---@field row NuiTable.Row
----@field _range table<1|2|3|4, integer> -- [start_row, start_col, end_row, end_col]
+---@field range table<1|2|3|4, integer> -- [start_row, start_col, end_row, end_col]
 
 ---@class nui_table_internal
 ---@field border table
@@ -555,8 +555,8 @@ function Table:render(linenr_start)
 
       append_content(data_line, cell.content, column.width, column.align)
       data_line:append(border.ver)
-      cell._range = { data_linenr, char_idx, data_linenr, char_idx + column.width }
-      char_idx = cell._range[4] + 1
+      cell.range = { data_linenr, char_idx, data_linenr, char_idx + column.width }
+      char_idx = cell.range[4] + 1
 
       bottom_border_line:append(string.rep(border.hor, column.width))
       bottom_border_line:append(bottom_border_mid)
@@ -623,7 +623,7 @@ function Table:get_cell(position)
 
   local cell_idx = 0
   for idx, cell in ipairs(row) do
-    local range = cell._range
+    local range = cell.range
     if range[2] < char and char <= range[4] then
       cell_idx = idx
     end
@@ -636,7 +636,7 @@ end
 function Table:refresh_cell(cell)
   local column = cell.column
 
-  local range = cell._range
+  local range = cell.range
   local byte_range = _.char_to_byte_range(self.bufnr, range[1], range[2], range[4])
 
   local content = prepare_cell_content(cell)
