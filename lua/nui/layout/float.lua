@@ -78,9 +78,12 @@ function mod.process(box, meta)
   end
   -- luacov: enable
 
-  local current_position = {
-    col = 0,
+  local current_position = box.dir == "row" and {
+    col = meta.position.col,
     row = 0,
+  } or {
+    col = 0,
+    row = meta.position.row,
   }
 
   local growable_child_factor = 0

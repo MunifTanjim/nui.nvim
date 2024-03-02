@@ -1281,6 +1281,69 @@ describe("nui.layout", function()
           size = { height = 10, width = 10 },
         })
       end)
+
+      it("can handle col[box,row[box,col[box,box]]]", function()
+        layout = get_initial_layout({ position = 0, size = "100%" })
+
+        layout:mount()
+
+        layout:update(Layout.Box({
+          Layout.Box(p1, { size = "50%" }),
+          Layout.Box({
+            Layout.Box(p2, { size = "50%" }),
+            Layout.Box({
+              Layout.Box(p3, { size = "50%" }),
+              Layout.Box(p4, { size = "50%" }),
+            }, { dir = "col", size = "50%" }),
+          }, { dir = "row", size = "50%" }),
+        }, { dir = "col" }))
+
+        assert_component = get_assert_component(layout)
+
+        assert_component(p1, {
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = percent(win_height, 50),
+          },
+        })
+
+        assert_component(p2, {
+          position = {
+            row = percent(win_height, 50),
+            col = 0,
+          },
+          size = {
+            width = percent(win_width, 50),
+            height = percent(win_height, 50),
+          },
+        })
+
+        assert_component(p3, {
+          position = {
+            row = percent(win_height, 50),
+            col = percent(win_width, 50),
+          },
+          size = {
+            width = percent(win_width, 50),
+            height = percent(percent(win_height, 50), 50),
+          },
+        })
+
+        assert_component(p4, {
+          position = {
+            row = percent(win_height, 50 + 25),
+            col = percent(win_width, 50),
+          },
+          size = {
+            width = percent(win_width, 50),
+            height = percent(percent(win_height, 50), 50),
+          },
+        })
+      end)
     end)
   end)
 
