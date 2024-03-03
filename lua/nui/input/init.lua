@@ -94,7 +94,7 @@ function Input:mount()
 
   if #self._.default_value then
     self:on(event.InsertEnter, function()
-      vim.api.nvim_feedkeys(self._.default_value, "t", true)
+      vim.api.nvim_feedkeys(self._.default_value, "n", true)
     end, { once = true })
   end
 
