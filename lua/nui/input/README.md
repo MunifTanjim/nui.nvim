@@ -56,7 +56,7 @@ input:map("n", "<Esc>", function()
 end, { noremap = true })
 ```
 
-You can manipulate the assocciated buffer and window using the
+You can manipulate the associated buffer and window using the
 `split.bufnr` and `split.winid` properties.
 
 **NOTE**: the first argument accepts options for `nui.popup` component.

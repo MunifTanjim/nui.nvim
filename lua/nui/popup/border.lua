@@ -416,7 +416,7 @@ end
 ---@alias _nui_popup_border_style_char string|_nui_popup_border_style_char_tuple|NuiText
 ---@alias _nui_popup_border_style_builtin 'double'|'none'|'rounded'|'shadow'|'single'|'solid'
 ---@alias _nui_popup_border_style_list table<1|2|3|4|5|6|7|8, _nui_popup_border_style_char>
----@alias _nui_popup_border_style_map_position 'top_left'|'top'|'top_right'|'right'|'bottom_right'|'bottom'|'botom_left'|'left'
+---@alias _nui_popup_border_style_map_position 'top_left'|'top'|'top_right'|'right'|'bottom_right'|'bottom'|'bottom_left'|'left'
 ---@alias _nui_popup_border_style_map table<_nui_popup_border_style_map_position, _nui_popup_border_style_char>
 ---@alias nui_popup_border_option_style _nui_popup_border_style_builtin|_nui_popup_border_style_list|_nui_popup_border_style_map
 

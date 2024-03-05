@@ -234,7 +234,7 @@ function Split:mount()
     buffer = self.bufnr,
     callback = function()
       -- When two splits using the same buffer and both of them
-      -- are hiddden, calling `:show` for one of them fires
+      -- are hidden, calling `:show` for one of them fires
       -- `BufWinEnter` for both of them. And in that scenario
       -- one of them will not have `self.winid`.
       if self.winid then
