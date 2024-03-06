@@ -224,7 +224,7 @@ function Popup:mount()
     buffer = self.bufnr,
     callback = function()
       -- When two popup using the same buffer and both of them
-      -- are hiddden, calling `:show` for one of them fires
+      -- are hidden, calling `:show` for one of them fires
       -- `BufWinEnter` for both of them. And in that scenario
       -- one of them will not have `self.winid`.
       if self.winid then
@@ -289,7 +289,7 @@ function Popup:show()
   self._.loading = false
 end
 
-function Popup:_buf_destory()
+function Popup:_buf_destroy()
   if self.bufnr then
     if vim.api.nvim_buf_is_valid(self.bufnr) then
       u.clear_namespace(self.bufnr, self.ns_id)
@@ -318,7 +318,7 @@ function Popup:unmount()
 
   self.border:unmount()
 
-  self:_buf_destory()
+  self:_buf_destroy()
 
   self:_close_window()
 

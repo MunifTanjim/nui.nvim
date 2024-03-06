@@ -12,7 +12,7 @@ local split = Split({
 })
 ```
 
-You can manipulate the assocciated buffer and window using the
+You can manipulate the associated buffer and window using the
 `split.bufnr` and `split.winid` properties.
 
 ## Options

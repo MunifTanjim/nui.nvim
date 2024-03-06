@@ -48,7 +48,7 @@ end
 function mod.process(box, meta)
   -- luacov: disable
   if box.mount or box.component or not box.box then
-    return error("invalid paramter: box")
+    return error("invalid parameter: box")
   end
   -- luacov: enable
 
