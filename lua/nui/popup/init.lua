@@ -232,6 +232,7 @@ function Popup:mount()
         --       for the same popup
         autocmd.create("WinClosed", {
           group = self._.augroup.hide,
+          nested = true,
           pattern = tostring(self.winid),
           callback = function()
             self:hide()

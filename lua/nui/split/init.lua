@@ -240,6 +240,7 @@ function Split:mount()
       if self.winid then
         autocmd.create("WinClosed", {
           group = self._.augroup.hide,
+          nested = true,
           pattern = tostring(self.winid),
           callback = function()
             self:hide()

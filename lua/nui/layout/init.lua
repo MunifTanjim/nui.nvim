@@ -113,6 +113,7 @@ local function wire_up_layout_components(layout, box)
 
           autocmd.create("WinClosed", {
             group = layout._.augroup.hide,
+            nested = true,
             pattern = tostring(winid),
             callback = function()
               layout:hide()
