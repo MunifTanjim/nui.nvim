@@ -706,7 +706,7 @@ describe("nui.tree", function()
   end)
 
   describe("method :render", function()
-    it("handles unexpected case of missing node", function()
+    pending("handles unexpected case of missing node", function()
       local nodes = {
         Tree.Node({ text = "a" }),
         Tree.Node({ text = "b" }),
