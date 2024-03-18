@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/MunifTanjim/nui.nvim/compare/0.3.0...0.4.0) (2024-03-18)
+
+
+### Features
+
+* **table:** accept param 'position' for method 'get_cell' ([8794284](https://github.com/MunifTanjim/nui.nvim/commit/87942848c93668532f46ec61ccc7aff7abf7d37e))
+* **table:** expose NuiTable.Cell.range ([b81333d](https://github.com/MunifTanjim/nui.nvim/commit/b81333d12f824dbed5eb231c8a4409a290fdd848))
+
+
+### Bug Fixes
+
+* **input:** ignore 'keymap' for feeding default value ([fbb139c](https://github.com/MunifTanjim/nui.nvim/commit/fbb139c6f14896b434d0229099e1acd863ae6bec))
+* **layout:** enable nested flag for WinClosed autocmd ([fc59553](https://github.com/MunifTanjim/nui.nvim/commit/fc59553b5a8a1c13b8aa25ae62b6a47ec2b1882c))
+* **layout:** starting current position for nested boxes ([1b24de4](https://github.com/MunifTanjim/nui.nvim/commit/1b24de4778de527ef82adad6d0e819819d946387))
+* **popup:** always use current window for relative=cursor ([3dc46d7](https://github.com/MunifTanjim/nui.nvim/commit/3dc46d725f7b94bee5117c0a699b57b1902b5d65))
+* **popup:** mimic native 'solid' border ([cbd2668](https://github.com/MunifTanjim/nui.nvim/commit/cbd2668414331c10039278f558630ed19b93e69b))
+
 ## [0.3.0](https://github.com/MunifTanjim/nui.nvim/compare/0.2.0...0.3.0) (2024-02-16)
 
 
