@@ -250,7 +250,7 @@ local styles = {
   rounded = to_border_map({ "╭", "─", "╮", "│", "╯", "─", "╰", "│" }),
   shadow = "shadow",
   single = to_border_map({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }),
-  solid = to_border_map({ "▛", "▀", "▜", "▐", "▟", "▄", "▙", "▌" }),
+  solid = to_border_map({ " ", " ", " ", " ", " ", " ", " ", " " }),
 }
 
 ---@param style nui_popup_border_option_style
