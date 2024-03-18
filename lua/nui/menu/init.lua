@@ -119,7 +119,7 @@ local function make_default_prepare_node(menu)
       end
 
       local left_gap_width, right_gap_width =
-        _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
+          _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
 
       local line = Line()
 
@@ -241,6 +241,10 @@ function Menu.item(content, data)
   data._type = "item"
   data._id = data.id or tostring(math.random())
 
+  if data.keymap and not data.keymap_hiddle then
+    data.text = data.keymap .. ').' .. data.text
+  end
+
   return Tree.Node(data)
 end
 
@@ -289,9 +293,10 @@ function Menu:init(popup_options, options)
 
   local props = self.menu_props
 
-  props.on_submit = function()
-    local item = self.tree:get_node()
-
+  props.on_submit = function(item)
+    if not item then
+      item = self.tree:get_node()
+    end
     self:unmount()
 
     if options.on_submit then
@@ -327,6 +332,11 @@ function Menu:mount()
   Menu.super.mount(self)
 
   local props = self.menu_props
+  for _, item in ipairs(self._.items) do
+    self:map("n", item.keymap, function()
+      props.on_submit(item)
+    end, { noremap = true, nowait = true })
+  end
 
   for _, key in pairs(self._.keymap.focus_next) do
     self:map("n", key, props.on_focus_next, { noremap = true, nowait = true })

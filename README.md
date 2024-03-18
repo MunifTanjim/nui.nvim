@@ -221,8 +221,8 @@ local menu = Menu({
   },
 }, {
   lines = {
-    Menu.item("Hydrogen (H)"),
-    Menu.item("Carbon (C)"),
+    Menu.item("Hydrogen (H)", {keymap = '1'}),
+    Menu.item("Carbon (C)",{ keymap = '2', keymap_hiddle = true}),
     Menu.item("Nitrogen (N)"),
     Menu.separator("Noble-Gases", {
       char = "-",
