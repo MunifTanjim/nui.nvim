@@ -86,7 +86,7 @@ describe("nui.layout", function()
     end)
 
     describe("get_container_info", function()
-      it("works for relative=win", function()
+      it("works for relative=editor", function()
         local result = utils.get_container_info({
           relative = "editor",
         })
@@ -106,7 +106,7 @@ describe("nui.layout", function()
 
         local result = utils.get_container_info({
           relative = "cursor",
-          win = winid,
+          win = 0,
         })
 
         eq(result, {
@@ -116,6 +116,7 @@ describe("nui.layout", function()
             height = vim.api.nvim_win_get_height(winid),
           },
           type = "window",
+          winid = winid,
         })
       end)
 
@@ -135,6 +136,7 @@ describe("nui.layout", function()
             height = vim.api.nvim_win_get_height(winid),
           },
           type = "window",
+          winid = winid,
         })
       end)
     end)
