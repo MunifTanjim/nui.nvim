@@ -130,8 +130,9 @@ function Input:unmount()
     return
   end
 
-  local position_win = self._.position.win
-  local target_cursor = vim.api.nvim_win_is_valid(position_win) and vim.api.nvim_win_get_cursor(position_win) or nil
+  local container_winid = self._.container_info.winid
+  local target_cursor = vim.api.nvim_win_is_valid(container_winid) and vim.api.nvim_win_get_cursor(container_winid)
+    or nil
   local prompt_mode = vim.fn.mode()
 
   Input.super.unmount(self)

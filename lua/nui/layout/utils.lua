@@ -91,6 +91,7 @@ function mod.get_container_info(position)
     relative = position.bufpos and "buf" or relative,
     size = utils.get_window_size(position.win),
     type = "window",
+    winid = position.win == 0 and vim.api.nvim_get_current_win() or position.win,
   }
 end
 
