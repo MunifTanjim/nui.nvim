@@ -40,10 +40,13 @@ local function apply_workaround_for_float_relative_position_issue_18925(layout)
   collect_anchor_winids(layout._.box)
 
   vim.schedule(function()
-    vim.cmd(
-      ("noa call nvim_set_current_win(%s)\nnormal! jk\nredraw\n"):rep(winids_len):format(unpack(winids))
-        .. ("noa call nvim_set_current_win(%s)"):format(vim.api.nvim_get_current_win())
-    )
+    -- check in case layout was immediately hidden or unmounted
+    if layout.winid == winids[1] and vim.api.nvim_win_is_valid(winids[1]) then
+      vim.cmd(
+        ("noa call nvim_set_current_win(%s)\nnormal! jk\nredraw\n"):rep(winids_len):format(unpack(winids))
+          .. ("noa call nvim_set_current_win(%s)"):format(vim.api.nvim_get_current_win())
+      )
+    end
   end)
 end
 
