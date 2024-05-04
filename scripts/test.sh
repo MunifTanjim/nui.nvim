@@ -75,10 +75,23 @@ setup_environment
 
 luacov_start
 
+declare test_logs=""
+
 if [[ -d "./tests/${test_scope}/" ]]; then
-  nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/init.lua', sequential = true })"
+  test_logs=$(nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/init.lua', sequential = true })")
 elif [[ -f "./tests/${test_scope}_spec.lua" ]]; then
-  nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')"
+  test_logs=$(nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')")
 fi
 
+echo "${test_logs}"
+
 luacov_end
+
+if echo "${test_logs}" | grep --quiet "stack traceback"; then
+  {
+    echo ""
+    echo "FOUND STACK TRACEBACK IN TEST LOGS"
+    echo ""
+  } >&2
+  exit 1
+fi
