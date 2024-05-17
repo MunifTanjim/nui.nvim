@@ -224,9 +224,11 @@ end
 
 function popup.assert_border_lines(options, border_bufnr)
   local size = { width = options.size.width, height = options.size.height }
+  -- `vim.tbl_islist` will be removed in the future
+  local islist = vim.islist or vim.tbl_islist
 
   local style = vim.deepcopy(options.border.style)
-  if vim.tbl_islist(style) then
+  if islist(style) then
     style = {
       top_left = style[1],
       top = style[2],
