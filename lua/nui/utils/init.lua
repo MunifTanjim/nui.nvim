@@ -39,12 +39,14 @@ end
 ---@param type_name "'nil'" | "'number'" | "'string'" | "'boolean'" | "'table'" | "'function'" | "'thread'" | "'userdata'" | "'list'" | '"map"'
 ---@return boolean
 function utils.is_type(type_name, v)
+  -- `vim.tbl_islist` will be removed in the future
+  local islist = vim.islist or vim.tbl_islist
   if type_name == "list" then
-    return vim.tbl_islist(v)
+    return islist(v)
   end
 
   if type_name == "map" then
-    return type(v) == "table" and not vim.tbl_islist(v)
+    return type(v) == "table" and not islist(v)
   end
 
   return type(v) == type_name
