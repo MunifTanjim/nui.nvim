@@ -40,11 +40,11 @@ end
 ---@return boolean
 function utils.is_type(type_name, v)
   if type_name == "list" then
-    return vim.tbl_islist(v)
+    return vim.islist(v)
   end
 
   if type_name == "map" then
-    return type(v) == "table" and not vim.tbl_islist(v)
+    return type(v) == "table" and not vim.islist(v)
   end
 
   return type(v) == type_name
