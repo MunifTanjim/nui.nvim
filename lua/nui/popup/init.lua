@@ -160,7 +160,7 @@ function Popup:init(options)
 end
 
 function Popup:_open_window()
-  if self.winid or not self.bufnr then
+  if _.is_window_valid(self.winid) or not self.bufnr then
     return
   end
 
@@ -181,11 +181,7 @@ function Popup:_open_window()
 end
 
 function Popup:_close_window()
-  if not self.winid then
-    return
-  end
-
-  if vim.api.nvim_win_is_valid(self.winid) then
+  if _.is_window_valid(self.winid) then
     vim.api.nvim_win_close(self.winid, true)
   end
 
@@ -396,7 +392,7 @@ function Popup:update_layout(config)
 
   self._.layout_ready = true
 
-  if self.winid then
+  if _.is_window_valid(self.winid) then
     if size_only and old_row == self.win_config.row and old_col == self.win_config.col then
       -- Only size got updated, so let's not reposition the popup
       vim.api.nvim_win_set_config(self.winid, {

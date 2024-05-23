@@ -1224,6 +1224,37 @@ describe("nui.popup", function()
       eq(#curr_winids, #vim.api.nvim_list_wins())
     end)
 
+    it("reopens windows when winid is stale (non-nil but invalid)", function()
+      popup = Popup({
+        border = {
+          style = "single",
+          padding = { 0 },
+        },
+        position = 0,
+        size = 10,
+      })
+
+      popup:mount()
+
+      local winid, border_winid = popup.winid, popup.border.winid
+      eq(type(winid), "number")
+      eq(type(border_winid), "number")
+
+      popup:hide()
+
+      -- simulate stale winids: non-nil, but pointing to closed windows
+      popup.winid, popup.border.winid = winid, border_winid
+      eq(vim.api.nvim_win_is_valid(popup.winid), false)
+      eq(vim.api.nvim_win_is_valid(popup.border.winid), false)
+
+      popup:show()
+
+      eq(vim.api.nvim_win_is_valid(popup.winid), true)
+      eq(vim.api.nvim_win_is_valid(popup.border.winid), true)
+      eq(winid ~= popup.winid, true)
+      eq(border_winid ~= popup.border.winid, true)
+    end)
+
     it("mounts if not mounted", function()
       popup = Popup({
         position = 0,
