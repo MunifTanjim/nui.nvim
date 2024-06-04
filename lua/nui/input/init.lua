@@ -92,19 +92,6 @@ function Input:mount()
     })
   end
 
-  if #self._.default_value then
-    self:on(event.InsertEnter, function()
-      vim.api.nvim_feedkeys(self._.default_value, "n", true)
-    end, { once = true })
-  end
-
-  vim.fn.prompt_setprompt(self.bufnr, self._.prompt:content())
-  if self._.prompt:length() > 0 then
-    vim.schedule(function()
-      self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
-    end)
-  end
-
   ---@deprecated
   props.on_submit = function(value)
     self._.pending_submit_value = value
@@ -121,6 +108,20 @@ function Input:mount()
   end
 
   vim.fn.prompt_setinterrupt(self.bufnr, props.on_close)
+
+  vim.fn.prompt_setprompt(self.bufnr, self._.prompt:content())
+
+  self:on(event.InsertEnter, function()
+    if #self._.default_value then
+      vim.api.nvim_feedkeys(self._.default_value, "n", true)
+    end
+
+    if self._.prompt:length() > 0 then
+      vim.schedule(function()
+        self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
+      end)
+    end
+  end, { once = true })
 
   vim.api.nvim_command("startinsert!")
 end
