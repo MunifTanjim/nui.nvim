@@ -484,7 +484,7 @@ function Border:init(popup, options)
     style = "minimal",
     border = "none",
     focusable = false,
-    zindex = self.popup.win_config.zindex - 1,
+    zindex = self.popup.win_config.zindex,
     anchor = self.popup.win_config.anchor,
   }
 
