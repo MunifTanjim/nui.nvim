@@ -1098,6 +1098,58 @@ describe("nui.layout", function()
         })
       end)
 
+      it("handles if child.grow results in height <= 0", function()
+        layout = get_initial_layout({ position = 0, size = "100%" })
+
+        layout:update(Layout.Box({
+          Layout.Box(p1, { size = win_height }),
+          Layout.Box(p2, { grow = 1 }),
+        }, { dir = "col" }))
+
+        layout:mount()
+
+        local expected_layout_config = {
+          relative = {
+            type = "win",
+            winid = winid,
+          },
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = win_height,
+          },
+        }
+
+        assert_layout_config(expected_layout_config)
+
+        assert_component = get_assert_component(layout)
+
+        assert_component(p1, {
+          position = {
+            row = 0,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = win_height,
+          },
+        })
+
+        assert_component(p2, {
+          position = {
+            row = win_height,
+            col = 0,
+          },
+          size = {
+            width = win_width,
+            height = 1,
+          },
+        })
+      end)
+
       it("can change boxes", function()
         layout = Layout(
           { position = 0, size = "100%" },
