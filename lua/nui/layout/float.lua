@@ -57,6 +57,12 @@ local function get_child_size(parent, child, container_size, growable_dimension_
     if child.component.border then
       inner_size.width = inner_size.width - child.component.border._.size_delta.width
       inner_size.height = inner_size.height - child.component.border._.size_delta.height
+
+      if inner_size.height <= 0 then
+        local height_adjustment = math.abs(inner_size.height) + 1
+        inner_size.height = inner_size.height + height_adjustment
+        outer_size.height = outer_size.height + height_adjustment
+      end
     end
   end
 
