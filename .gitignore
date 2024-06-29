@@ -3,3 +3,5 @@
 luacov.*.out
 
 .tests
+
+scratch/
