@@ -203,6 +203,7 @@ end
 ---@field on_change? fun(item: NuiTree.Node, menu: NuiMenu): nil
 ---@field on_close? fun(): nil
 ---@field on_submit? fun(item: NuiTree.Node): nil
+---@field on_mount? fun(): nil
 
 ---@class NuiMenu: NuiPopup
 ---@field private _ nui_menu_internal
