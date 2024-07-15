@@ -199,7 +199,7 @@ Callback function, called when menu is submitted.
 
 **Type:** `function`
 
-_Signature:_ `on_mount(item) -> nil`
+_Signature:_ `on_mount() -> nil`
 
 Callback function, called when menu is mounted.
 
