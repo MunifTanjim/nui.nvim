@@ -119,7 +119,7 @@ local function make_default_prepare_node(menu)
       end
 
       local left_gap_width, right_gap_width =
-        _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
+          _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
 
       local line = Line()
 
@@ -327,6 +327,10 @@ function Menu:mount()
   Menu.super.mount(self)
 
   local props = self.menu_props
+
+  if props.on_mount then
+    props.on_mount(self)
+  end
 
   for _, key in pairs(self._.keymap.focus_next) do
     self:map("n", key, props.on_focus_next, { noremap = true, nowait = true })
