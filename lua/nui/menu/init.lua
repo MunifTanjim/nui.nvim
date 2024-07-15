@@ -279,6 +279,7 @@ function Menu:init(popup_options, options)
     end
   end
 
+
   ---@deprecated
   self._.sep = options.separator
 
@@ -288,6 +289,12 @@ function Menu:init(popup_options, options)
   self.menu_props = {}
 
   local props = self.menu_props
+
+  props.on_mount = function()
+    if options.on_mount then
+      options.on_mount()
+    end
+  end
 
   props.on_submit = function()
     local item = self.tree:get_node()
@@ -329,7 +336,7 @@ function Menu:mount()
   local props = self.menu_props
 
   if props.on_mount then
-    props.on_mount(self)
+    props.on_mount()
   end
 
   for _, key in pairs(self._.keymap.focus_next) do

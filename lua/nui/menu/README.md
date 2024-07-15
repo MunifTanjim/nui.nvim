@@ -49,6 +49,10 @@ local menu = Menu(popup_options, {
   on_submit = function(item)
     print("SUBMITTED", vim.inspect(item))
   end,
+  on_mount = function()
+    print("MOUNTED")
+  end
+
 })
 ```
 
@@ -190,6 +194,14 @@ Callback function, called when menu is closed.
 _Signature:_ `on_submit(item) -> nil`
 
 Callback function, called when menu is submitted.
+
+### `on_mount`
+
+**Type:** `function`
+
+_Signature:_ `on_mount(item) -> nil`
+
+Callback function, called when menu is mounted.
 
 ## Methods
 
