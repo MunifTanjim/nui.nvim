@@ -769,6 +769,83 @@ describe("nui.popup", function()
       }, popup.border.bufnr, hl_group)
     end)
 
+    it("does not reposition on size-only update (w/o border)", function()
+      vim.api.nvim_buf_set_lines(vim.api.nvim_get_current_buf(), 0, -1, false, {
+        "line 1",
+        "line 2",
+        "line 3",
+        "line 4",
+        "line 5",
+        "line 6",
+        "line 7",
+        "line 8",
+        "line 9",
+        "line 10",
+      })
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+      popup = Popup({
+        relative = "cursor",
+        position = { row = 1, col = 1 },
+        size = { width = 4, height = 2 },
+      })
+
+      popup:mount()
+
+      eq(type(popup.border.winid), "nil")
+
+      local popup_pos = vim.api.nvim_win_get_position(popup.winid)
+
+      -- move the cursor; a size-only update must not re-anchor to it
+      vim.api.nvim_win_set_cursor(0, { 5, 0 })
+
+      local new_size = { width = 8, height = 4 }
+      popup:update_layout({ size = new_size })
+
+      assert_size(popup, new_size)
+      eq(vim.api.nvim_win_get_position(popup.winid), popup_pos)
+    end)
+
+    it("does not reposition on size-only update (w/ complex border)", function()
+      vim.api.nvim_buf_set_lines(vim.api.nvim_get_current_buf(), 0, -1, false, {
+        "line 1",
+        "line 2",
+        "line 3",
+        "line 4",
+        "line 5",
+        "line 6",
+        "line 7",
+        "line 8",
+        "line 9",
+        "line 10",
+      })
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+      popup = Popup({
+        relative = "cursor",
+        border = { style = "single", padding = { 0 } },
+        position = { row = 1, col = 1 },
+        size = { width = 4, height = 2 },
+      })
+
+      popup:mount()
+
+      eq(type(popup.border.winid), "number")
+
+      local border_pos = vim.api.nvim_win_get_position(popup.border.winid)
+      local popup_pos = vim.api.nvim_win_get_position(popup.winid)
+
+      -- move the cursor; a size-only update must not re-anchor to it
+      vim.api.nvim_win_set_cursor(0, { 5, 0 })
+
+      local new_size = { width = 8, height = 4 }
+      popup:update_layout({ size = new_size })
+
+      assert_size(popup, new_size, true)
+      eq(vim.api.nvim_win_get_position(popup.border.winid), border_pos)
+      eq(vim.api.nvim_win_get_position(popup.winid), popup_pos)
+    end)
+
     it("can change position (w/ simple border)", function()
       local position = {
         row = 0,
