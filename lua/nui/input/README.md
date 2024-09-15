@@ -57,7 +57,7 @@ end, { noremap = true })
 ```
 
 You can manipulate the associated buffer and window using the
-`split.bufnr` and `split.winid` properties.
+`input.bufnr` and `input.winid` properties.
 
 **NOTE**: the first argument accepts options for `nui.popup` component.
 
