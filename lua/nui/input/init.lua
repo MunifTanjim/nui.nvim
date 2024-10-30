@@ -115,11 +115,13 @@ function Input:mount()
     vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, { self._.prompt:content() .. self._.default_value })
   end
 
-  if self._.prompt:length() > 0 then
-    vim.schedule(function()
-      self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
-    end)
-  end
+  self:on(event.InsertEnter, function()
+    if self._.prompt:length() > 0 then
+      vim.schedule(function()
+        self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
+      end)
+    end
+  end, { once = true })
 
   vim.api.nvim_command("startinsert!")
 end
