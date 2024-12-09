@@ -441,6 +441,25 @@ describe("nui.menu", function()
     end)
   end)
 
+  it("Chinese characters longer than max_width is truncated", function()
+    menu = Menu(popup_options, {
+      lines = {
+        Menu.item("中文长度测试"),
+        Menu.item("Test中英文测试"),
+        Menu.item("Long Long Group"),
+      },
+      max_width = 11,
+    })
+
+    menu:mount()
+
+    h.assert_buf_lines(menu.bufnr, {
+      "中文长度测…",
+      "Test中英文…",
+      "Long Long …",
+    })
+  end)
+
   describe("separator", function()
     it("text supports string", function()
       menu = Menu(popup_options, {
@@ -473,25 +492,6 @@ describe("nui.menu", function()
       h.assert_buf_lines(menu.bufnr, {
         "A",
         " Long Lo… ",
-      })
-    end)
-
-    it("Chinese characters longer than max_width is truncated", function()
-      menu = Menu(popup_options, {
-        lines = {
-          Menu.item("中文长度测试"),
-          Menu.item("English中文"),
-          Menu.item("Long Long Group"),
-        },
-        max_width = 10,
-      })
-
-      menu:mount()
-
-      h.assert_buf_lines(menu.bufnr, {
-        "中文长度测",
-        "English中…",
-        "Long Long…",
       })
     end)
 
