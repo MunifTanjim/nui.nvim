@@ -476,6 +476,25 @@ describe("nui.menu", function()
       })
     end)
 
+    it("Chinese characters longer than max_width is truncated", function()
+      menu = Menu(popup_options, {
+        lines = {
+          Menu.item("中文长度测试"),
+          Menu.item("English中文"),
+          Menu.item("Long Long Group"),
+        },
+        max_width = 10,
+      })
+
+      menu:mount()
+
+      h.assert_buf_lines(menu.bufnr, {
+        "中文长度测",
+        "English中…",
+        "Long Long…",
+      })
+    end)
+
     it("text supports nui.text", function()
       local hl_group = "NuiMenuTest"
       local text = "Group"
