@@ -441,7 +441,7 @@ describe("nui.menu", function()
     end)
   end)
 
-  it("Chinese characters longer than max_width is truncated", function()
+  it("can truncate content longer than max_width w/ multi-byte chars", function()
     menu = Menu(popup_options, {
       lines = {
         Menu.item("中文长度测试"),

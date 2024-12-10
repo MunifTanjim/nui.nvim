@@ -198,53 +198,29 @@ function _.normalize_dimension(dimension, container_dimension)
   return number.value
 end
 
----@param byte integer
----@return integer
-function _.utf8_char_length(byte)
-  if byte < 0x80 then
-    return 1
-  elseif byte >= 0xC0 and byte < 0xE0 then
-    return 2
-  elseif byte >= 0xE0 and byte < 0xF0 then
-    return 3
-  elseif byte >= 0xF0 then
-    return 4
-  end
-end
-
----@param s string
----@param i integer
----@param j integer
----@return string
-function _.display_sub(s, i, j)
-  i = i or 1
-  j = j or -1
-
-  local start, stop = i, #s
-  local utf8_len, pos = 0, 1
-
-  while pos <= stop do
-    local c = s:byte(pos)
-    local char_len = _.utf8_char_length(c)
-    utf8_len = utf8_len + vim.api.nvim_strwidth(s:sub(pos, pos + char_len - 1))
-    pos = pos + char_len
-    if utf8_len >= j then
-      stop = pos - 1
-      break
-    end
-  end
-  return s:sub(start, stop)
-end
+local strchars, strcharpart, strdisplaywidth = vim.fn.strchars, vim.fn.strcharpart, vim.fn.strdisplaywidth
 
 ---@param text string
 ---@param max_length number
 ---@return string
 function _.truncate_text(text, max_length)
-  if vim.api.nvim_strwidth(text) > max_length then
-    return _.display_sub(text, 1, max_length - 1) .. "…"
+  if strdisplaywidth(text) <= max_length then
+    return text
   end
 
-  return text
+  local low, high = 0, strchars(text)
+  local mid
+
+  while low < high do
+    mid = math.floor((low + high + 1) / 2)
+    if strdisplaywidth(strcharpart(text, 0, mid)) < max_length then
+      low = mid
+    else
+      high = mid - 1
+    end
+  end
+
+  return strcharpart(text, 0, low) .. "…"
 end
 
 ---@param text NuiText
