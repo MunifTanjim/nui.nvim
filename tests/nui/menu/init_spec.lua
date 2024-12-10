@@ -441,6 +441,25 @@ describe("nui.menu", function()
     end)
   end)
 
+  it("can truncate content longer than max_width w/ multi-byte chars", function()
+    menu = Menu(popup_options, {
+      lines = {
+        Menu.item("中文长度测试"),
+        Menu.item("Test中英文测试"),
+        Menu.item("Long Long Group"),
+      },
+      max_width = 11,
+    })
+
+    menu:mount()
+
+    h.assert_buf_lines(menu.bufnr, {
+      "中文长度测…",
+      "Test中英文…",
+      "Long Long …",
+    })
+  end)
+
   describe("separator", function()
     it("text supports string", function()
       menu = Menu(popup_options, {

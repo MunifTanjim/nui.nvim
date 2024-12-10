@@ -198,15 +198,29 @@ function _.normalize_dimension(dimension, container_dimension)
   return number.value
 end
 
+local strchars, strcharpart, strdisplaywidth = vim.fn.strchars, vim.fn.strcharpart, vim.fn.strdisplaywidth
+
 ---@param text string
 ---@param max_length number
 ---@return string
 function _.truncate_text(text, max_length)
-  if vim.api.nvim_strwidth(text) > max_length then
-    return string.sub(text, 1, max_length - 1) .. "…"
+  if strdisplaywidth(text) <= max_length then
+    return text
   end
 
-  return text
+  local low, high = 0, strchars(text)
+  local mid
+
+  while low < high do
+    mid = math.floor((low + high + 1) / 2)
+    if strdisplaywidth(strcharpart(text, 0, mid)) < max_length then
+      low = mid
+    else
+      high = mid - 1
+    end
+  end
+
+  return strcharpart(text, 0, low) .. "…"
 end
 
 ---@param text NuiText
