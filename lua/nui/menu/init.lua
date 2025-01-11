@@ -331,9 +331,11 @@ function Menu:update_layout(config)
       prepare_node = self._.prepare_item,
     })
 
+    local pos = vim.api.nvim_win_get_cursor(self.winid)
     _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
     vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, {})
     self.tree:render()
+    vim.api.nvim_win_set_cursor(self.winid, pos)
   end
 end
 
