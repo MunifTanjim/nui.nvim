@@ -7,6 +7,7 @@ local _ = require("nui.utils")._
 local is_type = require("nui.utils").is_type
 
 local has_nvim_0_5_1 = vim.fn.has("nvim-0.5.1") == 1
+local has_nvim_0_11_0 = vim.fn.has("nvim-0.11.0") == 1
 
 local index_name = {
   "top_left",
@@ -717,6 +718,9 @@ function Border:get()
   local internal = self._
 
   if internal.type ~= "simple" then
+    if has_nvim_0_11_0 then
+      return "none"
+    end
     return nil
   end
 
