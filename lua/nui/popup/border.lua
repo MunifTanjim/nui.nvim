@@ -7,7 +7,7 @@ local _ = require("nui.utils")._
 local is_type = require("nui.utils").is_type
 
 local has_nvim_0_5_1 = vim.fn.has("nvim-0.5.1") == 1
-local has_nvim_0_11_0 = vim.fn.has("nvim-0.11.0") == 1
+local has_nvim_0_11_0 = _.feature.v0_11
 
 local index_name = {
   "top_left",
@@ -246,6 +246,7 @@ local function calculate_buf_lines(internal)
 end
 
 local styles = {
+  bold = to_border_map({ "┏", "━", "┓", "┃", "┛", "━", "┗", "┃" }),
   double = to_border_map({ "╔", "═", "╗", "║", "╝", "═", "╚", "║" }),
   none = "none",
   rounded = to_border_map({ "╭", "─", "╮", "│", "╯", "─", "╰", "│" }),
@@ -471,7 +472,7 @@ function Border:init(popup, options)
     internal.type = "simple"
   end
 
-  self:set_style(options.style or "none")
+  self:set_style(options.style or _.get_default_winborder())
 
   internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
 

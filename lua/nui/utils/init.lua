@@ -9,6 +9,7 @@ local _ = {
     lua_keymap = type(vim.keymap) ~= "nil",
     lua_autocmd = type(vim.api.nvim_create_autocmd) ~= "nil",
     v0_10 = nvim_version.minor >= 10,
+    v0_11 = nvim_version.minor >= 11,
   },
 }
 
@@ -367,6 +368,20 @@ function _.serialize_winhighlight(highlight_map)
   end, vim.tbl_keys(highlight_map))
   table.sort(parts)
   return table.concat(parts, ",")
+end
+
+function _.get_default_winborder()
+  return "none"
+end
+
+if _.feature.v0_11 then
+  function _.get_default_winborder()
+    local style = vim.api.nvim_get_option_value("winborder", {})
+    if style == "" then
+      return "none"
+    end
+    return style
+  end
 end
 
 return utils
