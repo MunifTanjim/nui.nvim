@@ -416,7 +416,7 @@ end
 
 ---@alias _nui_popup_border_style_char_tuple table<1|2, string>
 ---@alias _nui_popup_border_style_char string|_nui_popup_border_style_char_tuple|NuiText
----@alias _nui_popup_border_style_builtin 'double'|'none'|'rounded'|'shadow'|'single'|'solid'
+---@alias _nui_popup_border_style_builtin 'double'|'none'|'rounded'|'shadow'|'single'|'solid'|'default'
 ---@alias _nui_popup_border_style_list table<1|2|3|4|5|6|7|8, _nui_popup_border_style_char>
 ---@alias _nui_popup_border_style_map_position 'top_left'|'top'|'top_right'|'right'|'bottom_right'|'bottom'|'bottom_left'|'left'
 ---@alias _nui_popup_border_style_map table<_nui_popup_border_style_map_position, _nui_popup_border_style_char>
@@ -676,6 +676,13 @@ end
 ---@param style nui_popup_border_option_style
 function Border:set_style(style)
   local internal = self._
+
+  if style == "default" then
+    style = _.get_default_winborder()
+    if style == "none" and internal.type == "complex" then
+      style = "single"
+    end
+  end
 
   internal.style = style
 

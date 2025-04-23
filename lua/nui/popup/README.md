@@ -94,7 +94,7 @@ Controls the styling of the border.
 
 **Examples**
 
-Can be one of the pre-defined styles: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"` or `"solid"`.
+Can be one of the pre-defined styles: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"`, `"solid"` or `"default"`.
 
 ```lua
 border = {
