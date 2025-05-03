@@ -259,7 +259,7 @@ function Layout:_open_window()
     local info = self._.float
 
     self.winid = vim.api.nvim_open_win(self.bufnr, info.win_enter, info.win_config)
-    assert(self.winid, "failed to create popup window")
+    assert(self.winid or vim.api.nvim_win_is_valid(self.winid), "failed to create popup window")
 
     _.set_win_options(self.winid, info.win_options)
   end
