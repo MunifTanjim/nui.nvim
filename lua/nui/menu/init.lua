@@ -119,7 +119,7 @@ local function make_default_prepare_node(menu)
       end
 
       local left_gap_width, right_gap_width =
-        _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
+          _.calculate_gap_width(defaults(sep_text_align, "center"), sep_max_width, content:width())
 
       local line = Line()
 
@@ -203,6 +203,7 @@ end
 ---@field on_change? fun(item: NuiTree.Node, menu: NuiMenu): nil
 ---@field on_close? fun(): nil
 ---@field on_submit? fun(item: NuiTree.Node): nil
+---@field on_mount? fun(): nil
 
 ---@class NuiMenu: NuiPopup
 ---@field private _ nui_menu_internal
@@ -279,6 +280,7 @@ function Menu:init(popup_options, options)
     end
   end
 
+
   ---@deprecated
   self._.sep = options.separator
 
@@ -288,6 +290,12 @@ function Menu:init(popup_options, options)
   self.menu_props = {}
 
   local props = self.menu_props
+
+  props.on_mount = function()
+    if options.on_mount then
+      options.on_mount()
+    end
+  end
 
   props.on_submit = function()
     local item = self.tree:get_node()
@@ -327,6 +335,10 @@ function Menu:mount()
   Menu.super.mount(self)
 
   local props = self.menu_props
+
+  if props.on_mount then
+    props.on_mount()
+  end
 
   for _, key in pairs(self._.keymap.focus_next) do
     self:map("n", key, props.on_focus_next, { noremap = true, nowait = true })
