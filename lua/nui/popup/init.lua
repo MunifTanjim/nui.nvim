@@ -160,7 +160,7 @@ function Popup:init(options)
 end
 
 function Popup:_open_window()
-  if self.winid or not self.bufnr then
+  if (self.winid and vim.api.nvim_win_is_valid(self.winid)) or (not self.bufnr) then
     return
   end
 
