@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/MunifTanjim/nui.nvim/compare/0.4.0...0.4.1) (2025-05-26)
+
+
+### Bug Fixes
+
+* **layout:** set border=none for float container ([7cd18e7](https://github.com/MunifTanjim/nui.nvim/commit/7cd18e73cfbd70e1546931b7268b3eebaeff9391))
+
 ## [0.4.0](https://github.com/MunifTanjim/nui.nvim/compare/0.3.0...0.4.0) (2025-04-23)
 
 
