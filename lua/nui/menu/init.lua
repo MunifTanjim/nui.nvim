@@ -319,8 +319,26 @@ end
 ---@param config? nui_layout_options
 function Menu:update_layout(config)
   Menu.super.update_layout(self, config)
+  self._.prepare_item = make_default_prepare_node(self)
+  if self.tree then
+    if self.winid then
+      self.tree = Tree({
+        winid = self.winid,
+        ns_id = self.ns_id,
+        nodes = self._.items,
+        get_node_id = function(node)
+          return node._id
+        end,
+        prepare_node = self._.prepare_item,
+      })
 
-  self._.prepare_item = defaults(self._.prepare_item, make_default_prepare_node(self))
+      local pos = vim.api.nvim_win_get_cursor(self.winid)
+      _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
+      vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, {})
+      self.tree:render()
+      vim.api.nvim_win_set_cursor(self.winid, pos)
+    end
+  end
 end
 
 function Menu:mount()
