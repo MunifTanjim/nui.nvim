@@ -79,9 +79,7 @@ function Input:mount()
 
   vim.fn.prompt_setprompt(self.bufnr, self._.prompt:content())
 
-  if #self._.default_value > 0 then
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, { self._.prompt:content() .. self._.default_value })
-  end
+  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, { self._.prompt:content() .. self._.default_value })
 
   self:on(event.BufWinEnter, function()
     vim.schedule(function()
