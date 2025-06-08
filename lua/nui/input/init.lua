@@ -44,7 +44,7 @@ local Input = Popup:extend("NuiInput")
 ---@param popup_options nui_popup_options
 ---@param options nui_input_options
 function Input:init(popup_options, options)
-  popup_options.enter = true
+  popup_options.enter = false
 
   popup_options.buf_options = defaults(popup_options.buf_options, {})
   popup_options.buf_options.buftype = "prompt"
@@ -77,6 +77,22 @@ function Input:mount()
     return
   end
 
+  vim.fn.prompt_setprompt(self.bufnr, self._.prompt:content())
+
+  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, { self._.prompt:content() .. self._.default_value })
+
+  self:on(event.BufWinEnter, function()
+    vim.schedule(function()
+      if self._.prompt:length() > 0 then
+        self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
+      end
+
+      vim.api.nvim_set_current_win(self.winid)
+    end)
+
+    vim.api.nvim_command("startinsert!")
+  end, { once = false })
+
   Input.super.mount(self)
 
   if self._.on_change then
@@ -108,22 +124,6 @@ function Input:mount()
   end
 
   vim.fn.prompt_setinterrupt(self.bufnr, props.on_close)
-
-  vim.fn.prompt_setprompt(self.bufnr, self._.prompt:content())
-
-  self:on(event.InsertEnter, function()
-    if #self._.default_value then
-      vim.api.nvim_feedkeys(self._.default_value, "n", true)
-    end
-
-    if self._.prompt:length() > 0 then
-      vim.schedule(function()
-        self._.prompt:highlight(self.bufnr, self.ns_id, 1, 0)
-      end)
-    end
-  end, { once = true })
-
-  vim.api.nvim_command("startinsert!")
 end
 
 function Input:unmount()
