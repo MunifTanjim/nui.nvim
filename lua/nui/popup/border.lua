@@ -496,7 +496,7 @@ function Border:init(popup, options)
 end
 
 function Border:_open_window()
-  if self.winid or not self.bufnr then
+  if self.winid or vim.api.nvim_win_is_valid(self.winid) or not self.bufnr then
     return
   end
 
