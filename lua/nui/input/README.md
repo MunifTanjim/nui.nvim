@@ -40,6 +40,7 @@ local input = Input(popup_options, {
     print("Value changed: ", value)
   end,
 })
+input:mount()
 ```
 
 If you provide the `on_change` function, it'll be run everytime value changes.
