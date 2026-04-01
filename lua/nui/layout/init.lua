@@ -192,6 +192,7 @@ function Layout:init(options, box)
       layout = {},
       win_enter = false,
       win_config = {
+        border = "none",
         focusable = false,
         style = "minimal",
         anchor = options.anchor,

@@ -33,7 +33,7 @@ local function initialize_nodes(nodes, parent_node, get_node_id)
     local node_id = node:get_id()
 
     if by_id[node_id] then
-      error("duplicate node id" .. node_id)
+      error("duplicate node id " .. node_id)
     end
 
     by_id[node_id] = node

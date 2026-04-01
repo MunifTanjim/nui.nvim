@@ -9,6 +9,7 @@ local _ = {
     lua_keymap = type(vim.keymap) ~= "nil",
     lua_autocmd = type(vim.api.nvim_create_autocmd) ~= "nil",
     v0_10 = nvim_version.minor >= 10,
+    v0_11 = nvim_version.minor >= 11,
   },
 }
 
@@ -198,15 +199,29 @@ function _.normalize_dimension(dimension, container_dimension)
   return number.value
 end
 
+local strchars, strcharpart, strdisplaywidth = vim.fn.strchars, vim.fn.strcharpart, vim.fn.strdisplaywidth
+
 ---@param text string
 ---@param max_length number
 ---@return string
 function _.truncate_text(text, max_length)
-  if vim.api.nvim_strwidth(text) > max_length then
-    return string.sub(text, 1, max_length - 1) .. "…"
+  if strdisplaywidth(text) <= max_length then
+    return text
   end
 
-  return text
+  local low, high = 0, strchars(text)
+  local mid
+
+  while low < high do
+    mid = math.floor((low + high + 1) / 2)
+    if strdisplaywidth(strcharpart(text, 0, mid)) < max_length then
+      low = mid
+    else
+      high = mid - 1
+    end
+  end
+
+  return strcharpart(text, 0, low) .. "…"
 end
 
 ---@param text NuiText
@@ -353,6 +368,20 @@ function _.serialize_winhighlight(highlight_map)
   end, vim.tbl_keys(highlight_map))
   table.sort(parts)
   return table.concat(parts, ",")
+end
+
+function _.get_default_winborder()
+  return "none"
+end
+
+if _.feature.v0_11 then
+  function _.get_default_winborder()
+    local style = vim.api.nvim_get_option_value("winborder", {})
+    if style == "" then
+      return "none"
+    end
+    return style
+  end
 end
 
 return utils

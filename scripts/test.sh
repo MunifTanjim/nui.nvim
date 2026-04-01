@@ -9,18 +9,18 @@ declare test_scope="${module}"
 
 while [[ $# -gt 0 ]]; do
   case "${1}" in
-    --clean)
-      shift
-      echo "[test] cleaning up environment"
-      rm -rf "${plugins_dir}"
-      echo "[test] envionment cleaned"
-      ;;
-    *)
-      if [[ "${test_scope}" == "${module}" ]] && [[ "${1}" == "${module}/"* ]]; then
-        test_scope="${1}"
-      fi
-      shift
-      ;;
+  --clean)
+    shift
+    echo "[test] cleaning up environment"
+    rm -rf "${plugins_dir}"
+    echo "[test] envionment cleaned"
+    ;;
+  *)
+    if [[ "${test_scope}" == "${module}" ]] && [[ "${1}" == "${module}/"* ]]; then
+      test_scope="${1}"
+    fi
+    shift
+    ;;
   esac
 done
 
@@ -78,9 +78,9 @@ luacov_start
 declare test_logs=""
 
 if [[ -d "./tests/${test_scope}/" ]]; then
-  test_logs=$(nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/init.lua', sequential = true })")
+  test_logs=$(nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.test_harness').test_directory('./tests/${test_scope}/', { minimal_init = 'tests/init.lua', sequential = true })" || true)
 elif [[ -f "./tests/${test_scope}_spec.lua" ]]; then
-  test_logs=$(nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')")
+  test_logs=$(nvim --headless --noplugin -u tests/init.lua -c "lua require('plenary.busted').run('./tests/${test_scope}_spec.lua')" || true)
 fi
 
 echo "${test_logs}"

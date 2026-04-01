@@ -42,6 +42,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       h.assert_buf_lines(input.bufnr, {
         prompt_text,
@@ -66,6 +67,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       feedkeys("aa", "x") -- append a
       feedkeys("ab", "x") -- append b
@@ -90,6 +92,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       feedkeys("i<C-c>", "x")
 
@@ -110,6 +113,8 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
+
       input:unmount()
 
       vim.fn.wait(200, function()
@@ -144,6 +149,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       feedkeys("<cr>", "x")
 
@@ -166,6 +172,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       feedkeys("<esc><cr>", "x")
 
@@ -188,6 +195,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       input:map("i", "<esc>", function()
         input:unmount()
@@ -214,6 +222,7 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
 
       input:map("n", "<esc>", function()
         input:unmount()
@@ -235,6 +244,7 @@ describe("nui.input", function()
       input = Input(popup_options, {})
 
       input:mount()
+      vim.wait(100, function() end)
 
       local bufnr, winid = input.bufnr, input.winid
 
@@ -259,6 +269,8 @@ describe("nui.input", function()
       })
 
       input:mount()
+      vim.wait(100, function() end)
+
       input:unmount()
       input:unmount()
       input:unmount()

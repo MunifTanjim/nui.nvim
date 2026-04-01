@@ -38,7 +38,7 @@ local function merge_default_options(options)
   options.buf_options = defaults(options.buf_options, {})
   options.win_options = defaults(options.win_options, {})
 
-  options.border = defaults(options.border, "none")
+  options.border = defaults(options.border, _.get_default_winborder())
 
   return options
 end

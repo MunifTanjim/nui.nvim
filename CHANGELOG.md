@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.4.0](https://github.com/MunifTanjim/nui.nvim/compare/0.3.0...0.4.0) (2025-04-23)
+
+
+### Features
+
+* **popup:** support 'default' border style ([8d5b0b5](https://github.com/MunifTanjim/nui.nvim/commit/8d5b0b568517935d3c84f257f272ef004d9f5a59))
+* **popup:** use 'winborder' for default border ([118a12f](https://github.com/MunifTanjim/nui.nvim/commit/118a12f6304759d95d0d003f64067d93572b3238))
+* **popup:** use same zindex for border ([a2bc1e9](https://github.com/MunifTanjim/nui.nvim/commit/a2bc1e9d0359caa5d11ad967cd1e30e8d4676226))
+* **table:** accept param 'position' for method 'get_cell' ([8794284](https://github.com/MunifTanjim/nui.nvim/commit/87942848c93668532f46ec61ccc7aff7abf7d37e))
+* **table:** expose NuiTable.Cell.range ([b81333d](https://github.com/MunifTanjim/nui.nvim/commit/b81333d12f824dbed5eb231c8a4409a290fdd848))
+
+
+### Bug Fixes
+
+* consider multi-byte characters when truncating text ([53e907f](https://github.com/MunifTanjim/nui.nvim/commit/53e907ffe5eedebdca1cd503b00aa8692068ca46))
+* **input:** cursor position patch w/ relative=cursor ([b18316d](https://github.com/MunifTanjim/nui.nvim/commit/b18316d50538bb3f40c8fd2c887490c9d29f8811))
+* **input:** cursor position patch w/ relative=editor ([a3597dc](https://github.com/MunifTanjim/nui.nvim/commit/a3597dc88b53489d3fddbddbbd13787355253bb0))
+* **input:** ignore 'keymap' for feeding default value ([fbb139c](https://github.com/MunifTanjim/nui.nvim/commit/fbb139c6f14896b434d0229099e1acd863ae6bec))
+* **input:** mounting multiple inputs together ([322978c](https://github.com/MunifTanjim/nui.nvim/commit/322978c734866996274467de084a95e4f9b5e0b1))
+* **layout:** enable nested flag for WinClosed autocmd ([fc59553](https://github.com/MunifTanjim/nui.nvim/commit/fc59553b5a8a1c13b8aa25ae62b6a47ec2b1882c))
+* **layout:** handle if child.grow results in height &lt;= 0 ([61574ce](https://github.com/MunifTanjim/nui.nvim/commit/61574ce6e60c815b0a0c4b5655b8486ba58089a1))
+* **layout:** immediate hide/unmount after mounting ([42e4756](https://github.com/MunifTanjim/nui.nvim/commit/42e47565ecbd22306205904e21b45c169812525c))
+* **layout:** starting current position for nested boxes ([1b24de4](https://github.com/MunifTanjim/nui.nvim/commit/1b24de4778de527ef82adad6d0e819819d946387))
+* **popup:** always use current window for relative=cursor ([3dc46d7](https://github.com/MunifTanjim/nui.nvim/commit/3dc46d725f7b94bee5117c0a699b57b1902b5d65))
+* **popup:** ignore 'winborder' for complex border ([aa29efe](https://github.com/MunifTanjim/nui.nvim/commit/aa29efe58f2e5734ff49b44c3d7d0cd4b9266e9a))
+* **popup:** mimic native 'solid' border ([cbd2668](https://github.com/MunifTanjim/nui.nvim/commit/cbd2668414331c10039278f558630ed19b93e69b))
+* **tree:** update error message for duplicate node id ([8d3bce9](https://github.com/MunifTanjim/nui.nvim/commit/8d3bce9764e627b62b07424e0df77f680d47ffdb))
+
 ## [0.3.0](https://github.com/MunifTanjim/nui.nvim/compare/0.2.0...0.3.0) (2024-02-16)
 
 

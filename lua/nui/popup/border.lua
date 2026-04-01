@@ -7,6 +7,7 @@ local _ = require("nui.utils")._
 local is_type = require("nui.utils").is_type
 
 local has_nvim_0_5_1 = vim.fn.has("nvim-0.5.1") == 1
+local has_nvim_0_11_0 = _.feature.v0_11
 
 local index_name = {
   "top_left",
@@ -245,6 +246,7 @@ local function calculate_buf_lines(internal)
 end
 
 local styles = {
+  bold = to_border_map({ "┏", "━", "┓", "┃", "┛", "━", "┗", "┃" }),
   double = to_border_map({ "╔", "═", "╗", "║", "╝", "═", "╚", "║" }),
   none = "none",
   rounded = to_border_map({ "╭", "─", "╮", "│", "╯", "─", "╰", "│" }),
@@ -414,7 +416,7 @@ end
 
 ---@alias _nui_popup_border_style_char_tuple table<1|2, string>
 ---@alias _nui_popup_border_style_char string|_nui_popup_border_style_char_tuple|NuiText
----@alias _nui_popup_border_style_builtin 'double'|'none'|'rounded'|'shadow'|'single'|'solid'
+---@alias _nui_popup_border_style_builtin 'double'|'none'|'rounded'|'shadow'|'single'|'solid'|'default'
 ---@alias _nui_popup_border_style_list table<1|2|3|4|5|6|7|8, _nui_popup_border_style_char>
 ---@alias _nui_popup_border_style_map_position 'top_left'|'top'|'top_right'|'right'|'bottom_right'|'bottom'|'bottom_left'|'left'
 ---@alias _nui_popup_border_style_map table<_nui_popup_border_style_map_position, _nui_popup_border_style_char>
@@ -470,7 +472,7 @@ function Border:init(popup, options)
     internal.type = "simple"
   end
 
-  self:set_style(options.style or "none")
+  self:set_style(options.style or _.get_default_winborder())
 
   internal.winhighlight = calculate_winhighlight(internal, self.popup._.win_options.winhighlight)
 
@@ -675,6 +677,13 @@ end
 function Border:set_style(style)
   local internal = self._
 
+  if style == "default" then
+    style = _.get_default_winborder()
+    if style == "none" and internal.type == "complex" then
+      style = "single"
+    end
+  end
+
   internal.style = style
 
   local char = prepare_char_map(internal.style, internal.char)
@@ -717,6 +726,9 @@ function Border:get()
   local internal = self._
 
   if internal.type ~= "simple" then
+    if has_nvim_0_11_0 then
+      return "none"
+    end
     return nil
   end
 

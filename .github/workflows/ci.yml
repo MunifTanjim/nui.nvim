@@ -9,7 +9,7 @@ on:
 jobs:
   lint:
     name: luacheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -40,7 +40,7 @@ jobs:
 
   format:
     name: stylua
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -53,7 +53,7 @@ jobs:
 
   test:
     name: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -100,7 +100,7 @@ jobs:
       - lint
       - format
       - test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       actions: write
       contents: write
