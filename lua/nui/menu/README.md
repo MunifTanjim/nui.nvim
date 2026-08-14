@@ -53,7 +53,7 @@ local menu = Menu(popup_options, {
 ```
 
 You can manipulate the associated buffer and window using the
-`split.bufnr` and `split.winid` properties.
+`menu.bufnr` and `menu.winid` properties.
 
 **NOTE**: the first argument accepts options for `nui.popup` component.
 
