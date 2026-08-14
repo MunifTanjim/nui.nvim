@@ -384,4 +384,16 @@ if _.feature.v0_11 then
   end
 end
 
+---@generic T
+---@param list T[]
+---@param item T
+---@return nil|integer index
+function _.find_index(list, item)
+  for idx = 1, #list do
+    if list[idx] == item then
+      return idx
+    end
+  end
+end
+
 return utils
