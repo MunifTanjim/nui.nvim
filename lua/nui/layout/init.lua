@@ -267,11 +267,7 @@ function Layout:_open_window()
 end
 
 function Layout:_close_window()
-  if not self.winid then
-    return
-  end
-
-  if vim.api.nvim_win_is_valid(self.winid) then
+  if _.is_window_valid(self.winid) then
     vim.api.nvim_win_close(self.winid, true)
   end
 
@@ -437,7 +433,7 @@ function Layout:update(config, box)
 
     u.update_layout_config(info, config)
 
-    if self.winid then
+    if _.is_window_valid(self.winid) then
       vim.api.nvim_win_set_config(self.winid, info.win_config)
 
       self:_process_layout()
