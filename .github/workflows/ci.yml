@@ -9,10 +9,10 @@ on:
 jobs:
   lint:
     name: luacheck
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Get Cache Key
         id: luver-cache-key
         env:
@@ -22,7 +22,7 @@ jobs:
           echo "value=${CI_RUNNER_OS}-luver-${CI_SECRETS_CACHE_VERSION}-$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Setup Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ~/.local/share/luver
           key: ${{ steps.luver-cache-key.outputs.value }}
@@ -40,10 +40,10 @@ jobs:
 
   format:
     name: stylua
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Check Format
         uses: JohnnyMorganz/stylua-action@v3
         with:
@@ -53,10 +53,12 @@ jobs:
 
   test:
     name: test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Get Cache Key
         id: luver-cache-key
         env:
@@ -66,7 +68,7 @@ jobs:
           echo "value=${CI_RUNNER_OS}-luver-${CI_SECRETS_CACHE_VERSION}-$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Setup Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ~/.local/share/luver
           key: ${{ steps.luver-cache-key.outputs.value }}
@@ -89,8 +91,9 @@ jobs:
           nvim --version
           ./scripts/test.sh
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
+          use_oidc: true
           verbose: true
 
   release:
@@ -100,7 +103,7 @@ jobs:
       - lint
       - format
       - test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       actions: write
       contents: write
