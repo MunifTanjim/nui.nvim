@@ -5,7 +5,7 @@ local _ = require("nui.utils")._
 
 -- luacheck: push no max comment line length
 
----@alias nui_table_border_char_name 'down_right'|'hor'|'down_hor'|'down_left'|'ver'|'ver_left'|'ver_hor'|'ver_left'|'up_right'|'up_hor'|'up_left'
+---@alias nui_table_border_char_name 'down_right'|'hor'|'down_hor'|'down_left'|'ver'|'ver_right'|'ver_hor'|'ver_left'|'up_right'|'up_hor'|'up_left'
 
 ---@alias _nui_table_header_kind
 ---| -1 -- footer
@@ -88,8 +88,21 @@ local function prepare_columns(internal, columns, parent, depth)
       col.align = "left"
     end
 
-    if not col.width then
-      col.width = 0
+    -- an explicit width makes the column fixed (content is truncated to it).
+    -- without it, the column flexes to fit content (respecting min/max_width).
+    col._fixed_width = col.width
+    col.width = col.width or col.min_width or 0
+  end
+end
+
+---@param columns NuiTable.ColumnDef[]
+local function reset_column_widths(columns)
+  for _, col in ipairs(columns) do
+    -- fixed columns keep their width; flexible ones are recomputed from
+    -- content before each render, starting from their min_width floor.
+    col.width = col._fixed_width or col.min_width or 0
+    if col.columns then
+      reset_column_widths(col.columns)
     end
   end
 end
@@ -106,6 +119,7 @@ end
 ---@field max_width? integer
 ---@field min_width? integer
 ---@field width? integer
+---@field _fixed_width? integer -- (private) configured fixed width; nil means the column flexes to content
 
 ---@class NuiTable.Column
 ---@field accessor_fn? fun(original_row: table, index: integer): string|NuiText|NuiLine
@@ -116,6 +130,9 @@ end
 ---@field id string
 ---@field parent? NuiTable.Column
 ---@field width integer
+---@field max_width? integer
+---@field min_width? integer
+---@field _fixed_width? integer -- (private) configured fixed width; nil means the column flexes to content
 
 ---@class NuiTable.Row
 ---@field id string
@@ -123,14 +140,24 @@ end
 ---@field original table
 
 ---@class NuiTable.Cell
+---@field type 'data'
 ---@field column NuiTable.Column
 ---@field content NuiText|NuiLine
 ---@field get_value fun(): string|NuiText|NuiLine
 ---@field row NuiTable.Row
 ---@field range table<1|2|3|4, integer> -- [start_row, start_col, end_row, end_col]
 
+---@class NuiTable.HeaderCell
+---@field type 'header'|'footer'
+---@field column NuiTable.Column
+---@field content NuiText|NuiLine
+---@field col_span integer
+---@field row_span integer
+---@field range table<1|2|3|4, integer> -- [start_row, start_col, end_row, end_col]
+
 ---@class nui_table_internal
 ---@field border table
+---@field has_border boolean
 ---@field buf_options table<string, any>
 ---@field headers NuiTable.Column[]|{ depth: integer }
 ---@field columns NuiTable.ColumnDef[]
@@ -138,14 +165,17 @@ end
 ---@field has_header boolean
 ---@field has_footer boolean
 ---@field linenr table<1|2, integer>
----@field data_linenrs integer[]
----@field data_grid nui_t_list<NuiTable.Cell[]>
+---@field line_cells table<integer, (NuiTable.Cell|NuiTable.HeaderCell)[]> -- line number -> header/data/footer cells
+---@field nav_linenrs integer[] -- navigable content line numbers, top to bottom
+---@field size? { width: integer, height: integer }
 
 ---@class nui_table_options
 ---@field bufnr integer
 ---@field ns_id integer|string
 ---@field columns NuiTable.ColumnDef[]
 ---@field data table[]
+---@field border? 'none'|table<nui_table_border_char_name, string> border characters, or `'none'` for a borderless table
+---@field buf_options? table<string, any>
 
 ---@class NuiTable
 ---@field private _ nui_table_internal
@@ -169,7 +199,16 @@ function Table:init(options)
 
   self.ns_id = _.normalize_namespace_id(options.ns_id)
 
-  local border = vim.tbl_deep_extend("keep", options.border or {}, default_border)
+  local has_border = options.border ~= "none"
+  local border = has_border and vim.tbl_deep_extend("keep", options.border --[[@as table]] or {}, default_border)
+    -- borderless: columns are separated by a single space and no horizontal
+    -- (border) lines are drawn.
+    or vim.tbl_map(function()
+      return ""
+    end, default_border)
+  if not has_border then
+    border.ver = " "
+  end
 
   self._ = {
     buf_options = vim.tbl_extend("force", {
@@ -182,6 +221,7 @@ function Table:init(options)
       undolevels = 0,
     }, options.buf_options or {}),
     border = border,
+    has_border = has_border,
 
     headers = { depth = 1 },
     columns = {},
@@ -191,7 +231,8 @@ function Table:init(options)
     has_footer = false,
 
     linenr = {},
-    data_linenrs = {},
+    line_cells = {},
+    nav_linenrs = {},
   }
 
   prepare_columns(self._, options.columns or {})
@@ -199,13 +240,18 @@ function Table:init(options)
   _.set_buf_options(self.bufnr, self._.buf_options)
 end
 
----@param current_width integer
----@param min_width? integer
----@param max_width? integer
+---@param column NuiTable.Column|NuiTable.ColumnDef
 ---@param content_width integer
-local function get_col_width(current_width, min_width, max_width, content_width)
-  local min = math.max(content_width, min_width or 0)
-  return math.max(current_width, math.min(max_width or min, min))
+local function fit_col_width(column, content_width)
+  -- fixed-width columns are never resized to fit content.
+  if column._fixed_width then
+    return
+  end
+  local width = math.max(column.width, content_width)
+  if column.max_width then
+    width = math.min(width, column.max_width)
+  end
+  column.width = width
 end
 
 ---@generic C: table
@@ -247,9 +293,11 @@ local function prepare_header_grid(kind, columns, grid, max_depth)
       --[[@cast content -string]]
     end
 
-    column.width = get_col_width(column.width, column.min_width, column.max_width, content:width())
+    --[[@cast column NuiTable.Column]]
+    fit_col_width(column, content:width())
 
     local cell = {
+      type = kind == 1 and "header" or "footer",
       column = column,
       content = content,
       col_span = 1,
@@ -288,6 +336,10 @@ end
 ---@return nui_t_list<NuiTable.Cell[]> data_grid
 ---@return nui_t_list<nui_t_list<table>> header_grid
 function Table:_prepare_grid()
+  -- recompute widths from scratch on every render, so that columns can
+  -- shrink when the data changes (e.g. after :set_data).
+  reset_column_widths(self._.headers)
+
   ---@type nui_t_list<NuiTable.Cell[]>
   local data_grid = {}
 
@@ -320,6 +372,7 @@ function Table:_prepare_grid()
 
       ---@type NuiTable.Cell
       local cell = {
+        type = "data",
         row = row,
         column = column,
         get_value = function()
@@ -329,7 +382,7 @@ function Table:_prepare_grid()
 
       cell.content = prepare_cell_content(cell)
 
-      column.width = get_col_width(column.width, column.min_width, column.max_width, cell.content:width())
+      fit_col_width(column, cell.content:width())
 
       data_grid[row_idx][column_idx] = cell
     end
@@ -383,7 +436,8 @@ end
 ---@param kind _nui_table_header_kind
 ---@param lines nui_t_list<NuiLine>
 ---@param grid nui_t_list<nui_t_list<table>>
-function Table:_prepare_header_lines(kind, lines, grid)
+---@param linenr_start integer buffer line number of lines[1]
+function Table:_prepare_header_lines(kind, lines, grid, linenr_start)
   local line_idx = lines.len
 
   local start_idx, end_idx = 1, grid.len
@@ -406,6 +460,10 @@ function Table:_prepare_header_lines(kind, lines, grid)
     outer_border_line:append(kind == 1 and border.down_right or border.up_right)
 
     data_line:append(border.ver)
+    local char_idx = 1
+
+    ---@type NuiTable.HeaderCell[]
+    local row_cells = {}
 
     local cells_len = #row
     for cell_idx = 1, cells_len do
@@ -450,6 +508,10 @@ function Table:_prepare_header_lines(kind, lines, grid)
       end
       data_line:append(border.ver)
 
+      cell.range = { 0, char_idx, 0, char_idx + column.width }
+      char_idx = cell.range[4] + 1
+      row_cells[#row_cells + 1] = cell
+
       outer_border_line:append(string.rep(border.hor, column.width))
       outer_border_line:append(kind == 1 and border.down_hor or border.up_hor)
     end
@@ -463,21 +525,35 @@ function Table:_prepare_header_lines(kind, lines, grid)
 
     outer_border_line._texts[#outer_border_line._texts]:set(kind == 1 and border.down_left or border.up_left)
 
-    if kind == -1 then
-      line_idx = line_idx + 1
-      lines[line_idx] = inner_border_line
-    elseif row_idx == 1 then
-      line_idx = line_idx + 1
-      lines[line_idx] = outer_border_line
+    if self._.has_border then
+      if kind == -1 then
+        line_idx = line_idx + 1
+        lines[line_idx] = inner_border_line
+      elseif row_idx == 1 then
+        line_idx = line_idx + 1
+        lines[line_idx] = outer_border_line
+      end
     end
     line_idx = line_idx + 1
     lines[line_idx] = data_line
-    if kind == 1 then
-      line_idx = line_idx + 1
-      lines[line_idx] = inner_border_line
-    elseif row_idx == -1 then
-      line_idx = line_idx + 1
-      lines[line_idx] = outer_border_line
+
+    -- record the buffer position of this row's cells for get_cell lookup
+    local linenr = linenr_start + line_idx - 1
+    for _, header_cell in ipairs(row_cells) do
+      header_cell.range[1] = linenr
+      header_cell.range[3] = linenr
+    end
+    self._.line_cells[linenr] = row_cells
+    self._.nav_linenrs[#self._.nav_linenrs + 1] = linenr
+
+    if self._.has_border then
+      if kind == 1 then
+        line_idx = line_idx + 1
+        lines[line_idx] = inner_border_line
+      elseif row_idx == -1 then
+        line_idx = line_idx + 1
+        lines[line_idx] = outer_border_line
+      end
     end
   end
 
@@ -495,20 +571,21 @@ function Table:render(linenr_start)
 
   local data_grid, header_grid = self:_prepare_grid()
 
-  self._.data_grid = data_grid
+  self._.line_cells = {}
+  self._.nav_linenrs = {}
 
   local line_idx = 0
   ---@type nui_t_list<NuiLine>
   local lines = { len = line_idx }
 
-  self:_prepare_header_lines(1, lines, header_grid)
+  self:_prepare_header_lines(1, lines, header_grid, linenr_start)
   line_idx = lines.len
 
   local border = self._.border
 
   local rows_len = data_grid.len
 
-  if line_idx == 0 and rows_len > 0 then
+  if line_idx == 0 and rows_len > 0 and self._.has_border then
     local columns = self._.columns
     local columns_len = #columns
 
@@ -527,8 +604,6 @@ function Table:render(linenr_start)
     line_idx = line_idx + 1
     lines[line_idx] = top_border_line
   end
-
-  local data_linenrs = self._.data_linenrs
 
   for row_idx = 1, rows_len do
     local char_idx = 0
@@ -566,18 +641,23 @@ function Table:render(linenr_start)
     line_idx = line_idx + 1
     lines[line_idx] = data_line
 
-    data_linenrs[row_idx] = data_linenr
+    self._.line_cells[data_linenr] = row
+    self._.nav_linenrs[#self._.nav_linenrs + 1] = data_linenr
 
-    if not is_last_line or not header_grid[-1] then
+    if self._.has_border and (not is_last_line or not header_grid[-1]) then
       line_idx = line_idx + 1
       lines[line_idx] = bottom_border_line
     end
   end
 
   lines.len = line_idx
-  self:_prepare_header_lines(-1, lines, header_grid)
+  self:_prepare_header_lines(-1, lines, header_grid, linenr_start)
   line_idx = lines.len
   lines.len = nil
+
+  -- every rendered line is padded to the full table width, so line 1 is
+  -- representative of the table's width.
+  self._.size = { width = line_idx > 0 and lines[1]:width() or 0, height = line_idx }
 
   _.set_buf_options(self.bufnr, { modifiable = true, readonly = false })
 
@@ -600,37 +680,128 @@ function Table:render(linenr_start)
   self._.linenr[1], self._.linenr[2] = linenr_start, line_idx + linenr_start - 1
 end
 
----@param position? {[1]: integer, [2]: integer}
-function Table:get_cell(position)
-  local pos = vim.fn.getcharpos(".") --[[@as integer[] ]]
-  local line, char = pos[2], pos[3]
+---@param data? table[]
+---@return NuiTable self
+function Table:set_data(data)
+  self._.data = data or {}
+  return self
+end
 
-  local row_idx = 0
-  for idx, linenr in ipairs(self._.data_linenrs) do
-    if linenr == line then
-      row_idx = idx
-      break
-    elseif linenr > line then
+---@return { width: integer, height: integer }|nil size dimensions of the last render
+function Table:get_size()
+  return self._.size
+end
+
+---Finds the cell on `line` whose range contains char column `char`.
+---When `char` falls on a border/gap, biases to the cell on its right.
+---@param cells (NuiTable.Cell|NuiTable.HeaderCell)[]
+---@param char integer
+---@return NuiTable.Cell|NuiTable.HeaderCell|nil
+local function resolve_cell_at(cells, char)
+  for i = 1, #cells do
+    local range = cells[i].range
+    if range[2] < char and char <= range[4] then
+      return cells[i]
+    end
+  end
+  -- on a border/gap: bias right (first cell starting at or after `char`)
+  for i = 1, #cells do
+    if cells[i].range[2] >= char then
+      return cells[i]
+    end
+  end
+end
+
+---Resolves the target cell (and where the cursor should go) for a position
+---relative to `(line, char)`, over the continuous header/data/footer grid.
+---@param line integer
+---@param char integer
+---@param position? {[1]: integer, [2]: integer}
+---@return NuiTable.Cell|NuiTable.HeaderCell|nil cell
+---@return integer? target_line
+---@return integer? target_char
+function Table:_resolve_cell(line, char, position)
+  local row_delta = position and position[1] or 0
+  local col_delta = position and position[2] or 0
+
+  local nav = self._.nav_linenrs
+  local line_index
+  for i = 1, #nav do
+    if nav[i] == line then
+      line_index = i
       break
     end
   end
-  row_idx = row_idx + (position and position[1] or 0)
-
-  local row = self._.data_grid[row_idx]
-  if not row then
+  if not line_index then
     return
   end
 
-  local cell_idx = 0
-  for idx, cell in ipairs(row) do
-    local range = cell.range
-    if range[2] < char and char <= range[4] then
-      cell_idx = idx
+  -- vertical move: step to the adjacent navigable line, keeping the x column
+  local target_line = line
+  if row_delta ~= 0 then
+    target_line = nav[line_index + row_delta]
+    if not target_line then
+      return
     end
   end
-  cell_idx = cell_idx + (position and position[2] or 0)
 
-  return row[cell_idx]
+  local cells = self._.line_cells[target_line]
+  local cell = cells and resolve_cell_at(cells, char)
+  if not cell then
+    return
+  end
+
+  local target_char
+  if col_delta ~= 0 then
+    -- horizontal move: step to the adjacent cell in the (target) line
+    local cell_index
+    for i = 1, #cells do
+      if cells[i] == cell then
+        cell_index = i
+        break
+      end
+    end
+    cell = cells[cell_index + col_delta]
+    if not cell then
+      return
+    end
+    -- range[2] is the border before the cell, so content starts at +1.
+    target_char = cell.range[2] + 1
+  elseif row_delta ~= 0 then
+    target_char = char -- pure vertical move: preserve the x column
+  else
+    target_char = cell.range[2] + 1 -- no move: snap to the current cell
+  end
+
+  return cell, target_line, target_char
+end
+
+---Returns the cell relative to the one under the cursor, over the continuous
+---header/data/footer grid. Vertical moves keep the cursor's column; horizontal
+---moves step cell-by-cell. Returns nil past the grid edges or off any cell.
+---@param position? {[1]: integer, [2]: integer} `(row, col)` tuple relative to cursor
+---@return NuiTable.Cell|NuiTable.HeaderCell|nil
+function Table:get_cell(position)
+  local pos = vim.fn.getcharpos(".") --[[@as integer[] ]]
+  local cell = self:_resolve_cell(pos[2], pos[3], position)
+  return cell
+end
+
+---Moves the cursor to the cell at the given position, relative to the cell
+---under the cursor. Vertical moves keep the column; horizontal moves snap to the
+---target cell's content. No-op (returns nil) if there's no cell there.
+---@param position? {[1]: integer, [2]: integer} `(row, col)` tuple relative to cursor
+---@return NuiTable.Cell|NuiTable.HeaderCell|nil cell the cell the cursor was moved to
+function Table:goto_cell(position)
+  local pos = vim.fn.getcharpos(".") --[[@as integer[] ]]
+  local cell, target_line, target_char = self:_resolve_cell(pos[2], pos[3], position)
+  if not cell then
+    return
+  end
+
+  vim.fn.setcharpos(".", { 0, target_line, target_char, 0 })
+
+  return cell
 end
 
 function Table:refresh_cell(cell)
