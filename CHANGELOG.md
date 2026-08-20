@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.5.0](https://github.com/MunifTanjim/nui.nvim/compare/0.4.0...0.5.0) (2026-08-20)
+
+
+### Features
+
+* **popup:** allow size only update_layout ([8cfa63f](https://github.com/MunifTanjim/nui.nvim/commit/8cfa63f320de3da2ae827a1684a56b4becb93c8b))
+* **table:** borderless, set_data, and cell navigation ([10fc361](https://github.com/MunifTanjim/nui.nvim/commit/10fc361835c856ba4233ef5ea135b919bf3dce97))
+
+
+### Bug Fixes
+
+* **input:** set default text and prompt reliably for multiple inputs ([de74099](https://github.com/MunifTanjim/nui.nvim/commit/de740991c12411b663994b2860f1a4fd0937c130))
+* **layout:** guard against invalid winid ([e2b743a](https://github.com/MunifTanjim/nui.nvim/commit/e2b743aafe0e88834a690f119eca37bbe4909c62))
+* **layout:** set border=none for float container ([7cd18e7](https://github.com/MunifTanjim/nui.nvim/commit/7cd18e73cfbd70e1546931b7268b3eebaeff9391))
+* **popup:** guard against invalid winid ([3e7c131](https://github.com/MunifTanjim/nui.nvim/commit/3e7c1312759b939d246ecc2cb970d40af7048441))
+
+
+### Performance Improvements
+
+* **tree:** optimize redraw for large amount of nodes ([3d425a7](https://github.com/MunifTanjim/nui.nvim/commit/3d425a7379b8c198d2f685a4f28e869eb706f8ef))
+
 ## [0.4.0](https://github.com/MunifTanjim/nui.nvim/compare/0.3.0...0.4.0) (2025-04-23)
 
 
