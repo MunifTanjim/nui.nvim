@@ -53,6 +53,14 @@ Quickly render tree-like structured content on the buffer.
 
 **[Check Wiki Page for `nui.tree`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.tree)**
 
+### [NuiSpinner](lua/nui/spinner)
+
+Quickly render animated loading indicators on the buffer.
+
+**[Check Detailed Documentation for `nui.spinner`](lua/nui/spinner)**
+
+**[Check Wiki Page for `nui.spinner`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.spinner)**
+
 ### [NuiAnimation](lua/nui/animation)
 
 Playback engine for frame-based and timeline animations.
