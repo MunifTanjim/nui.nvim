@@ -53,6 +53,14 @@ Quickly render tree-like structured content on the buffer.
 
 **[Check Wiki Page for `nui.tree`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.tree)**
 
+### [NuiAnimation](lua/nui/animation)
+
+Playback engine for frame-based and timeline animations.
+
+**[Check Detailed Documentation for `nui.animation`](lua/nui/animation)**
+
+**[Check Wiki Page for `nui.animation`](https://github.com/MunifTanjim/nui.nvim/wiki/nui.animation)**
+
 ## Components
 
 ### [Layout](lua/nui/layout)
