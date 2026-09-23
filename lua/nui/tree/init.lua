@@ -11,6 +11,28 @@ local function get_winid(bufnr)
   return vim.fn.win_findbuf(bufnr)[1]
 end
 
+-- Keep a node's child list consistent with the tree's id map. Ids that are not
+-- registered anymore (left over from a previous registration of the node) would
+-- otherwise be traversed by code assuming they are still part of the tree.
+---@param tree NuiTree
+---@param node NuiTree.Node
+local function prune_child_ids(tree, node)
+  local child_ids = node._child_ids
+  if not child_ids then
+    return
+  end
+
+  local by_id = tree.nodes and tree.nodes.by_id or {}
+  local registered_child_ids = {}
+  for _, child_id in ipairs(child_ids) do
+    if by_id[child_id] then
+      table.insert(registered_child_ids, child_id)
+    end
+  end
+
+  node._child_ids = registered_child_ids
+end
+
 ---@param tree NuiTree
 ---@param nodes NuiTree.Node[]
 ---@param parent_node? NuiTree.Node
@@ -45,16 +67,18 @@ local function initialize_nodes(tree, nodes, parent_node, get_node_id)
       table.insert(root_ids, node_id)
     end
 
-    if not node.__children or #node.__children == 0 then
+    local children = node.__children
+    if not children or #children == 0 then
+      prune_child_ids(tree, node)
       return
     end
 
-    if not node._child_ids then
-      node._child_ids = {}
-    end
+    -- rebuild the child list: a node can be initialized again with the leftovers of
+    -- a previous registration
+    node._child_ids = {}
 
     local prev_child_node
-    for _, child_node in ipairs(node.__children) do
+    for _, child_node in ipairs(children) do
       child_node._parent_id = node_id
       initialize(child_node, depth + 1)
       table.insert(node._child_ids, child_node:get_id())
@@ -515,6 +539,29 @@ local function merge_by_id(by_id, new_by_id)
   end
 end
 
+-- Nodes handed back to :set_nodes as the very same objects already registered in the
+-- tree are reused, not replaced: their children stay in the id map, so their subtree
+-- must not be detached. Nodes coming with children of their own are (re)initialized.
+---@param tree NuiTree
+---@param nodes NuiTree.Node[]
+---@return table<string, boolean>
+local function get_reused_ids(tree, nodes)
+  local by_id = tree.nodes and tree.nodes.by_id
+  if not by_id then
+    return {}
+  end
+
+  local reused_ids = {}
+  for _, node in ipairs(nodes) do
+    local node_id = node._id
+    if node_id and by_id[node_id] == node and not (node.__children and #node.__children > 0) then
+      reused_ids[node_id] = true
+    end
+  end
+
+  return reused_ids
+end
+
 ---@param nodes NuiTree.Node[]
 ---@param parent_node? NuiTree.Node
 function Tree:_add_nodes(nodes, parent_node)
@@ -607,15 +654,21 @@ end
 ---@param nodes NuiTree.Node[]
 ---@param parent_id? string parent node's id
 function Tree:set_nodes(nodes, parent_id)
+  local reused_ids = get_reused_ids(self, nodes)
+
   if not parent_id then
-    -- detach the old nodes before dropping them so a stale reference cannot poke
-    -- the tree (mirrors remove_node); self.nodes is nil on the first call from init()
+    -- detach the old nodes before dropping them so a stale reference cannot poke the
+    -- tree (mirrors remove_node); self.nodes is nil on the first call from init().
+    -- reused nodes keep their registration, i.e. their whole subtree stays reachable
+    local by_id = self.nodes and self.nodes.by_id or {}
     if self.nodes then
       for _, node_id in ipairs(self.nodes.root_ids) do
-        remove_node(self, node_id)
+        if not reused_ids[node_id] then
+          remove_node(self, node_id)
+        end
       end
     end
-    self.nodes = { by_id = {}, root_ids = {} }
+    self.nodes = { by_id = by_id, root_ids = {} }
     self:_add_nodes(nodes)
     self:_link()
     self:_queue_pending_change(self._.linenr[1], self._.linenr[2], self.nodes.by_id[self._head])
@@ -637,9 +690,12 @@ function Tree:set_nodes(nodes, parent_id)
 
   if parent_node._child_ids then
     -- detach the old children (recursively) before dropping them so a stale
-    -- reference cannot poke the tree (mirrors remove_node)
+    -- reference cannot poke the tree (mirrors remove_node); reused children are
+    -- kept as they are, together with their subtree
     for _, node_id in ipairs(parent_node._child_ids) do
-      remove_node(self, node_id)
+      if not reused_ids[node_id] then
+        remove_node(self, node_id)
+      end
     end
 
     parent_node._child_ids = nil
