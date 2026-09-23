@@ -1178,6 +1178,132 @@ describe("nui.tree", function()
         "b",
       })
     end)
+    it("keeps the subtree of nodes reused from the tree", function()
+      local tree = Tree({
+        bufnr = bufnr,
+        nodes = {
+          Tree.Node({ text = "a" }),
+          Tree.Node({ text = "b" }, {
+            Tree.Node({ text = "b-1" }),
+          }),
+        },
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:get_node("b"):expand()
+      tree:render()
+
+      -- "b" is passed back in as the same node object, only "a" is replaced
+      local nodes = tree:get_nodes()
+      nodes[1] = Tree.Node({ text = "a" })
+
+      tree:set_nodes(nodes)
+
+      -- the reused node keeps its subtree
+      eq(tree:get_node("b-1") ~= nil, true)
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  a",
+        " b",
+        "    b-1",
+      })
+
+      -- a root level refresh afterwards must not error
+      local ok = pcall(tree.set_nodes, tree, {
+        Tree.Node({ text = "a" }),
+        Tree.Node({ text = "b" }),
+      })
+      eq(ok, true)
+    end)
+
+    it("keeps the subtree of children reused from the tree", function()
+      local tree = Tree({
+        bufnr = bufnr,
+        nodes = {
+          Tree.Node({ text = "a" }, {
+            Tree.Node({ text = "a-1" }),
+            Tree.Node({ text = "a-2" }, {
+              Tree.Node({ text = "a-2-1" }),
+            }),
+          }),
+        },
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:get_node("a"):expand()
+      tree:get_node("a-2"):expand()
+      tree:render()
+
+      -- "a-2" is passed back in as the same node object, only "a-1" is replaced
+      local children = tree:get_nodes("a")
+      children[1] = Tree.Node({ text = "a-1" })
+
+      tree:set_nodes(children, "a")
+
+      eq(tree:get_node("a-2-1") ~= nil, true)
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        " a",
+        "    a-1",
+        "   a-2",
+        "      a-2-1",
+      })
+    end)
+
+    it("drops children of a node added back after its removal", function()
+      local node_b = Tree.Node({ text = "b" }, {
+        Tree.Node({ text = "b-1" }),
+      })
+
+      local tree = Tree({
+        bufnr = bufnr,
+        nodes = {
+          Tree.Node({ text = "a" }),
+          node_b,
+        },
+        get_node_id = function(node)
+          return node.text
+        end,
+      })
+
+      tree:get_node("b"):expand()
+      tree:render()
+
+      -- "b" is removed and its children no longer belong to the tree
+      tree:set_nodes({
+        Tree.Node({ text = "a" }),
+      })
+
+      -- ... and it is added back as the same node object
+      tree:set_nodes({
+        Tree.Node({ text = "a" }),
+        node_b,
+      })
+
+      eq(node_b:get_child_ids(), {})
+      eq(tree:get_node("b-1"), nil)
+
+      tree:render()
+
+      h.assert_buf_lines(tree.bufnr, {
+        "  a",
+        "  b",
+      })
+
+      -- a root level refresh afterwards must not error
+      local ok = pcall(tree.set_nodes, tree, {
+        Tree.Node({ text = "a" }),
+      })
+      eq(ok, true)
+    end)
   end)
 
   describe("method :remove_node", function()
