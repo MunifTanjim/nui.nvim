@@ -971,6 +971,9 @@ function Tree:render(linenr_start)
   linenr[1] = linenr_start
   linenr[2] = linenr[2] + linenr_shift
 
+  -- A lookup from prepare_node can cache line numbers before rendering finishes.
+  self:_invalidate_linenr_cache()
+
   _.set_buf_options(self.bufnr, { modifiable = false, readonly = true })
 end
 
