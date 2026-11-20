@@ -402,6 +402,33 @@ describe("nui.tree", function()
       eq({ tree:get_node(4) }, { b_node_children[1], 3, 4 })
     end)
 
+    it("returns rendered rows after lookups from prepare_node", function()
+      local tree
+      tree = Tree({
+        bufnr = bufnr,
+        nodes = { Tree.Node({ text = "loading" }) },
+        prepare_node = function(node, parent)
+          if parent then
+            local ids = parent:get_child_ids()
+            tree:get_node(ids[#ids])
+          end
+          return node.text
+        end,
+      })
+      tree:render()
+
+      local first = Tree.Node({ text = "first" })
+      local last = Tree.Node({ text = "last" })
+      local root = Tree.Node({ text = "root" }, { first, last })
+      tree:set_nodes({ root })
+      root:expand()
+      tree:render()
+
+      eq(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), { "root", "first", "last" })
+      eq({ tree:get_node(last:get_id()) }, { last, 3, 3 })
+      eq({ tree:get_node(3) }, { last, 3, 3 })
+    end)
+
     it("skips height-0 nodes on the cold-path linenr lookup", function()
       -- `prepare_node` returning nil makes a node render nothing (height 0),
       -- but it stays in the visible chain. The single-walk cold path (used for
